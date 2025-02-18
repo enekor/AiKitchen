@@ -1,0 +1,27 @@
+name: aikitchen
+description: "A new Flutter project."
+publish_to: 'none' 
+version: 1.0.0
+
+environment:
+  sdk: ^3.8.0-91.0.dev
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dynamic_color: ^1.6.8
+  google_sign_in: ^6.2.1
+  firebase_core: ^2.25.4
+  firebase_auth: ^4.17.4
+  google_generative_ai: ^0.2.0
+  shared_preferences: ^2.2.2  # Para guardar la API key localmente
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
