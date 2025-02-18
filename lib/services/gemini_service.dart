@@ -21,7 +21,7 @@ class GeminiService {
 
   Future<String> generateContent(String prompt) async {
     if (_model == null) {
-      throw Exception('API key no configurada');
+      throw NoApiKeyException();
     }
 
     try {
@@ -32,4 +32,9 @@ class GeminiService {
       return 'Error: $e';
     }
   }
+}
+
+class NoApiKeyException implements Exception {
+  @override
+  String toString() => 'API Key no configurada';
 } 

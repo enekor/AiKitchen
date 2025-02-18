@@ -1,19 +1,16 @@
-import 'package:aikitchen/screens/home/home.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'home/home.dart';
+import 'screens/api_key_screen.dart';
+import 'services/gemini_service.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  
+void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return DynamicColorBuilder(
@@ -31,7 +28,24 @@ class MyApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
-          home: const Home(),
+          home: FutureBuilder<String?>(
+            future: GeminiService().getStoredApiKey(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              if (snapshot.hasData && snapshot.data != null) {
+                return const Home();
+              }
+              
+              return const ApiKeyScreen();
+            },
+          ),
+          routes: {
+            '/home': (context) => const Home(),
+            '/api_key': (context) => const ApiKeyScreen(),
+          },
         );
       },
     );

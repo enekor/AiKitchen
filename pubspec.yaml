@@ -10,11 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   dynamic_color: ^1.6.8
-  google_sign_in: ^6.2.1
-  firebase_core: ^2.25.4
-  firebase_auth: ^4.17.4
   google_generative_ai: ^0.2.0
   shared_preferences: ^2.2.2  # Para guardar la API key localmente
+  url_launcher: ^6.2.5
 
 
 dev_dependencies:
