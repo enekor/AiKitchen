@@ -4,12 +4,14 @@ class AnimatedCard extends StatefulWidget {
   final String text;
   final Icon icon;
   final List<Widget> children;
+  final Widget? trailing;
 
   const AnimatedCard({
     super.key,
     required this.text,
     required this.icon,
-    required this.children
+    required this.children,
+    this.trailing,
   });
 
   @override
@@ -72,6 +74,8 @@ class _ExpandableCardState extends State<AnimatedCard> {
                     ? CrossFadeState.showSecond 
                     : CrossFadeState.showFirst,
               ),
+              if (widget.trailing != null)
+                widget.trailing!,
             ],
           ),
         ),
@@ -79,3 +83,4 @@ class _ExpandableCardState extends State<AnimatedCard> {
     );
   }
 } 
+

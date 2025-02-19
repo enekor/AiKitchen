@@ -1,3 +1,6 @@
+import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'home/home.dart';
@@ -47,6 +50,13 @@ class MyApp extends StatelessWidget {
           routes: {
             '/home': (context) => const Home(),
             '/api_key': (context) => const ApiKeyScreen(),
+            '/recipe': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as RecipeScreenArguments;
+              return RecipeScreen(
+                recipe: args.recipe,
+                onSteps: args.onSteps,
+              );
+            },
           },
         );
       },

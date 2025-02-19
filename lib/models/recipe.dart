@@ -6,6 +6,7 @@ class Recipe {
   final String tiempoPreparacion;
   final String tipo;
   final String descripcion;
+  List<String>? pasos;
 
   Recipe({
     required this.nombre,
@@ -13,6 +14,7 @@ class Recipe {
     required this.tiempoPreparacion,
     required this.tipo,
     required this.descripcion,
+    this.pasos,
   });
 
   // Crear una instancia de Recipe desde un JSON
@@ -39,5 +41,10 @@ class Recipe {
   static List<Recipe> fromJsonList(String jsonString) {
     final List<dynamic> jsonList = json.decode(jsonString) as List;
     return jsonList.map((json) => Recipe.fromJson(json)).toList();
+  }
+
+  void addSteps(String steps) {
+    var _steps = json.decode(steps);
+    pasos = _steps.map((step) => step.toString()).toList();
   }
 }

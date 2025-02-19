@@ -1,5 +1,5 @@
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/widgets/common_widgets.dart';
+import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:flutter/material.dart';
 
 class IngredientsPart extends StatefulWidget {
@@ -94,10 +94,12 @@ class _IngredientsPartState extends State<IngredientsPart> {
 
 class RecipesListHasData extends StatelessWidget {
   final List<Recipe> recipes;
+  final Function(Recipe) onClickRecipe;
 
   const RecipesListHasData({
     super.key,
     required this.recipes,
+    required this.onClickRecipe,
   });
 
   @override
@@ -110,6 +112,11 @@ class RecipesListHasData extends StatelessWidget {
       children: recipes.map((receta) => AnimatedCard(
         text: receta.nombre,
         icon: Icon(Icons.restaurant),
+        trailing: IconButton(
+          icon: const Icon(Icons.arrow_forward),
+          onPressed: () => onClickRecipe(receta),
+          tooltip: 'Ver receta completa',
+        ),
         children: [
           Text('Tipo: ${receta.tipo}'),
           const SizedBox(height: 8),

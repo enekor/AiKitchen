@@ -1,7 +1,9 @@
 import 'package:aikitchen/home/home_widgets.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import '../singleton/app_singleton.dart';
+import '../models/recipe_screen_arguments.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -19,6 +21,10 @@ class _HomeState extends State<Home> {
 
   void _navigateToSettings() {
     Navigator.pushNamed(context, '/api_key');
+  }
+
+  void _onSteps(Recipe recipe) {
+    recetas.firstWhere((element) => element.nombre == recipe.nombre).pasos = recipe.pasos ?? [];
   }
 
   Future<void> _generateResponse() async {
@@ -65,6 +71,17 @@ class _HomeState extends State<Home> {
       });
     }
 
+    void onClickRecipe(Recipe recipe) {
+      Navigator.pushNamed(
+        context,
+        '/recipe',
+        arguments: RecipeScreenArguments(
+          recipe: recipe,
+          onSteps: _onSteps,
+        ),
+      );
+    }
+
   @override
   Widget build(BuildContext context) {
     Widget content = _isLoading
@@ -93,7 +110,7 @@ class _HomeState extends State<Home> {
                     ingredientes: ingredientes,
                   ),
                   const SizedBox(height: 16),
-                  RecipesListHasData(recipes: recetas),
+                  RecipesListHasData(recipes: recetas, onClickRecipe: onClickRecipe),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _generateResponse,

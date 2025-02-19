@@ -1,3 +1,4 @@
+import 'package:aikitchen/models/recipe.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,6 +8,7 @@ class AppSingleton {
   
   GenerativeModel? _model;
   String? _apiKey;
+  Recipe? recipe;
 
   factory AppSingleton() {
     return _instance;
@@ -52,6 +54,12 @@ class AppSingleton {
     } catch (e) {
       return 'Error: $e';
     }
+  }
+
+  Future<String> generateRecipe(Recipe recipe) async {
+    final prompt = 'Eres un chef experto en cocina, que genera recetas de cocina a partir de un listado de ingredientes, Genera una receta para el siguiente plato: ${recipe.nombre} con los siguientes ingredientes: ${recipe.ingredientes.join(', ')}, solo que no tienes que saldudarme ni nada, solo tienes que generar la receta en formato json, pero este json solo es una lista de pasos, no tienes que generar ningun texto, solo el json';
+    final response = await generateContent(prompt);
+    return response;
   }
 }
 
