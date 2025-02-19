@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/gemini_service.dart';
+import '../singleton/app_singleton.dart';
 
 class ApiKeyScreen extends StatefulWidget {
   const ApiKeyScreen({super.key});
@@ -73,7 +74,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
               ElevatedButton(
                 onPressed: () async {
                   if (_apiKeyController.text.isNotEmpty) {
-                    await GeminiService().setApiKey(_apiKeyController.text);
+                    await AppSingleton().setApiKey(_apiKeyController.text);
                     if (context.mounted) {
                       Navigator.of(context).pushReplacementNamed('/home');
                     }

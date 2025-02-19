@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'home/home.dart';
 import 'screens/api_key_screen.dart';
-import 'services/gemini_service.dart';
+import 'singleton/app_singleton.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppSingleton().initializeWithStoredKey();
   runApp(const MyApp());
 }
 
@@ -29,7 +31,7 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home: FutureBuilder<String?>(
-            future: GeminiService().getStoredApiKey(),
+            future: AppSingleton().getStoredApiKey(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());

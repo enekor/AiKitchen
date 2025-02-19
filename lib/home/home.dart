@@ -1,5 +1,7 @@
+import 'package:aikitchen/home/home_widgets.dart';
+import 'package:aikitchen/models/recipe.dart';
 import 'package:flutter/material.dart';
-import '../services/gemini_service.dart';
+import '../singleton/app_singleton.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -9,10 +11,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final GeminiService _geminiService = GeminiService();
-  final TextEditingController _promptController = TextEditingController();
+  String prompt = 'Eres un asistente de cocina que me ayuda a elegir que comer a partir de un listado de ingredientes que tengo en mi nevera, pero necesito que solo me deslas posibles recetas en formato de json, sin ningun texto ni saludo ni nada, la respuesta es una lista json que se compone de nombre con el nombre "nombre", lista de ingredientes con el nombre "ingredientes", tiempo estimado de preparacion con el nombre "tiempo_preparacion", y tipo de plato (principal, postre, etc) con el nombre "tipo_plato" y una pequeña descripcion del plato con el nombre "descripcion", la lista de ingredientes a la que tengo acceso es esta: ';
   String? _response;
   bool _isLoading = false;
+  List<String> ingredientes = [];
+  List<Recipe> recetas = [];
 
   void _navigateToSettings() {
     Navigator.pushNamed(context, '/api_key');
@@ -25,15 +28,21 @@ class _HomeState extends State<Home> {
     });
     
     try {
-      final response = await _geminiService.generateContent(
-        _promptController.text,
+      final response = await AppSingleton().generateContent(
+        prompt + ingredientes.join(', ')
       );
       setState(() {
         _response = response;
+        recetas = Recipe.fromJsonList(response.replaceAll("```json", "").replaceAll("```", ""));
+        print(recetas);
       });
     } on NoApiKeyException {
       setState(() {
         _response = 'Por favor, configura tu API Key de Gemini para poder usar la aplicación';
+      });
+    } catch (e) {
+      setState(() {
+        _response = 'Error al procesar la respuesta: $e';
       });
     } finally {
       setState(() {
@@ -42,8 +51,57 @@ class _HomeState extends State<Home> {
     }
   }
 
+   void onNewIngredient( String ingrediente) {
+      setState(() {
+        if(!ingredientes.contains(ingrediente)){
+          ingredientes.add(ingrediente);
+        }
+      });
+    }
+
+    void onRemoveIngredient( String ingrediente) {
+      setState(() {
+        ingredientes.remove(ingrediente);
+      });
+    }
+
   @override
   Widget build(BuildContext context) {
+    Widget content = _isLoading
+        ? const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Generando recetas...'),
+                SizedBox(height: 16),
+                CircularProgressIndicator(),
+              ],
+            ),
+          )
+        : _response?.startsWith('Por favor, configura') ?? false
+            ? Center(
+                child: Text(
+                  _response ?? "",
+                  style: TextStyle(color: Colors.red),
+                ),
+              )
+            : Column(
+                children: [
+                  IngredientsPart(
+                    onNewIngredient: onNewIngredient,
+                    onRemoveIngredient: onRemoveIngredient,
+                    ingredientes: ingredientes,
+                  ),
+                  const SizedBox(height: 16),
+                  RecipesListHasData(recipes: recetas),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _generateResponse,
+                    child: Text('Generar recetas'),
+                  ),
+                ],
+              );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI Kitchen'),
@@ -54,45 +112,15 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _promptController,
-              decoration: const InputDecoration(
-                labelText: 'Escribe tu pregunta',
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _generateResponse,
-              child: const Text('Enviar'),
-            ),
-            const SizedBox(height: 16),
-            if (_isLoading)
-              const CircularProgressIndicator()
-            else if (_response != null)
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Text(
-                    _response!,
-                    style: _response!.startsWith('Por favor, configura')
-                        ? const TextStyle(color: Colors.red)
-                        : null,
-                  ),
-                ),
-              ),
-          ],
-        ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: content,
       ),
     );
   }
 
   @override
   void dispose() {
-    _promptController.dispose();
     super.dispose();
   }
 } 
