@@ -1,4 +1,3 @@
-import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:flutter/material.dart';

@@ -16,13 +16,15 @@ class _RecipeScreenState extends State<RecipeScreen> {
   bool _isLoading = false;
 
   Future<void> _generateRecipe() async {
-    if(widget.recipe.pasos == null || widget.recipe.pasos!.isEmpty) {
+    if (widget.recipe.pasos == null || widget.recipe.pasos!.isEmpty) {
       setState(() {
         _isLoading = true;
       });
-      final _response = await AppSingleton().generateRecipe(widget.recipe);
+      final response = await AppSingleton().generateRecipe(widget.recipe);
       setState(() {
-        widget.recipe.addSteps(_response.replaceAll('```json','').replaceAll('```', ''));
+        widget.recipe.addSteps(
+          response.replaceAll('```json', '').replaceAll('```', ''),
+        );
         widget.onSteps(widget.recipe);
         _isLoading = false;
       });
@@ -38,16 +40,26 @@ class _RecipeScreenState extends State<RecipeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.recipe.nombre),
-      ),
+      appBar: AppBar(title: Text(widget.recipe.nombre)),
       body: Column(
         children: [
-          _isLoading 
-            ? Center(child: CircularProgressIndicator())
-            : StepsList(steps: widget.recipe.pasos ?? [])
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : widget.recipe.pasos != null
+                ? StepsList(steps: widget.recipe.pasos!)
+                : Center(child: Column(
+                  children: [
+                    Text('Hubo un problema, intentelo mas tarde'),
+                    ElevatedButton(onPressed: _generateRecipe, child: Row(
+                      children: [
+                        Icon(Icons.refresh_rounded),
+                        Text('Reintentar'),
+                      ],
+                    ))
+                  ],
+                )),
         ],
-      )
+      ),
     );
   }
 }

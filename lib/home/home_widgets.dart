@@ -1,6 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:flutter/material.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 
 class IngredientsPart extends StatefulWidget {
   final List<String> ingredientes;
@@ -19,12 +20,13 @@ class IngredientsPart extends StatefulWidget {
 }
 
 class _IngredientsPartState extends State<IngredientsPart> {
-  TextEditingController _ingredientController = TextEditingController();
+  final TextEditingController _ingredientController = TextEditingController();
 
   void _addNewIngredient() {
     setState(() {
       widget.ingredientes.add(_ingredientController.text);
       widget.onNewIngredient(_ingredientController.text);
+      Toaster.showToast('Ingrediente añadido: ${_ingredientController.text}');
       _ingredientController.clear();
     });
   }
@@ -86,7 +88,7 @@ class _IngredientsPartState extends State<IngredientsPart> {
               )
             ],
           ),
-        )).toList(),
+        )),
       ],
     );
   }

@@ -44,7 +44,9 @@ class Recipe {
   }
 
   void addSteps(String steps) {
-    var _steps = json.decode(steps);
-    pasos = _steps.map((step) => step.toString()).toList();
+    if(steps.contains('[')){
+      var steps0 = json.decode(steps);
+      pasos = steps0.map((step) => step.toString()).toList();
+    }
   }
 }

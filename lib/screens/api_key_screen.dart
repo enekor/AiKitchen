@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../services/gemini_service.dart';
 import '../singleton/app_singleton.dart';
 
 class ApiKeyScreen extends StatefulWidget {
