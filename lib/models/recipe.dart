@@ -2,51 +2,44 @@ import 'dart:convert';
 
 class Recipe {
   final String nombre;
-  final List<String> ingredientes;
-  final String tiempoPreparacion;
-  final String tipo;
   final String descripcion;
-  List<String>? pasos;
+  final String tiempoEstimado;
+  final List<String> ingredientes;
+  final List<String> preparacion;
 
   Recipe({
     required this.nombre,
-    required this.ingredientes,
-    required this.tiempoPreparacion,
-    required this.tipo,
     required this.descripcion,
-    this.pasos,
+    required this.tiempoEstimado,
+    required this.ingredientes,
+    required this.preparacion,
   });
 
-  // Crear una instancia de Recipe desde un JSON
+  // Método para crear una instancia de Recipe a partir de un JSON
   factory Recipe.fromJson(Map<String, dynamic> json) {
     return Recipe(
-      nombre: json['nombre'] as String,
-      ingredientes: List<String>.from(json['ingredientes'] as List),
-      tiempoPreparacion: json['tiempo_preparacion'] as String,
-      tipo: json['tipo_plato'] as String,
-      descripcion: json['descripcion'] as String,
+      nombre: json['nombre'],
+      descripcion: json['descripcion'],
+      tiempoEstimado: json['tiempo_estimado'],
+      ingredientes: List<String>.from(json['ingredientes']),
+      preparacion: List<String>.from(json['preparacion']),
     );
   }
 
-  // Convertir la instancia de Recipe a JSON
-  Map<String, dynamic> toJson() => {
-        'nombre': nombre,
-        'ingredientes': ingredientes,
-        'tiempo_preparacion': tiempoPreparacion,
-        'tipo_plato': tipo,
-        'descripcion': descripcion,
-      };
-
-  // Método estático para convertir una lista de JSON a lista de Recipe
-  static List<Recipe> fromJsonList(String jsonString) {
-    final List<dynamic> jsonList = json.decode(jsonString) as List;
-    return jsonList.map((json) => Recipe.fromJson(json)).toList();
+  // Método para convertir una instancia de Recipe a JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'nombre': nombre,
+      'descripcion': descripcion,
+      'tiempo_estimado': tiempoEstimado,
+      'ingredientes': ingredientes,
+      'preparacion': preparacion,
+    };
   }
 
-  void addSteps(String steps) {
-    if(steps.contains('[')){
-      var _p = json.decode(steps);
-      pasos = _p.map((step) => step.toString()).toList();
-    }
+  // Método para crear una lista de Recipe a partir de una lista de JSON
+  static List<Recipe> fromJsonList(String jsonString) {
+    final List<dynamic> jsonData = json.decode(jsonString);
+    return jsonData.map((json) => Recipe.fromJson(json)).toList();
   }
 }

@@ -27,10 +27,7 @@ class _StepsListState extends State<StepsList> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               widget.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
           Stepper(
@@ -46,16 +43,17 @@ class _StepsListState extends State<StepsList> {
                 setState(() => _currentStep--);
               }
             },
-            steps: widget.steps.asMap().entries.map((entry) {
-              return Step(
-                title: Text('Paso ${entry.key + 1}'),
-                content: Text(entry.value),
-                isActive: _currentStep >= entry.key,
-              );
-            }).toList(),
+            steps:
+                widget.steps.asMap().entries.map((entry) {
+                  return Step(
+                    title: Text('Paso ${entry.key + 1}'),
+                    content: Text(entry.value),
+                    isActive: _currentStep >= entry.key,
+                  );
+                }).toList(),
           ),
         ],
       ),
     );
   }
-} 
+}

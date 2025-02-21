@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppSingleton {
   static final AppSingleton _instance = AppSingleton._internal();
   static const String _apiKeyPref = 'gemini_api_key';
-  
+
   GenerativeModel? _model;
   String? _apiKey;
   Recipe? recipe;
@@ -31,10 +31,7 @@ class AppSingleton {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyPref, apiKey);
     _apiKey = apiKey;
-    _model = GenerativeModel(
-      model: 'gemini-pro',
-      apiKey: apiKey,
-    );
+    _model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
   }
 
   Future<String?> getStoredApiKey() async {
@@ -54,12 +51,6 @@ class AppSingleton {
     } catch (e) {
       return 'Error: $e';
     }
-  }
-
-  Future<String> generateRecipe(Recipe recipe) async {
-    final prompt = 'Eres un chef de fama mundial, y necesito que me des en formato de json en una lista de strings los pasos a seguir para hacer la receta ${recipe.nombre} con estos ingredientes: ${recipe.ingredientes.join(',')}, pero los pasos tienen que estar muy bien explicados para alguien que no sabe cocinar, no necesito que me saludes ni que me hables, solo el json y nada mas que el json ';
-    final response = await generateContent(prompt);
-    return response;
   }
 }
 

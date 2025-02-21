@@ -3,7 +3,7 @@ import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'home/home.dart';
-import 'screens/api_key_screen.dart';
+import 'screens/settings.dart';
 import 'singleton/app_singleton.dart';
 
 void main() async {
@@ -22,14 +22,18 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            colorScheme: lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            colorScheme:
+                lightDynamic ??
+                ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
           darkTheme: ThemeData(
-            colorScheme: darkDynamic ?? ColorScheme.fromSeed(
-              seedColor: Colors.deepPurple,
-              brightness: Brightness.dark,
-            ),
+            colorScheme:
+                darkDynamic ??
+                ColorScheme.fromSeed(
+                  seedColor: Colors.deepPurple,
+                  brightness: Brightness.dark,
+                ),
             useMaterial3: true,
           ),
           home: FutureBuilder<String?>(
@@ -38,11 +42,11 @@ class MyApp extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              
+
               if (snapshot.hasData && snapshot.data != null) {
                 return const Home();
               }
-              
+
               return const ApiKeyScreen();
             },
           ),
@@ -50,11 +54,10 @@ class MyApp extends StatelessWidget {
             '/home': (context) => const Home(),
             '/api_key': (context) => const ApiKeyScreen(),
             '/recipe': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments as RecipeScreenArguments;
-              return RecipeScreen(
-                recipe: args.recipe,
-                onSteps: args.onSteps,
-              );
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as RecipeScreenArguments;
+              return RecipeScreen(recipe: args.recipe);
             },
           },
         );
@@ -62,4 +65,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

@@ -41,7 +41,7 @@ class _IngredientsPartState extends State<IngredientsPart> {
   }
 
   void _saveIngredient(String ingredient) {
-    if(!widget.ingredientes.contains(ingredient)) {
+    if (!widget.ingredientes.contains(ingredient)) {
       widget.ingredientes.add(ingredient);
       widget.onNewIngredient(ingredient);
     }
@@ -61,34 +61,34 @@ class _IngredientsPartState extends State<IngredientsPart> {
       children: [
         Row(
           children: [
-            Expanded(child: 
-            TextFormField(
-              controller: _ingredientController,
-              decoration: InputDecoration(
-                hintText: 'Añadir ingrediente',
-                border: OutlineInputBorder(),
+            Expanded(
+              child: TextFormField(
+                controller: _ingredientController,
+                decoration: InputDecoration(
+                  hintText: 'Añadir ingrediente',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            )),
-            IconButton(
-              onPressed: _addNewIngredient,
-              icon: Icon(Icons.add),
-            )
+            ),
+            IconButton(onPressed: _addNewIngredient, icon: Icon(Icons.add)),
           ],
         ),
         SizedBox(height: 16),
         Text('Ingredientes:'),
-        ...widget.ingredientes.map((ingredient) => Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Row(
-            children: [
-              Text('• $ingredient'),
-              IconButton(
-                onPressed: () => _removeIngredient(ingredient),
-                icon: Icon(Icons.remove),
-              )
-            ],
+        ...widget.ingredientes.map(
+          (ingredient) => Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Row(
+              children: [
+                Text('• $ingredient'),
+                IconButton(
+                  onPressed: () => _removeIngredient(ingredient),
+                  icon: Icon(Icons.remove),
+                ),
+              ],
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -107,32 +107,35 @@ class RecipesListHasData extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (recipes.isEmpty) return const SizedBox.shrink();
-    
-    return AnimatedCard(
-      text: 'Recetas sugeridas',
-      icon: Icon(Icons.soup_kitchen_rounded),
-      children: recipes.map((receta) => AnimatedCard(
-        text: receta.nombre,
-        icon: Icon(Icons.restaurant),
-        trailing: IconButton(
-          icon: const Icon(Icons.arrow_forward),
-          onPressed: () => onClickRecipe(receta),
-          tooltip: 'Ver receta completa',
-        ),
-        children: [
-          Text('Tipo: ${receta.tipo}'),
-          const SizedBox(height: 8),
-          Text('Tiempo: ${receta.tiempoPreparacion}'),
-          const SizedBox(height: 8),
-          Text('Ingredientes:'),
-          ...receta.ingredientes.map((ing) => Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: Text('• $ing'),
-          )),
-          const SizedBox(height: 8),
-          Text('Descripción: ${receta.descripcion}'),
-        ],
-      )).toList(),
+
+    return Column(
+      children:
+          recipes
+              .map(
+                (receta) => AnimatedCard(
+                  text: receta.nombre,
+                  icon: Icon(Icons.restaurant),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    onPressed: () => onClickRecipe(receta),
+                    tooltip: 'Ver receta completa',
+                  ),
+                  children: [
+                    Text('Tiempo: ${receta.tiempoEstimado}'),
+                    const SizedBox(height: 8),
+                    Text('Ingredientes:'),
+                    ...receta.ingredientes.map(
+                      (ing) => Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Text('• $ing'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Descripción: ${receta.descripcion}'),
+                  ],
+                ),
+              )
+              .toList(),
     );
   }
 }
