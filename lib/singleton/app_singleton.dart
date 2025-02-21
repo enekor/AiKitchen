@@ -57,7 +57,7 @@ class AppSingleton {
   }
 
   Future<String> generateRecipe(Recipe recipe) async {
-    final prompt = 'Eres un chef experto en cocina, que genera recetas de cocina a partir de un listado de ingredientes, Genera una receta para el siguiente plato: ${recipe.nombre} con los siguientes ingredientes: ${recipe.ingredientes.join(', ')}, solo que no tienes que saldudarme ni nada, solo tienes que generar la receta en formato json, pero este json solo es una lista de pasos, no tienes que generar ningun texto, solo el json';
+    final prompt = 'Eres un chef de fama mundial, y necesito que me des en formato de json en una lista de strings los pasos a seguir para hacer la receta ${recipe.nombre} con estos ingredientes: ${recipe.ingredientes.join(',')}, pero los pasos tienen que estar muy bien explicados para alguien que no sabe cocinar, no necesito que me saludes ni que me hables, solo el json y nada mas que el json ';
     final response = await generateContent(prompt);
     return response;
   }

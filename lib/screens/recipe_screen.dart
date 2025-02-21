@@ -13,52 +13,48 @@ class RecipeScreen extends StatefulWidget {
 }
 
 class _RecipeScreenState extends State<RecipeScreen> {
-  bool _isLoading = false;
 
-  Future<void> _generateRecipe() async {
+  Future<String> _generateRecipe() async {
     if (widget.recipe.pasos == null || widget.recipe.pasos!.isEmpty) {
-      setState(() {
-        _isLoading = true;
-      });
-      final response = await AppSingleton().generateRecipe(widget.recipe);
-      setState(() {
-        widget.recipe.addSteps(
-          response.replaceAll('```json', '').replaceAll('```', ''),
-        );
-        widget.onSteps(widget.recipe);
-        _isLoading = false;
-      });
+      String pasos = await AppSingleton().generateRecipe(widget.recipe);
+      widget.recipe.addSteps(
+        pasos.replaceAll('```json', '').replaceAll('```', ''),
+      );
+      widget.onSteps(widget.recipe);
+      return pasos;
+    } else {
+      return widget.recipe.pasos.toString();
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _generateRecipe();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.recipe.nombre)),
-      body: Column(
-        children: [
-          _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : widget.recipe.pasos != null
+      body: FutureBuilder<void>(
+        future: _generateRecipe(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Hubo un problema: ${snapshot.error}'),
+                  ElevatedButton(
+                    onPressed: _generateRecipe,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return widget.recipe.pasos != null && widget.recipe.pasos!.isNotEmpty
                 ? StepsList(steps: widget.recipe.pasos!)
-                : Center(child: Column(
-                  children: [
-                    Text('Hubo un problema, intentelo mas tarde'),
-                    ElevatedButton(onPressed: _generateRecipe, child: Row(
-                      children: [
-                        Icon(Icons.refresh_rounded),
-                        Text('Reintentar'),
-                      ],
-                    ))
-                  ],
-                )),
-        ],
+                : const Center(child: Text('No hay pasos disponibles.'));
+          }
+        },
       ),
     );
   }
