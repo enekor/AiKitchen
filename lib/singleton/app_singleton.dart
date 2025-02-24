@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:aikitchen/models/recipe.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +12,9 @@ class AppSingleton {
   GenerativeModel? _model;
   String? _apiKey;
   Recipe? recipe;
+  int numRecetas = 5;
+  String personality = 'neutral';
+  List<Recipe> recetasFavoritas = [];
 
   factory AppSingleton() {
     return _instance;
@@ -20,11 +26,27 @@ class AppSingleton {
   String? get apiKey => _apiKey;
 
   Future<void> initializeWithStoredKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedKey = prefs.getString(_apiKeyPref);
-    if (storedKey != null) {
-      await setApiKey(storedKey);
-    }
+    String? storedKey;
+
+    await SharedPreferences.getInstance().then((prefs) async{
+      numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
+      personality = prefs.getString('tonoTextos') ?? 'neutral';
+      if(kIsWeb){
+        storedKey = 'AIzaSyBO-abaWglQOnVQM4YdIEASxgOVNtadVPY';
+      }else{
+        storedKey = prefs.getString(_apiKeyPref);
+      }
+      if (storedKey != null) {
+        await setApiKey(storedKey!);
+      }
+    });
+  }
+
+  Future<void> getFavRecipes(){
+    return SharedPreferences.getInstance().then((prefs) {
+      final List<String> favRecipes = prefs.getStringList('favRecipes') ?? [];
+      recetasFavoritas = favRecipes.map((e) => Recipe.fromJson(json.decode(e))).toList();
+    });
   }
 
   Future<void> setApiKey(String apiKey) async {

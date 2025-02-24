@@ -1,5 +1,6 @@
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
+import 'package:aikitchen/widgets/setting_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../singleton/app_singleton.dart';
@@ -113,15 +114,32 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                       text: 'Ajustes de la app',
                       icon: Icon(Icons.settings_rounded),
                       children: [
-                        switchSetting(
-                          initialValue: SharedPreferencesService.getStringValue(
-                            SharedPreferencesKeys.numRecetas,
-                          ),
-                          text: 'Número de recetas',
-                          onChange: (value) {
+                        ScrollbarSetting(
+                          initialValue: AppSingleton().numRecetas,
+                          maxValue: 5,
+                          divisions: 4,
+                          text: '¿Cantas recetas quieres ver?',
+                          onChange: (int value) {
+                            setState(() {
+                              AppSingleton().numRecetas = value;
+                            });
                             SharedPreferencesService.setStringValue(
                               SharedPreferencesKeys.numRecetas,
-                              value <= 5 && value > 0 ? value.toString() : "5",
+                              value.toString(),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        TextSetting(
+                          initialValue: AppSingleton().personality,
+                          text: '¿Qué tono de texto prefieres?',
+                          onChange: (String value) {
+                            setState(() {
+                              AppSingleton().personality = value;
+                            });
+                            SharedPreferencesService.setStringValue(
+                              SharedPreferencesKeys.tonoTextos,
+                              value,
                             );
                           },
                         ),
@@ -142,10 +160,4 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
     _apiKeyController.dispose();
     super.dispose();
   }
-
-  switchSetting({
-    required initialValue,
-    required String text,
-    required Null Function(dynamic value) onChange,
-  }) {}
 }

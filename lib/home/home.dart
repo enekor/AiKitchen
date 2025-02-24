@@ -1,6 +1,7 @@
 import 'package:aikitchen/home/home_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,9 +35,10 @@ class _HomeState extends State<Home> {
     setState(() {
       _firstSearched = true;
     });
+
     try {
       final response = await AppSingleton().generateContent(
-        Prompt.recipePrompt(ingredientes),
+        Prompt.recipePrompt(ingredientes, AppSingleton().numRecetas, AppSingleton().personality),
       );
       if (response.contains('preparacion')) {
         setState(() {

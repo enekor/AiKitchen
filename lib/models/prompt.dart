@@ -1,6 +1,6 @@
 class Prompt {
-  static String recipePrompt(List<String> ingredientes) =>
-      '''Hola, me gustaría que me muestres 5 recetas de cocina a partir de un listado de ingredientes que te voy a dar a continuación. Para darme la receta, no quiero que me saludes ni me cuentes nada mas que lo esencial para las recetas, ya que lo que quiero es el json para una aplicacion, por lo que vas a tener que hacer el json siguiendo este prototipo que te mando a continuacion
+  static String recipePrompt(List<String> ingredientes, int numRecetas, String tono) =>
+      '''Hola, me gustaría que me muestres $numRecetas recetas de cocina a partir de un listado de ingredientes que te voy a dar a continuación. Para darme la receta, no quiero que me saludes ni me cuentes nada mas que lo esencial para las recetas, ya que lo que quiero es el json para una aplicacion, por lo que vas a tener que hacer el json siguiendo este prototipo que te mando a continuacion
 
 [
 
@@ -41,6 +41,7 @@ class Prompt {
 la lista de ingredientes es esta: ${ingredientes.join(',')}.
 
 a la hora de describir los pasos quiero que seas lo mas especifico posible y no des nada por hecho.
+ademas, quiero que cuando me des los pasos lo hagas con un tono $tono.
 
 
 

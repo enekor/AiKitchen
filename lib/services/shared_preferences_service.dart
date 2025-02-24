@@ -13,6 +13,8 @@ class SharedPreferencesService {
 
   static Future<String?> getStringValue(SharedPreferencesKeys key) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(key.toString());
+    var ret =  prefs.getString(key.toString());
+
+    return ret;
   }
 }
