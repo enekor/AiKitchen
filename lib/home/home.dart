@@ -6,7 +6,6 @@ import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lottie/lottie.dart';
 import '../singleton/app_singleton.dart';
 import '../models/recipe_screen_arguments.dart';
 
@@ -144,6 +143,7 @@ class _HomeState extends State<Home> {
                   onNewIngredient: onNewIngredient,
                   onRemoveIngredient: onRemoveIngredient,
                   ingredientes: ingredientes,
+                  onSearch: _generateResponse,
                 ),
                 const SizedBox(height: 16),
                 RecipesListHasData(

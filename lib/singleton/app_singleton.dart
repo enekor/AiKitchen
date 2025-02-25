@@ -33,7 +33,7 @@ class AppSingleton {
       numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
       personality = prefs.getString('tonoTextos') ?? 'neutral';
       if(kIsWeb){
-        storedKey = 'AIzaSyBO-abaWglQOnVQM4YdIEASxgOVNtadVPY';
+        storedKey = 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM';
       }else{
         storedKey = prefs.getString(_apiKeyPref);
       }

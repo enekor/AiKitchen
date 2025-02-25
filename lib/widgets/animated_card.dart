@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 
 class AnimatedCard extends StatefulWidget {
-  final String text;
-  final Icon icon;
+  final String? text;
+  final Icon? icon;
   final List<Widget> children;
   final Widget? trailing;
+  final Widget? alwaysVisible;
 
   const AnimatedCard({
     super.key,
-    required this.text,
-    required this.icon,
+    this.text,
+    this.icon,
     required this.children,
     this.trailing,
+    this.alwaysVisible
   });
 
   @override
@@ -24,6 +26,11 @@ class _ExpandableCardState extends State<AnimatedCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0), // Bordes redondeados
+      ),
+      elevation: 4, // Sombra
+      color: Theme.of(context).colorScheme.surfaceContainerHighest, // Color dinámico
       child: InkWell(
         onTap: () {
           setState(() {
@@ -36,15 +43,16 @@ class _ExpandableCardState extends State<AnimatedCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Cabecera del card siempre visible
+              widget.alwaysVisible ?? 
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    widget.icon,
+                    widget.icon ?? const Icon(Icons.info),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        widget.text,
+                        widget.text ?? '',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

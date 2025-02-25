@@ -8,12 +8,14 @@ class IngredientsPart extends StatefulWidget {
   final List<String> ingredientes;
   final Function(String) onNewIngredient;
   final Function(String) onRemoveIngredient;
+  final Function() onSearch;
 
   const IngredientsPart({
     super.key,
     required this.onNewIngredient,
     required this.onRemoveIngredient,
     required this.ingredientes,
+    required this.onSearch,
   });
 
   @override
@@ -57,8 +59,30 @@ class _IngredientsPartState extends State<IngredientsPart> {
   @override
   Widget build(BuildContext context) {
     return AnimatedCard(
-      text: 'Listado de ingredientes',
-      icon: Icon(Icons.kitchen),
+      alwaysVisible: Row(
+        children: [
+          Expanded(
+            flex:7,
+            child: Card(
+              margin: EdgeInsets.all(5),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.kitchen_rounded),
+                    SizedBox(width: 6),
+                    Text(widget.ingredientes.join(', '), overflow: TextOverflow.ellipsis,),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex:3,
+            child: IconButton(onPressed: widget.onSearch, icon: Icon(Icons.search)),
+          )
+        ],
+      ),
       children: [
         Row(
           children: [
