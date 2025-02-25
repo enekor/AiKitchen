@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum SharedPreferencesKeys { numRecetas, tonoTextos }
+enum SharedPreferencesKeys { numRecetas, tonoTextos, favRecipes }
 
 class SharedPreferencesService {
   static Future<void> setStringValue(

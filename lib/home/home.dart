@@ -1,8 +1,8 @@
 import 'package:aikitchen/home/home_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../singleton/app_singleton.dart';
@@ -19,6 +19,7 @@ class _HomeState extends State<Home> {
   List<String> ingredientes = [];
   List<Recipe> recetas = [];
   bool _firstSearched = false;
+  bool _isFav = false;
 
   void _navigateToSettings() {
     Navigator.pushNamed(context, '/api_key');
@@ -33,8 +34,24 @@ class _HomeState extends State<Home> {
 
   Future<void> _generateResponse() async {
     setState(() {
+      recetas = [];
       _firstSearched = true;
     });
+
+    if(_isFav){
+      if(kIsWeb){
+        await _loadJson();
+      }else{
+        recetas = AppSingleton().recetasFavoritas;
+      }
+
+      for(String ingrediente in ingredientes){
+        setState(() {
+          recetas = recetas.where((element) => element.recipeContainsIngredient(ingrediente)).toList();
+        });
+      }
+      return;
+    }
 
     try {
       final response = await AppSingleton().generateContent(
@@ -61,6 +78,10 @@ class _HomeState extends State<Home> {
     } finally {
       recetas.isEmpty ? _loadJson() : null;
     }
+
+    setState(() {
+      _firstSearched = false;
+    });
   }
 
   void onNewIngredient(String ingrediente) {
@@ -83,6 +104,17 @@ class _HomeState extends State<Home> {
       '/recipe',
       arguments: RecipeScreenArguments(recipe: recipe),
     );
+  }
+
+  void onFavRecipe(Recipe recipe) {
+    
+    if (AppSingleton().recetasFavoritas.contains(recipe)) {
+      AppSingleton().recetasFavoritas.remove(recipe);
+    } else {
+      AppSingleton().recetasFavoritas.add(recipe);
+    }
+
+    AppSingleton().setFavRecipes();
   }
 
   @override
@@ -110,12 +142,23 @@ class _HomeState extends State<Home> {
                 RecipesListHasData(
                   recipes: recetas,
                   onClickRecipe: onClickRecipe,
+                  onFavRecipe: onFavRecipe,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _generateResponse,
-                  child: Text('Generar recetas'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(onPressed: ()=>setState(() {
+                      _isFav = !_isFav;
+                      Toaster.showToast(_isFav ? 'Mostrando recetas favoritas' : 'Mostrando recetas por la IA');
+                    }), icon: Icon( _isFav ? Icons.favorite : Icons.favorite_border)),
+                    ElevatedButton(
+                      onPressed: _generateResponse,
+                      child: Text(_isFav ? 'Buscar en favoritos' : 'Generar recetas'),
+                    ),
+                  ],
                 ),
+                
               ],
             );
 

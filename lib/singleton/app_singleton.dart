@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,11 +43,14 @@ class AppSingleton {
     });
   }
 
-  Future<void> getFavRecipes(){
-    return SharedPreferences.getInstance().then((prefs) {
-      final List<String> favRecipes = prefs.getStringList('favRecipes') ?? [];
-      recetasFavoritas = favRecipes.map((e) => Recipe.fromJson(json.decode(e))).toList();
-    });
+  Future<void> getFavRecipes() async{
+    String favRecipes = await SharedPreferencesService.getStringValue(SharedPreferencesKeys.favRecipes) ?? "[]";
+    recetasFavoritas = Recipe.fromJsonList(favRecipes);
+  }
+
+  Future<void> setFavRecipes() async{
+    String favRecipes = jsonEncode(recetasFavoritas);
+    await SharedPreferencesService.setStringValue(SharedPreferencesKeys.favRecipes, favRecipes);
   }
 
   Future<void> setApiKey(String apiKey) async {

@@ -1,5 +1,6 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
+import 'package:aikitchen/widgets/recipe_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 
@@ -97,11 +98,13 @@ class _IngredientsPartState extends State<IngredientsPart> {
 class RecipesListHasData extends StatelessWidget {
   final List<Recipe> recipes;
   final Function(Recipe) onClickRecipe;
+  final Function(Recipe) onFavRecipe;
 
   const RecipesListHasData({
     super.key,
     required this.recipes,
     required this.onClickRecipe,
+    required this.onFavRecipe,
   });
 
   @override
@@ -112,28 +115,7 @@ class RecipesListHasData extends StatelessWidget {
       children:
           recipes
               .map(
-                (receta) => AnimatedCard(
-                  text: receta.nombre,
-                  icon: Icon(Icons.restaurant),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.arrow_forward),
-                    onPressed: () => onClickRecipe(receta),
-                    tooltip: 'Ver receta completa',
-                  ),
-                  children: [
-                    Text('Tiempo: ${receta.tiempoEstimado}'),
-                    const SizedBox(height: 8),
-                    Text('Ingredientes:'),
-                    ...receta.ingredientes.map(
-                      (ing) => Padding(
-                        padding: const EdgeInsets.only(left: 16.0),
-                        child: Text('• $ing'),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('Descripción: ${receta.descripcion}'),
-                  ],
-                ),
+                (receta) => RecipePreview(recipe: receta, onFavRecipe: onFavRecipe, onNavigateRecipe: onClickRecipe)
               )
               .toList(),
     );

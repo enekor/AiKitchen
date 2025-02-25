@@ -42,4 +42,13 @@ class Recipe {
     final List<dynamic> jsonData = json.decode(jsonString);
     return jsonData.map((json) => Recipe.fromJson(json)).toList();
   }
+
+  bool recipeContainsIngredient(String ingredient){
+    for(String ingredientInRecipe in ingredientes){
+      if(ingredientInRecipe.contains(ingredient)){
+        return true;
+      }
+    }
+    return false;
+  }
 }
