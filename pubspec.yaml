@@ -1,28 +1,29 @@
 name: aikitchen
 description: "A new Flutter project."
-publish_to: 'none' 
+publish_to: 'none'
 version: 1.0.0
 
 environment:
   sdk: ^3.8.0-91.0.dev
 
 dependencies:
+  dynamic_color: ^1.6.8
   flutter:
     sdk: flutter
-  dynamic_color: ^1.6.8
-  google_generative_ai: ^0.2.0
-  shared_preferences: ^2.2.2  # Para guardar la API key localmente
-  url_launcher: ^6.2.5
   fluttertoast: ^8.0.9
-
+  google_generative_ai: ^0.2.0
+  lottie: ^3.3.1
+  shared_preferences: ^2.2.2
+  url_launcher: ^6.2.5
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
   flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true
   assets:
     - assets/ejemplo.json
+    - assets/loading.gif

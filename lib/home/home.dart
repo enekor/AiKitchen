@@ -1,10 +1,12 @@
 import 'package:aikitchen/home/home_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import '../singleton/app_singleton.dart';
 import '../models/recipe_screen_arguments.dart';
 
@@ -65,7 +67,7 @@ class _HomeState extends State<Home> {
         });
       } else {
         Toaster.showToast('''Hubo un problema: $response,
-          estableciendo datos por defecto''');
+          buscando en recetas favoritas''');
       }
     } on NoApiKeyException {
       setState(() {
@@ -76,7 +78,12 @@ class _HomeState extends State<Home> {
     } catch (e) {
       Toaster.showToast('Error al procesar la respuesta: $e');
     } finally {
-      recetas.isEmpty ? _loadJson() : null;
+      if(recetas.isEmpty){
+        setState(() {
+          _isFav = true;
+          _generateResponse();
+        });
+      }
     }
 
     setState(() {
@@ -125,9 +132,9 @@ class _HomeState extends State<Home> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Generando recetas...'),
+                  LottieAnimationWidget(),
                   SizedBox(height: 16),
-                  CircularProgressIndicator(),
+                  Text('Generando recetas...'),
                 ],
               ),
             )
@@ -158,7 +165,6 @@ class _HomeState extends State<Home> {
                     ),
                   ],
                 ),
-                
               ],
             );
 

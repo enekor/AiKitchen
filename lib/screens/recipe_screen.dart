@@ -17,7 +17,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
       appBar: AppBar(title: Text(widget.recipe.nombre)),
       body: Center(
         child: SingleChildScrollView(
-          child: StepsList(steps: widget.recipe.preparacion!),
+          child: StepsList(steps: widget.recipe.preparacion),
         ),
       ),
     );
