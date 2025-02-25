@@ -29,12 +29,12 @@ class AppSingleton {
   Future<void> initializeWithStoredKey() async {
     String? storedKey;
 
-    await SharedPreferences.getInstance().then((prefs) async{
+    await SharedPreferences.getInstance().then((prefs) async {
       numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
       personality = prefs.getString('tonoTextos') ?? 'neutral';
-      if(kIsWeb){
+      if (kIsWeb) {
         storedKey = 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM';
-      }else{
+      } else {
         storedKey = prefs.getString(_apiKeyPref);
       }
       if (storedKey != null) {
@@ -43,21 +43,28 @@ class AppSingleton {
     });
   }
 
-  Future<void> getFavRecipes() async{
-    String favRecipes = await SharedPreferencesService.getStringValue(SharedPreferencesKeys.favRecipes) ?? "[]";
+  Future<void> getFavRecipes() async {
+    String favRecipes =
+        await SharedPreferencesService.getStringValue(
+          SharedPreferencesKeys.favRecipes,
+        ) ??
+        "[]";
     recetasFavoritas = Recipe.fromJsonList(favRecipes);
   }
 
-  Future<void> setFavRecipes() async{
+  Future<void> setFavRecipes() async {
     String favRecipes = jsonEncode(recetasFavoritas);
-    await SharedPreferencesService.setStringValue(SharedPreferencesKeys.favRecipes, favRecipes);
+    await SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.favRecipes,
+      favRecipes,
+    );
   }
 
   Future<void> setApiKey(String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyPref, apiKey);
     _apiKey = apiKey;
-    _model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+    _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: apiKey);
   }
 
   Future<String?> getStoredApiKey() async {
