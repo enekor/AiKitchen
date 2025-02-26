@@ -18,8 +18,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<String> ingredientes = [];
-  List<Recipe> recetas = [];
-  bool _firstSearched = false;
+  List<Recipe>? recetas;
+  bool _searching = false;
   bool _isFav = false;
 
   void _navigateToSettings() {
@@ -36,27 +36,39 @@ class _HomeState extends State<Home> {
   Future<void> _generateResponse() async {
     setState(() {
       recetas = [];
-      _firstSearched = true;
+      _searching = true;
     });
 
-    if(_isFav){
-      if(kIsWeb){
+    if (_isFav) {
+      if (kIsWeb) {
         await _loadJson();
-      }else{
+      } else {
+        await AppSingleton().getFavRecipes();
         recetas = AppSingleton().recetasFavoritas;
       }
 
-      for(String ingrediente in ingredientes){
-        setState(() {
-          recetas = recetas.where((element) => element.recipeContainsIngredient(ingrediente)).toList();
-        });
+      for (String ingrediente in ingredientes) {
+        recetas =
+            recetas!
+                .where(
+                  (element) => element.recipeContainsIngredient(ingrediente),
+                )
+                .toList();
       }
+
+      setState(() {
+        _searching = false;
+      });
       return;
     }
 
     try {
       final response = await AppSingleton().generateContent(
-        Prompt.recipePrompt(ingredientes, AppSingleton().numRecetas, AppSingleton().personality),
+        Prompt.recipePrompt(
+          ingredientes,
+          AppSingleton().numRecetas,
+          AppSingleton().personality,
+        ),
       );
       if (response.contains('preparacion')) {
         setState(() {
@@ -77,7 +89,7 @@ class _HomeState extends State<Home> {
     } catch (e) {
       Toaster.showToast('Error al procesar la respuesta: $e');
     } finally {
-      if(recetas.isEmpty){
+      if (recetas == null || recetas!.isEmpty) {
         setState(() {
           _isFav = true;
           _generateResponse();
@@ -86,8 +98,15 @@ class _HomeState extends State<Home> {
     }
 
     setState(() {
-      _firstSearched = false;
+      _searching = false;
     });
+  }
+
+  void onFav() {
+    _isFav = !_isFav;
+    Toaster.showToast(
+      _isFav ? 'Buscando en recetas favoritas' : 'Buscando recetas con la IA',
+    );
   }
 
   void onNewIngredient(String ingrediente) {
@@ -113,7 +132,6 @@ class _HomeState extends State<Home> {
   }
 
   void onFavRecipe(Recipe recipe) {
-    
     if (AppSingleton().recetasFavoritas.contains(recipe)) {
       AppSingleton().recetasFavoritas.remove(recipe);
     } else {
@@ -126,7 +144,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     Widget content =
-        _firstSearched && recetas.isEmpty
+        _searching
             ? const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -144,27 +162,30 @@ class _HomeState extends State<Home> {
                   onRemoveIngredient: onRemoveIngredient,
                   ingredientes: ingredientes,
                   onSearch: _generateResponse,
+                  onFav: onFav,
                 ),
                 const SizedBox(height: 16),
-                RecipesListHasData(
-                  recipes: recetas,
-                  onClickRecipe: onClickRecipe,
-                  onFavRecipe: onFavRecipe,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(onPressed: ()=>setState(() {
-                      _isFav = !_isFav;
-                      Toaster.showToast(_isFav ? 'Mostrando recetas favoritas' : 'Mostrando recetas por la IA');
-                    }), icon: Icon( _isFav ? Icons.favorite : Icons.favorite_border)),
-                    ElevatedButton(
-                      onPressed: _generateResponse,
-                      child: Text(_isFav ? 'Buscar en favoritos' : 'Generar recetas'),
+                if (recetas == null)
+                  Container()
+                else if (recetas != null && recetas!.isNotEmpty)
+                  RecipesListHasData(
+                    recipes: recetas!,
+                    onClickRecipe: onClickRecipe,
+                    onFavRecipe: onFavRecipe,
+                  )
+                else
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        LottieAnimationWidget(
+                          type: LottieAnimationType.notfound,
+                        ),
+                        Text('No hay recetas disponibles'),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                const SizedBox(height: 16),
               ],
             );
 

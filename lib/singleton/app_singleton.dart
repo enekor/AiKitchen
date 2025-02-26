@@ -32,11 +32,12 @@ class AppSingleton {
     await SharedPreferences.getInstance().then((prefs) async {
       numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
       personality = prefs.getString('tonoTextos') ?? 'neutral';
-      if (kIsWeb) {
-        storedKey = 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM';
-      } else {
-        storedKey = prefs.getString(_apiKeyPref);
-      }
+      // if (kIsWeb) {
+      //   storedKey = 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM';
+      // } else {
+      //   storedKey = prefs.getString(_apiKeyPref);
+      // }
+      storedKey = 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM';
       if (storedKey != null) {
         await setApiKey(storedKey!);
       }

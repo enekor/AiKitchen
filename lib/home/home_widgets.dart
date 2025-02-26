@@ -8,6 +8,7 @@ class IngredientsPart extends StatefulWidget {
   final List<String> ingredientes;
   final Function(String) onNewIngredient;
   final Function(String) onRemoveIngredient;
+  final Function onFav;
   final Function() onSearch;
 
   const IngredientsPart({
@@ -16,6 +17,7 @@ class IngredientsPart extends StatefulWidget {
     required this.onRemoveIngredient,
     required this.ingredientes,
     required this.onSearch,
+    required this.onFav,
   });
 
   @override
@@ -24,6 +26,7 @@ class IngredientsPart extends StatefulWidget {
 
 class _IngredientsPartState extends State<IngredientsPart> {
   final TextEditingController _ingredientController = TextEditingController();
+  bool isFav = false;
 
   void _addNewIngredient() {
     setState(() {
@@ -62,7 +65,7 @@ class _IngredientsPartState extends State<IngredientsPart> {
       alwaysVisible: Row(
         children: [
           Expanded(
-            flex:7,
+            flex: 7,
             child: Card(
               margin: EdgeInsets.all(5),
               child: Padding(
@@ -71,16 +74,32 @@ class _IngredientsPartState extends State<IngredientsPart> {
                   children: [
                     Icon(Icons.kitchen_rounded),
                     SizedBox(width: 6),
-                    Text(widget.ingredientes.join(', '), overflow: TextOverflow.ellipsis,),
+                    Text(
+                      widget.ingredientes.join(', '),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
             ),
           ),
           Expanded(
-            flex:3,
-            child: IconButton(onPressed: widget.onSearch, icon: Icon(Icons.search)),
-          )
+            child: IconButton(
+              onPressed: widget.onSearch,
+              icon: Icon(Icons.search),
+            ),
+          ),
+          Expanded(
+            child: IconButton(
+              onPressed: () {
+                widget.onFav();
+                setState(() {
+                  isFav = !isFav;
+                });
+              },
+              icon: Icon(isFav ? Icons.favorite : Icons.favorite_outline),
+            ),
+          ),
         ],
       ),
       children: [
@@ -139,7 +158,11 @@ class RecipesListHasData extends StatelessWidget {
       children:
           recipes
               .map(
-                (receta) => RecipePreview(recipe: receta, onFavRecipe: onFavRecipe, onNavigateRecipe: onClickRecipe)
+                (receta) => RecipePreview(
+                  recipe: receta,
+                  onFavRecipe: onFavRecipe,
+                  onNavigateRecipe: onClickRecipe,
+                ),
               )
               .toList(),
     );

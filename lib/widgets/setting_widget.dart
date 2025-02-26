@@ -5,7 +5,7 @@ class SwitchSetting extends StatefulWidget {
   final String text;
   final ValueChanged<bool> onChange;
 
-  SwitchSetting({
+  const SwitchSetting({super.key, 
     required this.initialValue,
     required this.text,
     required this.onChange,
@@ -51,7 +51,7 @@ class ScrollbarSetting extends StatefulWidget {
   final int divisions;
   final int maxValue;
 
-  ScrollbarSetting({
+  const ScrollbarSetting({super.key, 
     required this.initialValue,
     required this.text,
     required this.onChange,
@@ -101,7 +101,7 @@ class TextSetting extends StatefulWidget {
   final String text;
   final ValueChanged<String> onChange;
 
-  TextSetting({
+  const TextSetting({super.key, 
     required this.initialValue,
     required this.text,
     required this.onChange,

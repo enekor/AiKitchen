@@ -43,12 +43,19 @@ class Recipe {
     return jsonData.map((json) => Recipe.fromJson(json)).toList();
   }
 
-  bool recipeContainsIngredient(String ingredient){
-    for(String ingredientInRecipe in ingredientes){
-      if(ingredientInRecipe.contains(ingredient)){
+  bool recipeContainsIngredient(String ingredient) {
+    for (String ingredientInRecipe in ingredientes) {
+      if (ingredientInRecipe.contains(ingredient)) {
         return true;
       }
     }
+
+    for (String ingredientInRecipe in preparacion) {
+      if (ingredientInRecipe.contains(ingredient)) {
+        return true;
+      }
+    }
+
     return false;
   }
 }

@@ -13,7 +13,7 @@ class AnimatedCard extends StatefulWidget {
     this.icon,
     required this.children,
     this.trailing,
-    this.alwaysVisible
+    this.alwaysVisible,
   });
 
   @override
@@ -30,7 +30,9 @@ class _ExpandableCardState extends State<AnimatedCard> {
         borderRadius: BorderRadius.circular(16.0), // Bordes redondeados
       ),
       elevation: 4, // Sombra
-      color: Theme.of(context).colorScheme.surfaceContainerHighest, // Color dinámico
+      color: Theme.of(
+        context,
+      ).colorScheme.secondary.withAlpha(80), // Color dinámico
       child: InkWell(
         onTap: () {
           setState(() {
@@ -43,30 +45,30 @@ class _ExpandableCardState extends State<AnimatedCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Cabecera del card siempre visible
-              widget.alwaysVisible ?? 
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    widget.icon ?? const Icon(Icons.info),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        widget.text ?? '',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+              widget.alwaysVisible ??
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        widget.icon ?? const Icon(Icons.info),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            widget.text ?? '',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        AnimatedRotation(
+                          duration: const Duration(milliseconds: 300),
+                          turns: _isExpanded ? 0.5 : 0,
+                          child: const Icon(Icons.keyboard_arrow_down),
+                        ),
+                      ],
                     ),
-                    AnimatedRotation(
-                      duration: const Duration(milliseconds: 300),
-                      turns: _isExpanded ? 0.5 : 0,
-                      child: const Icon(Icons.keyboard_arrow_down),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
               // Contenido expandible
               AnimatedCrossFade(
                 duration: const Duration(milliseconds: 300),
@@ -78,17 +80,16 @@ class _ExpandableCardState extends State<AnimatedCard> {
                     children: widget.children,
                   ),
                 ),
-                crossFadeState: _isExpanded 
-                    ? CrossFadeState.showSecond 
-                    : CrossFadeState.showFirst,
+                crossFadeState:
+                    _isExpanded
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
               ),
-              if (widget.trailing != null)
-                widget.trailing!,
+              if (widget.trailing != null) widget.trailing!,
             ],
           ),
         ),
       ),
     );
   }
-} 
-
+}
