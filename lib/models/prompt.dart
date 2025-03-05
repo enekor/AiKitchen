@@ -46,4 +46,46 @@ ademas, quiero que cuando me des los pasos lo hagas con un tono $tono.
 
 
 muchas gracias''';
+
+static String recipePromptByName(String nombreReceta, int numRecetas, String tono) =>
+  '''Eres un chef mundialmente conocido por hacer recetas faciles, rapidas y deliciosas, y me gustaria que me hicieses maximo $numRecetas recetas en formato json para hacer $nombreReceta, pero solo quiero que me mandes las recetas. Para ello vas a mandarme el json en este formato 
+
+[
+
+    {
+
+        "nombre": "nombre de la receta",
+
+        "descripcion": "descripcion de la receta",
+
+        "tiempo_estimado": "x minutos/horas",
+
+        "ingredientes":[
+
+            "ingrediente 1",
+
+            "ingrediente 2",
+
+            "ingrediente 3"
+
+        ],
+
+        "preparacion":[
+
+            "paso 1",
+
+            "paso 2",
+
+            "paso 3"
+
+        ]
+
+    }
+
+]
+
+para los pasos, quiero que me los digas usando un tono de voz $tono.
+ no que me saludes ni que me hables, solo mandame el json con la o las recetas ''';
 }
+
+
