@@ -1,38 +1,32 @@
-# AiKitchen
+# 🍳 AiKitchen 🍲
 
-AiKitchen es una aplicación que te permite obtener recetas de cocina a partir del nombre de una receta o de un listado de ingredientes. Además, puedes guardar tus recetas favoritas para visitarlas en el futuro. La opción de guardar recetas favoritas está disponible únicamente en la versión para Android.
+¡Bienvenido a **AiKitchen**! 🎉 Esta es tu aplicación definitiva para descubrir recetas deliciosas a partir del nombre de una receta o de una lista de ingredientes. Además, puedes guardar tus recetas favoritas para visitarlas en el futuro. La opción de guardar recetas favoritas está disponible únicamente en la versión para Android. 📱
 
-## Características
+## ✨ Características
 
-- **Buscar por Ingredientes**: Introduce una lista de ingredientes y obtén recetas que los incluyan.
-- **Buscar por Nombre**: Introduce el nombre de una receta y obtén recetas relacionadas.
-- **Guardar Favoritos**: Guarda tus recetas favoritas para acceder a ellas fácilmente en el futuro (disponible solo en Android).
+- **🔍 Buscar por Ingredientes**: Introduce una lista de ingredientes y obtén recetas que los incluyan. ¡Perfecto para aprovechar lo que tienes en casa! 🥕🍅
+- **🔎 Buscar por Nombre**: Introduce el nombre de una receta y obtén recetas relacionadas. ¡Encuentra esa receta que tanto te gusta! 🍝🍲
+- **❤️ Guardar Favoritos**: Guarda tus recetas favoritas para acceder a ellas fácilmente en el futuro (disponible solo en Android). ¡Nunca pierdas de vista tus platos preferidos! 📚✨
 
-## Instalación
+## 🚀 Instalación
 
-### Android
+### 📱 Android
 
-1. Descarga el archivo `.apk` desde la [última versión](https://github.com/enekor/aikitchen/releases/latest).
-2. Concede a tu navegador o gestor de paquetes la posibilidad de instalar aplicaciones desde origines externos.
-3. Instala el `.apk` en tu dispositivo Android.
+1. **Descarga la APK**: [Enlace de descarga](https://github.com/enekor/aikitchen/releases/latest)
+2. **Instala la aplicación**: Abre el archivo APK descargado y sigue las instrucciones en pantalla.
+3. **¡Disfruta!**: Abre AiKitchen y empieza a explorar recetas deliciosas. 🍽️
 
-### Web
-1. Puedes ver la aplicación en la web a través de este [enlace](https://enekor.github.io/AiKitchen/).
+### 🌐 Web
 
-## Uso
+1. **Visita la aplicación en la web**: [AiKitchen Web](https://enekor.github.io/AiKitchen/)
+2. **Explora recetas**: Usa las funciones de búsqueda para encontrar recetas por ingredientes o nombre.
+3. **¡Cocina y disfruta!**: Sigue las recetas y disfruta de tus creaciones culinarias. 👩‍🍳👨‍🍳
 
-1. **Buscar por Ingredientes**:
-    - Introduce una lista de ingredientes y presiona el botón de búsqueda.
-    - La aplicación generará recetas que incluyan esos ingredientes.
+## 📸 Capturas de Pantalla
 
-2. **Buscar por Nombre**:
-    - Introduce el nombre de una receta y presiona el botón de búsqueda.
-    - La aplicación generará recetas relacionadas con ese nombre.
+![Buscar por Ingredientes](screenshots/search_by_ingredients.png)
+![Buscar por Nombre](screenshots/search_by_name.png)
 
-3. **Guardar Favoritos** (solo Android):
-    - En la vista de recetas, presiona el icono de corazón para guardar una receta como favorita.
-    - Accede a tus recetas favoritas desde la sección de favoritos.
+---
 
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+¡Gracias por usar **AiKitchen**! Esperamos que disfrutes cocinando tanto como nosotros disfrutamos desarrollando esta aplicación. 🍽️🎉

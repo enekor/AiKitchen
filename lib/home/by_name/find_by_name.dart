@@ -16,7 +16,7 @@ class FindByName extends StatefulWidget {
 }
 
 class _FindByNameState extends State<FindByName> {
-  List<Recipe>? _recetas = null;
+  List<Recipe>? _recetas;
   bool _searching = false;
   bool _isFav = false;
 

@@ -9,11 +9,11 @@ class nameInputPart extends StatefulWidget {
 }
 
 class _nameInputPartState extends State<nameInputPart> {
-  TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    bool _isFav = false;
+    bool isFav = false;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -36,10 +36,10 @@ class _nameInputPartState extends State<nameInputPart> {
                 },
               ),
               IconButton(
-                icon: Icon(_isFav ? Icons.favorite : Icons.favorite_border),
+                icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
                 onPressed: () {
                   setState(() {
-                    _isFav = !_isFav;
+                    isFav = !isFav;
                   });
                   widget.onFav();
                 },

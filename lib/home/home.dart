@@ -1,6 +1,5 @@
 import 'package:aikitchen/home/by_ingredients/find_by_ingredients.dart';
 import 'package:aikitchen/home/by_name/find_by_name.dart';
-import 'package:aikitchen/home/by_name/find_by_name_widgets.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {

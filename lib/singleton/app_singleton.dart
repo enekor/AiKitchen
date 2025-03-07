@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
