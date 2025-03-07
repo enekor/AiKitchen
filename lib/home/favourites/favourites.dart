@@ -80,8 +80,9 @@ class _FavouritesState extends State<Favourites> {
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _recetasFavoritas.length,
+                crossAxisCount: 2,
               ),
+              shrinkWrap: true,
               itemCount: _recetasFavoritas.length,
               itemBuilder: (BuildContext context, int index) {
                 final receta = _recetasFavoritas[index];
