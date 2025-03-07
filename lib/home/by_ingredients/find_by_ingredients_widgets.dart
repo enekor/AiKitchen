@@ -10,6 +10,8 @@ class IngredientsPart extends StatefulWidget {
   final Function(String) onRemoveIngredient;
   final Function onFav;
   final Function() onSearch;
+  final bool isLoading;
+  final bool isFavourite;
 
   const IngredientsPart({
     super.key,
@@ -18,6 +20,8 @@ class IngredientsPart extends StatefulWidget {
     required this.ingredientes,
     required this.onSearch,
     required this.onFav,
+    required this.isLoading,
+    required this.isFavourite,
   });
 
   @override
@@ -26,7 +30,6 @@ class IngredientsPart extends StatefulWidget {
 
 class _IngredientsPartState extends State<IngredientsPart> {
   final TextEditingController _ingredientController = TextEditingController();
-  bool isFav = false;
 
   void _addNewIngredient() {
     setState(() {
@@ -86,18 +89,20 @@ class _IngredientsPartState extends State<IngredientsPart> {
           Expanded(
             child: IconButton(
               onPressed: widget.onSearch,
-              icon: Icon(Icons.search),
+              icon:
+                  widget.isLoading
+                      ? CircularProgressIndicator()
+                      : Icon(Icons.search),
             ),
           ),
           Expanded(
             child: IconButton(
               onPressed: () {
                 widget.onFav();
-                setState(() {
-                  isFav = !isFav;
-                });
               },
-              icon: Icon(isFav ? Icons.favorite : Icons.favorite_outline),
+              icon: Icon(
+                widget.isFavourite ? Icons.favorite : Icons.favorite_outline,
+              ),
             ),
           ),
         ],

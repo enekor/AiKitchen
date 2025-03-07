@@ -4,7 +4,6 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
-import 'package:aikitchen/widgets/recipe_preview.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 
@@ -20,35 +19,66 @@ class _FindByNameState extends State<FindByName> {
   bool _searching = false;
   bool _isFav = false;
 
-  void _searchByName(String name) {
+  void _searchByName(String name, {bool isfav = false}) async {
     setState(() {
-      _recetas = null;
+      _recetas = [];
       _searching = true;
     });
 
-    if (_isFav) {
-      AppSingleton().getFavRecipes();
+    if (_isFav || isfav) {
+      await AppSingleton().getFavRecipes();
+      _recetas = AppSingleton().recetasFavoritas;
       _recetas =
           AppSingleton().recetasFavoritas
-              .where((recipe) => recipe.nombre.contains(name))
+              .where(
+                (recipe) =>
+                    recipe.nombre.toLowerCase().contains(name.toLowerCase()),
+              )
               .toList();
-    } else {
-      String prompt = Prompt.recipePromptByName(
-        name,
-        AppSingleton().numRecetas,
-        AppSingleton().personality,
-      );
 
-      AppSingleton().generateContent(prompt).then((response) {
-        setState(() {
-          _recetas = Recipe.fromJsonList(response);
-        });
+      setState(() {
+        _searching = false;
       });
+      return;
     }
 
-    setState(() {
-      _searching = false;
-    });
+    try {
+      final response = await AppSingleton().generateContent(
+        Prompt.recipePromptByName(
+          name,
+          AppSingleton().numRecetas,
+          AppSingleton().personality,
+        ),
+      );
+      if (response.contains('preparacion')) {
+        setState(() {
+          _recetas = Recipe.fromJsonList(
+            response.replaceAll("```json", "").replaceAll("```", ""),
+          );
+        });
+      } else {
+        Toaster.showToast('''Hubo un problema: $response,
+          buscando en recetas favoritas''');
+      }
+    } on NoApiKeyException {
+      setState(() {
+        Toaster.showToast(
+          'Por favor, configura tu API Key de Gemini para poder usar la aplicación',
+        );
+      });
+    } catch (e) {
+      Toaster.showToast('Error al procesar la respuesta: $e');
+    } finally {
+      if (_recetas == null || _recetas!.isEmpty) {
+        setState(() {
+          _searchByName(name, isfav: true);
+        });
+      }
+
+      setState(() {
+        _searching = false;
+      });
+    }
   }
 
   void _fav() {
@@ -56,8 +86,9 @@ class _FindByNameState extends State<FindByName> {
       _isFav = !_isFav;
     });
 
-      Toaster.showToast(_isFav ? 'Mostrando recetas favoritas' : 'Generando recetas con la IA');
-    
+    Toaster.showToast(
+      _isFav ? 'Mostrando recetas favoritas' : 'Generando recetas con la IA',
+    );
   }
 
   void onClickRecipe(Recipe recipe) {
@@ -80,34 +111,40 @@ class _FindByNameState extends State<FindByName> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      child: Column(
-        children: [
-          nameInputPart(onSearch: _searchByName, onFav: _fav),
-          const SizedBox(height: 16),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                if (_searching)
-                  LottieAnimationWidget(type: LottieAnimationType.loading)
-                else if (_recetas == null)
-                  const Text('Algo ha salido mal')
-                else if (_recetas!.isEmpty)
-                  LottieAnimationWidget(type: LottieAnimationType.notfound)
-                else
-                  for (Recipe receta in _recetas!)
-                    RecipePreview(
+    return SingleChildScrollView(
+      child:
+          _searching
+              ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LottieAnimationWidget(type: LottieAnimationType.loading),
+                    SizedBox(height: 16),
+                    Text('Generando recetas...'),
+                  ],
+                ),
+              )
+              : Column(
+                children: [
+                  nameInputPart(
+                    onSearch: _searchByName,
+                    onFav: _fav,
+                    isLoading: _searching,
+                    isFavorite: _isFav,
+                  ),
+                  const SizedBox(height: 16),
+                  if (_recetas == null)
+                    Container()
+                  else if (_recetas != null && _recetas!.isNotEmpty)
+                    RecipesListHasData(
+                      recipes: _recetas!,
+                      onClickRecipe: onClickRecipe,
                       onFavRecipe: onFavRecipe,
-                      recipe: receta,
-                      onNavigateRecipe: onClickRecipe,
-                    ),
-              ],
-            ),
-          ),
-        ],
-      ),
+                    )
+                  else
+                    const SizedBox(height: 16),
+                ],
+              ),
     );
   }
 }

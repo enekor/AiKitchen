@@ -159,6 +159,8 @@ class _FindByIngredientsState extends State<FindByIngredients> {
                   ingredientes: ingredientes,
                   onSearch: _generateResponse,
                   onFav: onFav,
+                  isLoading: _searching,
+                  isFavourite: _isFav,
                 ),
                 const SizedBox(height: 16),
                 if (recetas == null)
@@ -186,9 +188,9 @@ class _FindByIngredientsState extends State<FindByIngredients> {
             );
 
     return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: content,
-      );
+      padding: const EdgeInsets.all(16),
+      child: content,
+    );
   }
 
   @override
