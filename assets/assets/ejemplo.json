@@ -1,0 +1,117 @@
+[
+    {
+        "nombre": "Ensalada Fresca de Patata y Aguacate",
+        "descripcion": "Una ensalada refrescante y nutritiva, perfecta para un día caluroso.",
+        "tiempo_estimado": "30 minutos",
+        "ingredientes": [
+            "2 patatas medianas",
+            "1 aguacate maduro",
+            "1 tomate grande",
+            "1 zanahoria",
+            "Aceite de oliva virgen extra",
+            "Vinagre",
+            "Sal y pimienta al gusto"
+        ],
+        "preparacion": [
+            "Lava bien las patatas y ponlas a cocer en una olla con agua y sal hasta que estén tiernas (unos 20 minutos).",
+            "Mientras tanto, lava el tomate y la zanahoria. Corta el tomate en dados pequeños y ralla la zanahoria.",
+            "Cuando las patatas estén cocidas, déjalas enfriar un poco y córtalas en cubos.",
+            "Pela el aguacate, retira el hueso y córtalo en cubos.",
+            "En un bol grande, mezcla las patatas, el tomate, la zanahoria y el aguacate.",
+            "Aliña la ensalada con aceite de oliva, vinagre, sal y pimienta al gusto. Mezcla bien y sirve."
+        ]
+    },
+    {
+        "nombre": "Puré de Patata y Zanahoria con Aguacate",
+        "descripcion": "Un puré suave y cremoso, ideal para acompañar carnes o pescados.",
+        "tiempo_estimado": "45 minutos",
+        "ingredientes": [
+            "4 patatas medianas",
+            "2 zanahorias grandes",
+            "1 aguacate maduro",
+            "Leche o caldo de verduras",
+            "Mantequilla (opcional)",
+            "Sal y pimienta al gusto"
+        ],
+        "preparacion": [
+            "Pela las patatas y las zanahorias, y córtalas en trozos medianos.",
+            "Pon las patatas y las zanahorias a cocer en una olla con agua y sal hasta que estén muy tiernas (unos 30 minutos).",
+            "Escurre las patatas y las zanahorias, y colócalas en un bol grande.",
+            "Con un pasapurés o un tenedor, machaca las patatas y las zanahorias hasta obtener un puré.",
+            "Añade leche o caldo de verduras poco a poco, hasta obtener la consistencia deseada.",
+            "Si quieres, puedes añadir una nuez de mantequilla para darle más sabor.",
+            "Pela el aguacate, retira el hueso y machácalo con un tenedor. Añádelo al puré y mezcla bien.",
+            "Salpimienta al gusto y sirve."
+        ]
+    },
+    {
+        "nombre": "Tomates Rellenos de Patata y Aguacate",
+        "descripcion": "Un plato colorido y sabroso, perfecto para una cena ligera.",
+        "tiempo_estimado": "40 minutos",
+        "ingredientes": [
+            "4 tomates grandes",
+            "2 patatas medianas",
+            "1 aguacate maduro",
+            "1 cebolla pequeña",
+            "Aceite de oliva virgen extra",
+            "Sal y pimienta al gusto"
+        ],
+        "preparacion": [
+            "Lava los tomates y corta la parte superior. Con una cuchara, retira la pulpa y reserva.",
+            "Lava las patatas y ponlas a cocer en una olla con agua y sal hasta que estén tiernas (unos 20 minutos).",
+            "Mientras tanto, pica finamente la cebolla y sofríela en una sartén con aceite de oliva hasta que esté transparente.",
+            "Cuando las patatas estén cocidas, déjalas enfriar un poco y córtalas en cubos pequeños.",
+            "Pela el aguacate, retira el hueso y córtalo en cubos pequeños.",
+            "En un bol, mezcla las patatas, el aguacate, la cebolla sofrita y la pulpa de tomate picada.",
+            "Salpimienta al gusto y rellena los tomates con la mezcla.",
+            "Sirve los tomates rellenos fríos o templados."
+        ]
+    },
+    {
+        "nombre": "Crema Fría de Zanahoria, Patata y Aguacate",
+        "descripcion": "Una crema refrescante y nutritiva, ideal para los días de calor.",
+        "tiempo_estimado": "25 minutos",
+        "ingredientes": [
+            "2 zanahorias grandes",
+            "1 patata mediana",
+            "1 aguacate maduro",
+            "Caldo de verduras",
+            "Aceite de oliva virgen extra",
+            "Sal y pimienta al gusto"
+        ],
+        "preparacion": [
+            "Pela las zanahorias y la patata, y córtalas en trozos medianos.",
+            "Pon las zanahorias y la patata a cocer en una olla con caldo de verduras hasta que estén tiernas (unos 20 minutos).",
+            "Retira del fuego y deja enfriar un poco.",
+            "Pela el aguacate, retira el hueso y córtalo en trozos.",
+            "Coloca las zanahorias, la patata y el aguacate en el vaso de la batidora. Añade un poco de caldo de verduras y tritura hasta obtener una crema suave y homogénea.",
+            "Si la crema está demasiado espesa, añade más caldo de verduras hasta obtener la consistencia deseada.",
+            "Salpimienta al gusto y refrigera durante al menos 30 minutos antes de servir.",
+            "Sirve la crema fría con un chorrito de aceite de oliva virgen extra."
+        ]
+    },
+    {
+        "nombre": "Patatas Asadas con Tomate y Aguacate",
+        "descripcion": "Un plato sencillo y delicioso, perfecto para una cena informal.",
+        "tiempo_estimado": "60 minutos",
+        "ingredientes": [
+            "4 patatas medianas",
+            "2 tomates",
+            "1 aguacate maduro",
+            "Aceite de oliva virgen extra",
+            "Hierbas provenzales (opcional)",
+            "Sal y pimienta al gusto"
+        ],
+        "preparacion": [
+            "Precalienta el horno a 200°C.",
+            "Lava bien las patatas y córtalas en gajos.",
+            "Coloca las patatas en una bandeja de horno, rocíalas con aceite de oliva, salpimienta y añade hierbas provenzales si quieres.",
+            "Hornea las patatas durante 30 minutos, dándoles la vuelta a mitad de cocción.",
+            "Mientras tanto, lava los tomates y córtalos en rodajas.",
+            "Pasados los 30 minutos, añade las rodajas de tomate a la bandeja y hornea durante 15 minutos más.",
+            "Pela el aguacate, retira el hueso y córtalo en rodajas.",
+            "Cuando las patatas y los tomates estén listos, retira la bandeja del horno y añade las rodajas de aguacate.",
+            "Sirve inmediatamente."
+        ]
+    }
+]
