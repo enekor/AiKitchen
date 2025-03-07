@@ -15,35 +15,39 @@ class _nameInputPartState extends State<nameInputPart> {
   Widget build(BuildContext context) {
     bool _isFav = false;
     return Card(
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de la receta',
-                hintText: 'Ejemplo: Tarta de manzana',
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  labelText: 'Nombre de la receta',
+                  hintText: 'Ejemplo: Tarta de manzana',
+                ),
               ),
             ),
-          ),
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                widget.onSearch(_nameController.text);
-              },
-            ),
-            IconButton(
-              icon: Icon(_isFav ? Icons.favorite : Icons.favorite_border),
-              onPressed: () {
-                setState(() {
-                  _isFav = !_isFav;
-                });
-                widget.onFav();
-              },
-          )
-            
-        ],
-      
+              IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  widget.onSearch(_nameController.text);
+                },
+              ),
+              IconButton(
+                icon: Icon(_isFav ? Icons.favorite : Icons.favorite_border),
+                onPressed: () {
+                  setState(() {
+                    _isFav = !_isFav;
+                  });
+                  widget.onFav();
+                },
+            )
+              
+          ],
+        
+        ),
       ),
     );
   }
