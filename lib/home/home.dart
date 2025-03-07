@@ -53,7 +53,7 @@ class _HomeState extends State<Home> {
                     : Icon(Icons.soup_kitchen_outlined),
             label: _page == 1 ? 'Nombre' : '',
           ),
-          if (kIsWeb)
+          if (!kIsWeb)
             NavigationDestination(
               icon:
                   _page == 2
