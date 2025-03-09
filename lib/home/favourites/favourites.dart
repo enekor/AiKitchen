@@ -78,52 +78,51 @@ class _FavouritesState extends State<Favourites> {
         } else {
           return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-              ),
-              shrinkWrap: true,
-              itemCount: _recetasFavoritas.length,
-              itemBuilder: (BuildContext context, int index) {
-                final receta = _recetasFavoritas[index];
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Spacer(),
-                          Text(
-                            receta.nombre,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          SizedBox(height: 10),
-                          Text(receta.descripcion),
-                          Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  removeFavRecipe(receta);
-                                  setState(() {});
-                                },
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              children:
+                  _recetasFavoritas
+                      .map(
+                        (receta) => Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Spacer(),
+                                  Text(
+                                    receta.nombre,
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(receta.descripcion),
+                                  Spacer(),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.delete),
+                                        onPressed: () {
+                                          removeFavRecipe(receta);
+                                          setState(() {});
+                                        },
+                                      ),
+                                      IconButton(
+                                        onPressed: () => openRecipe(receta),
+                                        icon: Icon(Icons.open_in_new_rounded),
+                                      ),
+                                    ],
+                                  ),
+                                  // Add more widgets to display other properties of receta
+                                ],
                               ),
-                              IconButton(
-                                onPressed: () => openRecipe(receta),
-                                icon: Icon(Icons.open_in_new_rounded),
-                              ),
-                            ],
+                            ),
                           ),
-                          // Add more widgets to display other properties of receta
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+                        ),
+                      )
+                      .toList(),
             ),
           );
         }
