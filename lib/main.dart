@@ -36,23 +36,10 @@ class MyApp extends StatelessWidget {
                 ),
             useMaterial3: true,
           ),
-          home: FutureBuilder<String?>(
-            future: AppSingleton().getStoredApiKey(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (snapshot.hasData && snapshot.data != null) {
-                return const Home();
-              }
-
-              return const ApiKeyScreen();
-            },
-          ),
+          home: AppSingleton().apiKey == null ? ApiKeyScreen(isNotApiKeySetted: true,) : const Home(),
           routes: {
             '/home': (context) => const Home(),
-            '/api_key': (context) => const ApiKeyScreen(),
+            '/api_key': (context) => ApiKeyScreen(),
             '/recipe': (context) {
               final args =
                   ModalRoute.of(context)!.settings.arguments

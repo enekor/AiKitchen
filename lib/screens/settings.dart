@@ -6,7 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../singleton/app_singleton.dart';
 
 class ApiKeyScreen extends StatefulWidget {
-  const ApiKeyScreen({super.key});
+  ApiKeyScreen({super.key, this.isNotApiKeySetted = false});
+  bool isNotApiKeySetted;
 
   @override
   State<ApiKeyScreen> createState() => _ApiKeyScreenState();
@@ -44,8 +45,9 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     AnimatedCard(
-                      text: 'Gemini api key',
-                      icon: Icon(Icons.api_rounded),
+                      isExpanded: widget.isNotApiKeySetted,
+                      text: 'Gemini api key ${AppSingleton().apiKey != null ? 'aplicada' : 'no aplicada'}',
+                      icon: AppSingleton().apiKey == null ? Icon(Icons.api_rounded) : Icon(Icons.check_circle_rounded, color: Colors.green,),
                       children: [
                         const Text(
                           'AI Kitchen',
@@ -110,6 +112,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                         ),
                       ],
                     ),
+                    if(!widget.isNotApiKeySetted)
                     AnimatedCard(
                       text: 'Ajustes de la app',
                       icon: Icon(Icons.settings_rounded),

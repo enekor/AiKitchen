@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
@@ -33,14 +32,12 @@ class AppSingleton {
     await SharedPreferences.getInstance().then((prefs) async {
       numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
       personality = prefs.getString('tonoTextos') ?? 'neutral';
-      // if (kIsWeb) {
-      //   storedKey = 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM';
-      // } else {
-      //   storedKey = prefs.getString(_apiKeyPref);
-      // }
-      storedKey = 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM';
+
+      storedKey = prefs.getString(_apiKeyPref);
+
       if (storedKey != null) {
-        await setApiKey(storedKey!);
+        _apiKey = storedKey;
+        _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: storedKey!);
       }
     });
   }
@@ -82,11 +79,6 @@ class AppSingleton {
     await prefs.setString(_apiKeyPref, apiKey);
     _apiKey = apiKey;
     _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: apiKey);
-  }
-
-  Future<String?> getStoredApiKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_apiKeyPref);
   }
 
   Future<String> generateContent(String prompt) async {

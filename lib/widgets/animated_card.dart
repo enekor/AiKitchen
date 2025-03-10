@@ -6,14 +6,16 @@ class AnimatedCard extends StatefulWidget {
   final List<Widget> children;
   final Widget? trailing;
   final Widget? alwaysVisible;
+  bool isExpanded;
 
-  const AnimatedCard({
+  AnimatedCard({
     super.key,
     this.text,
     this.icon,
     required this.children,
     this.trailing,
     this.alwaysVisible,
+    this.isExpanded = false,
   });
 
   @override
@@ -21,7 +23,6 @@ class AnimatedCard extends StatefulWidget {
 }
 
 class _ExpandableCardState extends State<AnimatedCard> {
-  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +37,7 @@ class _ExpandableCardState extends State<AnimatedCard> {
       child: InkWell(
         onTap: () {
           setState(() {
-            _isExpanded = !_isExpanded;
+            widget.isExpanded = !widget.isExpanded;
           });
         },
         child: AnimatedContainer(
@@ -63,7 +64,7 @@ class _ExpandableCardState extends State<AnimatedCard> {
                         ),
                         AnimatedRotation(
                           duration: const Duration(milliseconds: 300),
-                          turns: _isExpanded ? 0.5 : 0,
+                          turns: widget.isExpanded ? 0.5 : 0,
                           child: const Icon(Icons.keyboard_arrow_down),
                         ),
                       ],
@@ -81,7 +82,7 @@ class _ExpandableCardState extends State<AnimatedCard> {
                   ),
                 ),
                 crossFadeState:
-                    _isExpanded
+                    widget.isExpanded
                         ? CrossFadeState.showSecond
                         : CrossFadeState.showFirst,
               ),
