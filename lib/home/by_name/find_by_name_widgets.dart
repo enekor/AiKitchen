@@ -25,44 +25,44 @@ class _nameInputPartState extends State<nameInputPart> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Theme.of(context).colorScheme.secondary.withAlpha(80),
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Card(
-                child: TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.soup_kitchen_outlined),
-                    border: InputBorder.none,
-                    labelText: 'Nombre de la receta',
-                    hintText: 'Ejemplo: Tarta de manzana',
-                  ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0), // Bordes redondeados
+      ),
+      color: Theme.of(context).colorScheme.secondary.withAlpha(125),
+      child: Row(
+        children: [
+          Expanded(
+            child: Card(
+              margin: EdgeInsets.all(5),
+              child: TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.soup_kitchen_outlined),
+                  border: InputBorder.none,
+                  labelText: 'Nombre de la receta',
+                  hintText: 'Ejemplo: Tarta de manzana',
                 ),
               ),
             ),
-            IconButton(
-              icon:
-                  widget.isLoading
-                      ? CircularProgressIndicator()
-                      : Icon(Icons.search),
-              onPressed: () {
-                widget.onSearch(_nameController.text);
-              },
+          ),
+          IconButton(
+            icon:
+                widget.isLoading
+                    ? CircularProgressIndicator()
+                    : Icon(Icons.search),
+            onPressed: () {
+              widget.onSearch(_nameController.text);
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              widget.isFavorite ? Icons.favorite : Icons.favorite_border,
             ),
-            IconButton(
-              icon: Icon(
-                widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-              ),
-              onPressed: () {
-                widget.onFav();
-              },
-            ),
-          ],
-        ),
+            onPressed: () {
+              widget.onFav();
+            },
+          ),
+        ],
       ),
     );
   }

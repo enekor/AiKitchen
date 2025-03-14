@@ -7,6 +7,7 @@ class AnimatedCard extends StatefulWidget {
   final Widget? trailing;
   final Widget? alwaysVisible;
   bool isExpanded;
+  final VoidCallback? onTap;
 
   AnimatedCard({
     super.key,
@@ -16,6 +17,7 @@ class AnimatedCard extends StatefulWidget {
     this.trailing,
     this.alwaysVisible,
     this.isExpanded = false,
+    this.onTap,
   });
 
   @override
@@ -23,7 +25,6 @@ class AnimatedCard extends StatefulWidget {
 }
 
 class _ExpandableCardState extends State<AnimatedCard> {
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -34,61 +35,67 @@ class _ExpandableCardState extends State<AnimatedCard> {
       color: Theme.of(
         context,
       ).colorScheme.secondary.withAlpha(80), // Color dinámico
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            widget.isExpanded = !widget.isExpanded;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Cabecera del card siempre visible
-              widget.alwaysVisible ??
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        widget.icon ?? const Icon(Icons.info),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            widget.text ?? '',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Cabecera del card siempre visible
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Theme.of(context).colorScheme.secondary.withAlpha(70),
+              ),
+
+              child: InkWell(
+                onTap: () {
+                  if (widget.onTap != null) widget.onTap!();
+                },
+                child:
+                    widget.alwaysVisible ??
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          widget.icon ?? const Icon(Icons.info),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              widget.text ?? '',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                        AnimatedRotation(
-                          duration: const Duration(milliseconds: 300),
-                          turns: widget.isExpanded ? 0.5 : 0,
-                          child: const Icon(Icons.keyboard_arrow_down),
-                        ),
-                      ],
+                          AnimatedRotation(
+                            duration: const Duration(milliseconds: 300),
+                            turns: widget.isExpanded ? 0.5 : 0,
+                            child: const Icon(Icons.keyboard_arrow_down),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-              // Contenido expandible
-              AnimatedCrossFade(
-                duration: const Duration(milliseconds: 300),
-                firstChild: Container(),
-                secondChild: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: widget.children,
-                  ),
-                ),
-                crossFadeState:
-                    widget.isExpanded
-                        ? CrossFadeState.showSecond
-                        : CrossFadeState.showFirst,
               ),
-              if (widget.trailing != null) widget.trailing!,
-            ],
-          ),
+            ),
+            // Contenido expandible
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 300),
+              firstChild: Container(),
+              secondChild: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: widget.children,
+                ),
+              ),
+              crossFadeState:
+                  widget.isExpanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+            ),
+            if (widget.trailing != null) widget.trailing!,
+          ],
         ),
       ),
     );

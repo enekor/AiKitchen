@@ -124,26 +124,29 @@ class _FindByNameState extends State<FindByName> {
                   ],
                 ),
               )
-              : Column(
-                children: [
-                  nameInputPart(
-                    onSearch: _searchByName,
-                    onFav: _fav,
-                    isLoading: _searching,
-                    isFavorite: _isFav,
-                  ),
-                  const SizedBox(height: 16),
-                  if (_recetas == null)
-                    Container()
-                  else if (_recetas != null && _recetas!.isNotEmpty)
-                    RecipesListHasData(
-                      recipes: _recetas!,
-                      onClickRecipe: onClickRecipe,
-                      onFavRecipe: onFavRecipe,
-                    )
-                  else
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    nameInputPart(
+                      onSearch: _searchByName,
+                      onFav: _fav,
+                      isLoading: _searching,
+                      isFavorite: _isFav,
+                    ),
                     const SizedBox(height: 16),
-                ],
+                    if (_recetas == null)
+                      Container()
+                    else if (_recetas != null && _recetas!.isNotEmpty)
+                      RecipesListHasData(
+                        recipes: _recetas!,
+                        onClickRecipe: onClickRecipe,
+                        onFavRecipe: onFavRecipe,
+                      )
+                    else
+                      const SizedBox(height: 16),
+                  ],
+                ),
               ),
     );
   }

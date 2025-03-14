@@ -28,32 +28,21 @@ class IngredientsPart extends StatefulWidget {
   State<IngredientsPart> createState() => _IngredientsPartState();
 }
 
-class _IngredientsPartState extends State<IngredientsPart> {
-  final TextEditingController _ingredientController = TextEditingController();
+TextEditingController _ingredientController = TextEditingController();
 
+class _IngredientsPartState extends State<IngredientsPart> {
+  bool _isCardExpanded = false; // Keep track of card expansion
   void _addNewIngredient() {
+    widget.onNewIngredient(_ingredientController.text);
+    Toaster.showToast('Ingrediente añadido: ${_ingredientController.text}');
     setState(() {
-      widget.ingredientes.add(_ingredientController.text);
-      widget.onNewIngredient(_ingredientController.text);
-      Toaster.showToast('Ingrediente añadido: ${_ingredientController.text}');
-      _ingredientController.clear();
+      _ingredientController.text = '';
     });
   }
 
   void _removeIngredient(String ingredient) {
-    setState(() {
-      if (widget.ingredientes.contains(ingredient)) {
-        widget.ingredientes.remove(ingredient);
-        widget.onRemoveIngredient(ingredient);
-      }
-    });
-  }
-
-  void _saveIngredient(String ingredient) {
-    if (!widget.ingredientes.contains(ingredient)) {
-      widget.ingredientes.add(ingredient);
-      widget.onNewIngredient(ingredient);
-    }
+    widget.onRemoveIngredient(ingredient);
+    setState(() {});
   }
 
   @override
@@ -65,65 +54,74 @@ class _IngredientsPartState extends State<IngredientsPart> {
   @override
   Widget build(BuildContext context) {
     return AnimatedCard(
+      isExpanded: _isCardExpanded, // Use the local state
       alwaysVisible: Row(
         children: [
           Expanded(
-            flex: 7,
             child: Card(
-              margin: EdgeInsets.all(5),
+              margin: const EdgeInsets.all(5),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.kitchen_rounded),
-                    SizedBox(width: 6),
-                    Text(
-                      widget.ingredientes.join(', '),
-                      overflow: TextOverflow.ellipsis,
+                    const Icon(Icons.kitchen_rounded),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      //to avoid overflow
+                      child: Text(
+                        widget.ingredientes.join(', '),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          Expanded(
-            child: IconButton(
-              onPressed: widget.onSearch,
-              icon:
-                  widget.isLoading
-                      ? CircularProgressIndicator()
-                      : Icon(Icons.search),
-            ),
+          IconButton(
+            onPressed: widget.onSearch,
+            icon:
+                widget.isLoading
+                    ? const CircularProgressIndicator()
+                    : const Icon(Icons.search),
           ),
-          Expanded(
-            child: IconButton(
-              onPressed: () {
-                widget.onFav();
-              },
-              icon: Icon(
-                widget.isFavourite ? Icons.favorite : Icons.favorite_outline,
-              ),
+          IconButton(
+            onPressed: () {
+              widget.onFav();
+            },
+            icon: Icon(
+              widget.isFavourite ? Icons.favorite : Icons.favorite_outline,
             ),
           ),
         ],
       ),
+      onTap: () {
+        // handle onTap event
+        setState(() {
+          _isCardExpanded = !_isCardExpanded;
+        });
+      },
       children: [
         Row(
           children: [
             Expanded(
               child: TextFormField(
+                onEditingComplete: _addNewIngredient,
                 controller: _ingredientController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Añadir ingrediente',
                   border: OutlineInputBorder(),
                 ),
               ),
             ),
-            IconButton(onPressed: _addNewIngredient, icon: Icon(Icons.add)),
+            IconButton(
+              onPressed: _addNewIngredient,
+              icon: const Icon(Icons.add),
+            ),
           ],
         ),
-        SizedBox(height: 16),
-        Text('Ingredientes:'),
+        const SizedBox(height: 16),
+        const Text('Ingredientes:'),
         ...widget.ingredientes.map(
           (ingredient) => Padding(
             padding: const EdgeInsets.only(left: 16.0),
@@ -132,7 +130,7 @@ class _IngredientsPartState extends State<IngredientsPart> {
                 Text('• $ingredient'),
                 IconButton(
                   onPressed: () => _removeIngredient(ingredient),
-                  icon: Icon(Icons.remove),
+                  icon: const Icon(Icons.remove),
                 ),
               ],
             ),

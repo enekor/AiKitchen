@@ -76,54 +76,65 @@ class _FavouritesState extends State<Favourites> {
         } else if (snapshot.hasError) {
           return const Center(child: Text('Error loading data'));
         } else {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                children:
-                    _recetasFavoritas
-                        .map(
-                          (receta) => Card(
-                            color: Theme.of(context).colorScheme.secondary.withAlpha(80),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Spacer(),
-                                    Text(
-                                      receta.nombre,
-                                      style:
-                                          Theme.of(context).textTheme.titleLarge,
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text(receta.descripcion),
-                                    Spacer(),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.delete),
-                                          onPressed: () {
-                                            removeFavRecipe(receta);
-                                            setState(() {});
-                                          },
-                                        ),
-                                        IconButton(
-                                          onPressed: () => openRecipe(receta),
-                                          icon: Icon(Icons.open_in_new_rounded),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+          return SizedBox(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  children:
+                      _recetasFavoritas
+                          .map(
+                            (receta) => Card(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.secondary.withAlpha(80),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Spacer(),
+                                      Text(
+                                        receta.nombre,
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.titleLarge,
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(receta.descripcion),
+                                      Spacer(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.delete),
+                                            onPressed: () {
+                                              removeFavRecipe(receta);
+                                              setState(() {});
+                                            },
+                                          ),
+                                          IconButton(
+                                            onPressed: () => openRecipe(receta),
+                                            icon: Icon(
+                                              Icons.open_in_new_rounded,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        )
-                        .toList(),
+                          )
+                          .toList(),
+                ),
               ),
             ),
           );

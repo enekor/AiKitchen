@@ -37,12 +37,15 @@ class AppSingleton {
 
       if (storedKey != null) {
         _apiKey = storedKey;
-        _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: storedKey!);
+        _model = GenerativeModel(
+          model: 'gemini-2.0-flash-latest',
+          apiKey: storedKey!,
+        );
       }
     });
   }
 
-   Future<String> _getFilePath() async {
+  Future<String> _getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
     return '${directory.path}/fav_recipes.json';
   }
