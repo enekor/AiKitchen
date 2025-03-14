@@ -131,19 +131,6 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: () async {
-                            await AppSingleton().setApiKey(
-                              'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM',
-                            );
-                            if (context.mounted) {
-                              Navigator.of(
-                                context,
-                              ).pushReplacementNamed('/home');
-                            }
-                          },
-                          icon: const Icon(Icons.abc),
-                        ),
                       ],
                     ),
                     if (!widget.isNotApiKeySetted)
