@@ -38,7 +38,7 @@ class AppSingleton {
       if (storedKey != null) {
         _apiKey = storedKey;
         _model = GenerativeModel(
-          model: 'gemini-2.0-flash-latest',
+          model: 'gemini-1.5-flash-latest',
           apiKey: storedKey!,
         );
       }
