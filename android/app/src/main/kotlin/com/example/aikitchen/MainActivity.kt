@@ -1,4 +1,4 @@
-package com.example.aikitchen
+package com.N3k0chan.aikitchen
 
 import io.flutter.embedding.android.FlutterActivity
 
