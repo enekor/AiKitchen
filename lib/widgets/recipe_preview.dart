@@ -3,15 +3,17 @@ import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:flutter/material.dart';
 
 class RecipePreview extends StatefulWidget {
-  const RecipePreview({
+  RecipePreview({
     super.key,
     required this.recipe,
     required this.onFavRecipe,
     required this.onNavigateRecipe,
+    this.isExpanded = false,
   });
   final Recipe recipe;
   final Function(Recipe) onFavRecipe;
   final Function(Recipe) onNavigateRecipe;
+  bool isExpanded;
 
   @override
   State<RecipePreview> createState() => _RecipePreviewState();
@@ -22,6 +24,11 @@ class _RecipePreviewState extends State<RecipePreview> {
   @override
   Widget build(BuildContext context) {
     return AnimatedCard(
+      isExpanded: widget.isExpanded,
+      onTap:
+          () => setState(() {
+            widget.isExpanded = !widget.isExpanded;
+          }),
       text: widget.recipe.nombre,
       icon: Icon(Icons.restaurant),
       children: [
