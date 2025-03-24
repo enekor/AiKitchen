@@ -1,9 +1,9 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
-import 'package:aikitchen/widgets/recipe_preview.dart';
+import 'package:aikitchen/widgets/recipe_list.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
+import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:aikitchen/widgets/toaster.dart';
-import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 
 class IngredientsPart extends StatefulWidget {
   final List<String> ingredientes;
@@ -57,29 +57,51 @@ class _IngredientsPartState extends State<IngredientsPart> {
     return AnimatedCard(
       isExpanded: _isCardExpanded, // Use the local state
       alwaysVisible: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: const Icon(Icons.kitchen_rounded),
+          ),
           Expanded(
             child: Container(
-              color: Theme.of(context).colorScheme.surface,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16.0),
                 boxShadow: [
                   BoxShadow(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(-4, -4),
-                      inset: true),
-                  BoxShadow(color: Theme.of(context).colorScheme.shadow.withOpacity(0.5), blurRadius: 10, offset: const Offset(4, 4), inset: true),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.1),
+                    blurRadius: 3,
+                    offset: const Offset(-4, -4),
+                    inset: true,
+                  ),
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withOpacity(0.5),
+                    blurRadius: 3,
+                    offset: const Offset(4, 4),
+                    inset: true,
+                  ),
                 ],
               ),
-              margin: const EdgeInsets.all(5), // Keep the original margin
+              margin: const EdgeInsets.only(
+                left: 5,
+                top: 5,
+                bottom: 5,
+              ), // Keep the original margin
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(
+                  left: 8,
+                  top: 8,
+                  bottom: 8,
+                  right: 16.0,
+                ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const Icon(Icons.kitchen_rounded),
-                    const SizedBox(width: 6), // Keep the original SizedBox
                     Expanded(
                       // to avoid overflow
                       child: Text(
@@ -171,17 +193,10 @@ class RecipesListHasData extends StatelessWidget {
   Widget build(BuildContext context) {
     if (recipes.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      children:
-          recipes
-              .map(
-                (receta) => RecipePreview(
-                  recipe: receta,
-                  onFavRecipe: onFavRecipe,
-                  onNavigateRecipe: onClickRecipe,
-                ),
-              )
-              .toList(),
+    return RecipeList(
+      recipes: recipes,
+      onClickRecipe: onClickRecipe,
+      onFavRecipe: onFavRecipe,
     );
   }
 }

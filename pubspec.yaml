@@ -11,6 +11,7 @@ dependencies:
   dynamic_color: ^1.6.8
   flutter:
     sdk: flutter
+  flutter_inset_shadow: ^2.0.3
   fluttertoast: ^8.2.12
   google_generative_ai: ^0.4.6
   lottie: ^3.3.1

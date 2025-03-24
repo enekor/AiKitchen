@@ -15,6 +15,7 @@ class GeminiService {
   Future<void> setApiKey(String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyPref, apiKey);
+    this._apiKey = apiKey;
     _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: apiKey);
   }
 

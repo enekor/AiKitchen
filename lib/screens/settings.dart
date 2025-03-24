@@ -43,8 +43,8 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 15,
                   children: [
                     AnimatedCard(
                       isExpanded:
@@ -116,7 +116,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             onPressed: () async {
                               if (_apiKeyController.text.isNotEmpty) {
                                 await AppSingleton().setApiKey(
-                                  _apiKeyController.text,
+                                  'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM', //_apiKeyController.text,
                                 );
                                 if (context.mounted) {
                                   Navigator.of(
@@ -128,25 +128,6 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             child: const Padding(
                               padding: EdgeInsets.all(12.0),
                               child: Text('Continuar'),
-                            ),
-                          ),
-                        ),
-
-                        Center(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await AppSingleton().setApiKey(
-                                'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM',
-                              );
-                              if (context.mounted) {
-                                Navigator.of(
-                                  context,
-                                ).pushReplacementNamed('/home');
-                              }
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: Text('Continuar con otra api key'),
                             ),
                           ),
                         ),

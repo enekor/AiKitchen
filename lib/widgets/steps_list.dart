@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
-import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
+import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
 class StepsList extends StatefulWidget {
   final List<String> steps;
@@ -31,8 +31,8 @@ class _StepsListState extends State<StepsList> {
             BoxShadow(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
               offset: const Offset(-4, -4),
-              blurRadius: 6,
               inset: true,
+              blurRadius: 6,
             ),
             BoxShadow(
               color: Theme.of(context).colorScheme.shadow.withOpacity(0.5),

@@ -36,7 +36,10 @@ class MyApp extends StatelessWidget {
                 ),
             useMaterial3: true,
           ),
-          home: AppSingleton().apiKey == null ? ApiKeyScreen(isNotApiKeySetted: true,) : const Home(),
+          home:
+              AppSingleton().apiKey == null || AppSingleton().apiKey!.isEmpty
+                  ? ApiKeyScreen(isNotApiKeySetted: true)
+                  : const Home(),
           routes: {
             '/home': (context) => const Home(),
             '/api_key': (context) => ApiKeyScreen(),
