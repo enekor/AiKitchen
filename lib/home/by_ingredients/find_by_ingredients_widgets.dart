@@ -193,7 +193,7 @@ class RecipesListHasData extends StatelessWidget {
   Widget build(BuildContext context) {
     if (recipes.isEmpty) return const SizedBox.shrink();
 
-    return RecipeList(
+    return RecipesList(
       recipes: recipes,
       onClickRecipe: onClickRecipe,
       onFavRecipe: onFavRecipe,

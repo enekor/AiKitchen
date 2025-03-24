@@ -1,6 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/recipe_list.dart';
 import 'package:flutter/material.dart';
 
 class Favourites extends StatefulWidget {
@@ -79,63 +80,11 @@ class _FavouritesState extends State<Favourites> {
           return SizedBox(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Wrap(
-                  alignment: WrapAlignment.center,
-                  children:
-                      _recetasFavoritas
-                          .map(
-                            (receta) => Card(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.secondary.withAlpha(80),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Spacer(),
-                                      Text(
-                                        receta.nombre,
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.titleLarge,
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(receta.descripcion),
-                                      Spacer(),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.delete),
-                                            onPressed: () {
-                                              removeFavRecipe(receta);
-                                              setState(() {});
-                                            },
-                                          ),
-                                          IconButton(
-                                            onPressed: () => openRecipe(receta),
-                                            icon: Icon(
-                                              Icons.open_in_new_rounded,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                ),
-              ),
+            child: RecipesList(
+              recipes: _recetasFavoritas,
+              onClickRecipe: openRecipe,
+              onFavRecipe: removeFavRecipe,
+              isFav: true,
             ),
           );
         }

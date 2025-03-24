@@ -1,6 +1,5 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/TextInput.dart';
-import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/recipe_list.dart';
 import 'package:flutter/material.dart';
 
@@ -52,7 +51,7 @@ class RecipesListHasData extends StatelessWidget {
   Widget build(BuildContext context) {
     if (recipes.isEmpty) return const SizedBox.shrink();
 
-    return RecipeList(
+    return RecipesList(
       recipes: recipes,
       onClickRecipe: onClickRecipe,
       onFavRecipe: onFavRecipe,

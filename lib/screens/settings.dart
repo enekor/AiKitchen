@@ -116,7 +116,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             onPressed: () async {
                               if (_apiKeyController.text.isNotEmpty) {
                                 await AppSingleton().setApiKey(
-                                  'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM', //_apiKeyController.text,
+                                  _apiKeyController.text,
                                 );
                                 if (context.mounted) {
                                   Navigator.of(

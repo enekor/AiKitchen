@@ -166,30 +166,37 @@ class _FindByIngredientsState extends State<FindByIngredients> {
                 if (recetas == null)
                   Container()
                 else if (recetas != null && recetas!.isNotEmpty)
-                  RecipesListHasData(
-                    recipes: recetas!,
-                    onClickRecipe: onClickRecipe,
-                    onFavRecipe: onFavRecipe,
+                  Expanded(
+                    child: RecipesListHasData(
+                      recipes: recetas!,
+                      onClickRecipe: onClickRecipe,
+                      onFavRecipe: onFavRecipe,
+                    ),
                   )
                 else
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LottieAnimationWidget(
-                          type: LottieAnimationType.notfound,
-                        ),
-                        Text('No hay recetas disponibles'),
-                      ],
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LottieAnimationWidget(
+                            type: LottieAnimationType.notfound,
+                          ),
+                          Text('No hay recetas disponibles'),
+                        ],
+                      ),
                     ),
                   ),
                 const SizedBox(height: 16),
               ],
             );
 
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(16),
-      child: content,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        child: content,
+      ),
     );
   }
 
