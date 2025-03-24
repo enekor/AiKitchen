@@ -1,8 +1,9 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:aikitchen/widgets/recipe_preview.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 
 class IngredientsPart extends StatefulWidget {
   final List<String> ingredientes;
@@ -58,23 +59,36 @@ class _IngredientsPartState extends State<IngredientsPart> {
       alwaysVisible: Row(
         children: [
           Expanded(
-            child: Card(
-              margin: const EdgeInsets.all(5),
+            child: Container(
+              color: Theme.of(context).colorScheme.surface,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16.0),
+                boxShadow: [
+                  BoxShadow(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(-4, -4),
+                      inset: true),
+                  BoxShadow(color: Theme.of(context).colorScheme.shadow.withOpacity(0.5), blurRadius: 10, offset: const Offset(4, 4), inset: true),
+                ],
+              ),
+              margin: const EdgeInsets.all(5), // Keep the original margin
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
                     const Icon(Icons.kitchen_rounded),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 6), // Keep the original SizedBox
                     Expanded(
-                      //to avoid overflow
+                      // to avoid overflow
                       child: Text(
                         widget.ingredientes.join(', '),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ),
+                  ], // Keep the original Row children
+                ), // Keep the original Padding content
               ),
             ),
           ),

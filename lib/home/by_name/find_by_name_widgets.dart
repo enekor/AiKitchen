@@ -1,7 +1,8 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/recipe_preview.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
+import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 
 class nameInputPart extends StatefulWidget {
   nameInputPart({
@@ -20,23 +21,57 @@ class nameInputPart extends StatefulWidget {
 }
 
 class _nameInputPartState extends State<nameInputPart> {
-  TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0), // Bordes redondeados
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.0),
+        color: Theme.of(context).colorScheme.secondary.withAlpha(125),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+            offset: const Offset(-4, -4),
+            blurRadius: 10,
+          ),
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.5),
+            offset: const Offset(4, 4),
+            blurRadius: 10,
+          ),
+        ],
       ),
-      color: Theme.of(context).colorScheme.secondary.withAlpha(125),
       child: Row(
         children: [
           Expanded(
-            child: Card(
-              margin: EdgeInsets.all(5),
+            child: Container(
+              margin: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16.0),
+                color: Theme.of(context).colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.1),
+                    offset: const Offset(-4, -4),
+                    blurRadius: 10,
+                    inset: true,
+                  ),
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withOpacity(0.5),
+                    offset: const Offset(4, 4),
+                    blurRadius: 10,
+                    inset: true,
+                  ),
+                ],
+              ),
               child: TextField(
                 controller: _nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.soup_kitchen_outlined),
                   border: InputBorder.none,
                   labelText: 'Nombre de la receta',
@@ -48,8 +83,8 @@ class _nameInputPartState extends State<nameInputPart> {
           IconButton(
             icon:
                 widget.isLoading
-                    ? CircularProgressIndicator()
-                    : Icon(Icons.search),
+                    ? const CircularProgressIndicator()
+                    : const Icon(Icons.search),
             onPressed: () {
               widget.onSearch(_nameController.text);
             },

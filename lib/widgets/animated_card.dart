@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
+import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
+import 'dart:ui';
 
 class AnimatedCard extends StatefulWidget {
   final String? text;
@@ -7,6 +9,7 @@ class AnimatedCard extends StatefulWidget {
   final Widget? trailing;
   final Widget? alwaysVisible;
   bool isExpanded;
+  final bool isInnerShadow;
   final VoidCallback? onTap;
 
   AnimatedCard({
@@ -17,6 +20,7 @@ class AnimatedCard extends StatefulWidget {
     this.trailing,
     this.alwaysVisible,
     this.isExpanded = false,
+    this.isInnerShadow = false,
     this.onTap,
   });
 
@@ -27,14 +31,39 @@ class AnimatedCard extends StatefulWidget {
 class _ExpandableCardState extends State<AnimatedCard> {
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0), // Bordes redondeados
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.0),
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          if (widget.isInnerShadow)
+            BoxShadow(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+              offset: const Offset(-4, -4),
+              blurRadius: 8,
+              inset: true,
+            ),
+          if (widget.isInnerShadow)
+            BoxShadow(
+              color: Theme.of(context).colorScheme.shadow.withOpacity(0.5),
+              offset: const Offset(4, 4),
+              blurRadius: 8,
+              inset: true,
+            ),
+          if (!widget.isInnerShadow)
+            BoxShadow(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+              offset: const Offset(-4, -4),
+              blurRadius: 8,
+            ),
+          if (!widget.isInnerShadow) BoxShadow(
+              color: Theme.of(context).colorScheme.shadow.withOpacity(0.5),
+              offset: const Offset(4, 4),
+              blurRadius: 8,
+            ),
+        ],
       ),
-      elevation: 4, // Sombra
-      color: Theme.of(
-        context,
-      ).colorScheme.secondary.withAlpha(80), // Color dinámico
+      
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         child: Column(
@@ -44,7 +73,7 @@ class _ExpandableCardState extends State<AnimatedCard> {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: Theme.of(context).colorScheme.secondary.withAlpha(70),
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
               ),
 
               child: InkWell(
@@ -97,7 +126,7 @@ class _ExpandableCardState extends State<AnimatedCard> {
             if (widget.trailing != null) widget.trailing!,
           ],
         ),
-      ),
+      )
     );
   }
 }

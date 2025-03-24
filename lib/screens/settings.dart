@@ -131,6 +131,25 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             ),
                           ),
                         ),
+
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await AppSingleton().setApiKey(
+                                'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM',
+                              );
+                              if (context.mounted) {
+                                Navigator.of(
+                                  context,
+                                ).pushReplacementNamed('/home');
+                              }
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Text('Continuar con otra api key'),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     if (!widget.isNotApiKeySetted)
@@ -151,7 +170,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             text: '¿Cantas recetas quieres ver?',
                             onChange: (int value) {
                               setState(() {
-                                AppSingleton().numRecetas = value;
+                                AppSingleton().setNumRecetas = value;
                               });
                               SharedPreferencesService.setStringValue(
                                 SharedPreferencesKeys.numRecetas,
@@ -165,7 +184,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             text: '¿Qué tono de texto prefieres?',
                             onChange: (String value) {
                               setState(() {
-                                AppSingleton().personality = value;
+                                AppSingleton().setPersonality = value;
                               });
                               SharedPreferencesService.setStringValue(
                                 SharedPreferencesKeys.tonoTextos,

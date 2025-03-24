@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/gemini_service.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,12 +11,12 @@ class AppSingleton {
   static final AppSingleton _instance = AppSingleton._internal();
   static const String _apiKeyPref = 'gemini_api_key';
 
-  GenerativeModel? _model;
   String? _apiKey;
   Recipe? recipe;
-  int numRecetas = 5;
-  String personality = 'neutral';
+  int _numRecetas = 5;
+  String _personality = 'neutral';
   List<Recipe> recetasFavoritas = [];
+  GeminiService? _geminiService;
 
   factory AppSingleton() {
     return _instance;
@@ -23,25 +24,18 @@ class AppSingleton {
 
   AppSingleton._internal();
 
-  GenerativeModel? get model => _model;
   String? get apiKey => _apiKey;
+  int get numRecetas => _numRecetas;
+  set setNumRecetas(int value) => _numRecetas = value;
+  String get personality => _personality;
+  set setPersonality(String value) => _personality = value;
 
   Future<void> initializeWithStoredKey() async {
-    String? storedKey;
-
     await SharedPreferences.getInstance().then((prefs) async {
-      numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
-      personality = prefs.getString('tonoTextos') ?? 'neutral';
-
-      storedKey = prefs.getString(_apiKeyPref);
-
-      if (storedKey != null) {
-        _apiKey = storedKey;
-        _model = GenerativeModel(
-          model: 'gemini-1.5-flash-latest',
-          apiKey: storedKey!,
-        );
-      }
+      _numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
+      _personality = prefs.getString('tonoTextos') ?? 'neutral';
+      _apiKey = prefs.getString(_apiKeyPref);
+      _geminiService = GeminiService(_apiKey ?? '');
     });
   }
 
@@ -80,22 +74,12 @@ class AppSingleton {
   Future<void> setApiKey(String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyPref, apiKey);
+    _geminiService!.setApiKey(_apiKey ?? '');
     _apiKey = apiKey;
-    _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: apiKey);
   }
 
   Future<String> generateContent(String prompt) async {
-    if (_model == null) {
-      throw NoApiKeyException();
-    }
-
-    try {
-      final content = [Content.text(prompt)];
-      final response = await _model!.generateContent(content);
-      return response.text ?? 'No se pudo generar una respuesta';
-    } catch (e) {
-      return 'Error: $e';
-    }
+    return await _geminiService!.generateContent(prompt);
   }
 }
 
