@@ -1,6 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:aikitchen/widgets/recipe_list.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -121,14 +122,15 @@ class _IngredientsPartState extends State<IngredientsPart> {
                     ? const CircularProgressIndicator()
                     : const Icon(Icons.search),
           ),
-          IconButton(
-            onPressed: () {
-              widget.onFav();
-            },
-            icon: Icon(
-              widget.isFavourite ? Icons.favorite : Icons.favorite_outline,
+          if (!kIsWeb)
+            IconButton(
+              onPressed: () {
+                widget.onFav();
+              },
+              icon: Icon(
+                widget.isFavourite ? Icons.favorite : Icons.favorite_outline,
+              ),
             ),
-          ),
         ],
       ),
       onTap: () {

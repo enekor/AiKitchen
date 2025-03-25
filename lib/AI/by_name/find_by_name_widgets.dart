@@ -1,6 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/recipe_list.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class nameInputPart extends StatefulWidget {
@@ -27,7 +28,7 @@ class _nameInputPartState extends State<nameInputPart> {
     return TextInput(
       onSearch: widget.onSearch,
       isLoading: widget.isLoading,
-      onFav: widget.onFav,
+      onFav: kIsWeb ? null : widget.onFav,
       isFavorite: widget.isFavorite,
       prefixIcon: Icon(Icons.soup_kitchen_outlined),
       hint: 'Ejemplo: Tarta de manzana',

@@ -1,4 +1,6 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/widgets/share_button.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
@@ -160,14 +162,23 @@ class RecipePreview extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (onGavRecipe != null)
-                      IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : null,
+                    if (!kIsWeb) 
+                    ...[
+                      if (onGavRecipe != null)
+                        IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : null,
+                          ),
+                          onPressed: onGavRecipe,
                         ),
-                        onPressed: onGavRecipe,
+
+                      NeumorphicShareButton(
+                        recipe: recipe,
+                        size: 20,
+                        withInnerShadow: true,
                       ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 8),

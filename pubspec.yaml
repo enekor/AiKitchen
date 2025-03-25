@@ -17,6 +17,8 @@ dependencies:
   lottie: ^3.3.1
   material_symbols_icons: ^4.2811.0
   path_provider: ^2.1.5
+  receive_sharing_intent: ^1.8.1
+  share_plus: ^10.1.4
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.5
 
