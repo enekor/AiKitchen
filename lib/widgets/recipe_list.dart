@@ -6,20 +6,119 @@ class RecipePreview extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback? onGavRecipe;
   final VoidCallback onClickRecipe;
+  final VoidCallback? onIngredientsClick;
   final bool isFavorite;
 
   const RecipePreview({
     required this.recipe,
     this.onGavRecipe,
     required this.onClickRecipe,
+    this.onIngredientsClick,
     this.isFavorite = false,
     Key? key,
   }) : super(key: key);
 
+  void _showRecipeDetails(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  spreadRadius: 3,
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).dividerColor,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  recipe.nombre,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '⏱ ${recipe.tiempoEstimado}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Ingredientes:',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...recipe.ingredientes.map(
+                  (ing) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('• $ing'),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onIngredientsClick?.call();
+                        },
+                        child: const Text('USAR INGREDIENTES'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha(50),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onClickRecipe();
+                        },
+                        child: const Text('VER RECETA'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onClickRecipe,
+      onTap: () => _showRecipeDetails(context),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Container(
@@ -27,7 +126,6 @@ class RecipePreview extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             color: Theme.of(context).colorScheme.surface,
             boxShadow: [
-              // Sombras neumórficas (mantenemos el efecto)
               BoxShadow(
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
                 blurRadius: 10,
@@ -46,15 +144,13 @@ class RecipePreview extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header con nombre y botón de favoritos
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   children: [
                     Expanded(
                       child: Text(
@@ -64,82 +160,23 @@ class RecipePreview extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (onGavRecipe != null) ...[
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: onGavRecipe,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Theme.of(context).colorScheme.surface,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withOpacity(0.2),
-                                blurRadius: 5,
-                                offset: const Offset(2, 2),
-                              ),
-                              BoxShadow(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surface.withOpacity(0.9),
-                                blurRadius: 5,
-                                offset: const Offset(-2, -2),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color:
-                                isFavorite
-                                    ? Colors.red
-                                    : Theme.of(context).colorScheme.onSurface,
-                            size: 20,
-                          ),
+                    if (onGavRecipe != null)
+                      IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : null,
                         ),
+                        onPressed: onGavRecipe,
                       ),
-                    ],
                   ],
                 ),
-              ),
-              // Descripción
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Text(
+                const SizedBox(height: 8),
+                Text(
                   recipe.descripcion,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-              ),
-              // Detalles (se muestran al interactuar)
-              MouseRegion(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  height: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tiempo: ${recipe.tiempoEstimado}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        Text(
-                          'Ingredientes: ${recipe.ingredientes.length}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        Text(
-                          'Pasos: ${recipe.preparacion.length}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -151,12 +188,14 @@ class RecipesList extends StatelessWidget {
   final List<Recipe> recipes;
   final Function(Recipe)? onFavRecipe;
   final Function(Recipe) onClickRecipe;
-  bool isFav = false;
+  final Function(Recipe)? onIngredientsClick;
+  final bool isFav;
 
-  RecipesList({
+  const RecipesList({
     required this.recipes,
     this.onFavRecipe,
     required this.onClickRecipe,
+    this.onIngredientsClick,
     this.isFav = false,
     Key? key,
   }) : super(key: key);
@@ -172,6 +211,10 @@ class RecipesList extends StatelessWidget {
           recipe: recipe,
           onGavRecipe: onFavRecipe != null ? () => onFavRecipe!(recipe) : null,
           onClickRecipe: () => onClickRecipe(recipe),
+          onIngredientsClick:
+              onIngredientsClick != null
+                  ? () => onIngredientsClick!(recipe)
+                  : null,
           isFavorite: isFav,
         );
       },
@@ -183,12 +226,14 @@ class RecipesGrid extends StatelessWidget {
   final List<Recipe> recipes;
   final Function(Recipe)? onFavRecipe;
   final Function(Recipe) onClickRecipe;
-  bool isFav = false;
+  final Function(Recipe)? onIngredientsClick;
+  final bool isFav;
 
-  RecipesGrid({
+  const RecipesGrid({
     required this.recipes,
     this.onFavRecipe,
     required this.onClickRecipe,
+    this.onIngredientsClick,
     this.isFav = false,
     Key? key,
   }) : super(key: key);
@@ -198,10 +243,10 @@ class RecipesGrid extends StatelessWidget {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300, // Ancho máximo de cada item
+        maxCrossAxisExtent: 300,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 0.8, // Relación más cuadrada
+        childAspectRatio: 0.8,
       ),
       itemCount: recipes.length,
       itemBuilder: (context, index) {
@@ -210,6 +255,10 @@ class RecipesGrid extends StatelessWidget {
           recipe: recipe,
           onGavRecipe: onFavRecipe != null ? () => onFavRecipe!(recipe) : null,
           onClickRecipe: () => onClickRecipe(recipe),
+          onIngredientsClick:
+              onIngredientsClick != null
+                  ? () => onIngredientsClick!(recipe)
+                  : null,
           isFavorite: isFav,
         );
       },

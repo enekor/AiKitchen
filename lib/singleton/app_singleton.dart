@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
+import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
@@ -78,8 +79,8 @@ class AppSingleton {
     _apiKey = apiKey;
   }
 
-  Future<String> generateContent(String prompt) async {
-    return await _geminiService!.generateContent(prompt);
+  Future<String> generateContent(String prompt, BuildContext context) async {
+    return await _geminiService!.generateContent(prompt,context);
   }
 }
 

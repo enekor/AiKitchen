@@ -1,4 +1,4 @@
-import 'package:aikitchen/home/by_name/find_by_name_widgets.dart';
+import 'package:aikitchen/AI/by_name/find_by_name_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
@@ -48,7 +48,7 @@ class _FindByNameState extends State<FindByName> {
           name,
           AppSingleton().numRecetas,
           AppSingleton().personality,
-        ),
+        ),context
       );
       if (response.contains('preparacion')) {
         setState(() {

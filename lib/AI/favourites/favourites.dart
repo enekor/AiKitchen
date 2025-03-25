@@ -80,12 +80,25 @@ class _FavouritesState extends State<Favourites> {
           return SizedBox(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            child: RecipesList(
-              recipes: _recetasFavoritas,
-              onClickRecipe: openRecipe,
-              onFavRecipe: removeFavRecipe,
-              isFav: true,
-            ),
+            child:
+                _recetasFavoritas.isNotEmpty
+                    ? RecipesList(
+                      recipes: _recetasFavoritas,
+                      onClickRecipe: openRecipe,
+                      onFavRecipe: removeFavRecipe,
+                      isFav: true,
+                    )
+                    : Expanded(
+                      child: Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text('¯⁠\⁠_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
+                            Text('No se han encontrado recetas favoritas'),
+                          ],
+                        ),
+                      ),
+                    ),
           );
         }
       },

@@ -36,13 +36,10 @@ class MyApp extends StatelessWidget {
                 ),
             useMaterial3: true,
           ),
-          home:
-              AppSingleton().apiKey == null || AppSingleton().apiKey!.isEmpty
-                  ? ApiKeyScreen(isNotApiKeySetted: true)
-                  : const Home(),
+          home: Home(),
           routes: {
             '/home': (context) => const Home(),
-            '/api_key': (context) => ApiKeyScreen(),
+            '/api_key': (context) => Settings(),
             '/recipe': (context) {
               final args =
                   ModalRoute.of(context)!.settings.arguments

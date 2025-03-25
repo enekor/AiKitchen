@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../singleton/app_singleton.dart';
 
-class ApiKeyScreen extends StatefulWidget {
-  ApiKeyScreen({super.key, this.isNotApiKeySetted = false});
+class Settings extends StatefulWidget {
+  Settings({super.key, this.isNotApiKeySetted = false});
   bool isNotApiKeySetted;
 
   @override
-  State<ApiKeyScreen> createState() => _ApiKeyScreenState();
+  State<Settings> createState() => _SettingsState();
 }
 
-class _ApiKeyScreenState extends State<ApiKeyScreen> {
+class _SettingsState extends State<Settings> {
   final TextEditingController _apiKeyController = TextEditingController();
   bool _isGeminiCardExpanded = false;
   bool _isSettingsCardExpanded = false;

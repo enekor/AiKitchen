@@ -1,4 +1,4 @@
-import 'package:aikitchen/home/by_ingredients/find_by_ingredients_widgets.dart';
+import 'package:aikitchen/AI/by_ingredients/find_by_ingredients_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
@@ -65,6 +65,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
           AppSingleton().numRecetas,
           AppSingleton().personality,
         ),
+        context,
       );
       if (response.contains('preparacion')) {
         setState(() {

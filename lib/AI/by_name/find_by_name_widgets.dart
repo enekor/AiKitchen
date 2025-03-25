@@ -1,5 +1,5 @@
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/widgets/TextInput.dart';
+import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/recipe_list.dart';
 import 'package:flutter/material.dart';
 
