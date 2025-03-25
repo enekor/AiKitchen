@@ -119,3 +119,4 @@ Thumbs.db
 
 # Logs
 *.log
+android/keystore.properties
