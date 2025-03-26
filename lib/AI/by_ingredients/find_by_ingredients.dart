@@ -1,6 +1,7 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/foundation.dart';
@@ -39,7 +40,8 @@ class _FindByIngredientsState extends State<FindByIngredients> {
       if (kIsWeb) {
         await _loadJson();
       } else {
-        await AppSingleton().getFavRecipes();
+        AppSingleton().recetasFavoritas =
+            await JsonDocumentsService.getFavRecipes();
         recetas = AppSingleton().recetasFavoritas;
       }
 
@@ -142,7 +144,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
       AppSingleton().recetasFavoritas.add(recipe);
     }
 
-    AppSingleton().setFavRecipes();
+    JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
   @override

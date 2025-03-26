@@ -2,6 +2,7 @@ import 'package:aikitchen/AI/by_name/find_by_name_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -26,7 +27,8 @@ class _FindByNameState extends State<FindByName> {
     });
 
     if (_isFav || isfav) {
-      await AppSingleton().getFavRecipes();
+      AppSingleton().recetasFavoritas =
+          await JsonDocumentsService.getFavRecipes();
       _recetas = AppSingleton().recetasFavoritas;
       _recetas =
           AppSingleton().recetasFavoritas
@@ -114,7 +116,7 @@ class _FindByNameState extends State<FindByName> {
       AppSingleton().recetasFavoritas.add(recipe);
     }
 
-    AppSingleton().setFavRecipes();
+    JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
   @override

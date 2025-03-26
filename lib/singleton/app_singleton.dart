@@ -42,37 +42,6 @@ class AppSingleton {
     });
   }
 
-  Future<String> _getFilePath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return '${directory.path}/fav_recipes.json';
-  }
-
-  Future<void> getFavRecipes() async {
-    try {
-      final filePath = await _getFilePath();
-      final file = File(filePath);
-      if (await file.exists()) {
-        String favRecipes = await file.readAsString();
-        recetasFavoritas = Recipe.fromJsonList(favRecipes);
-      } else {
-        recetasFavoritas = [];
-      }
-    } catch (e) {
-      print("Error reading favorite recipes: $e");
-      recetasFavoritas = [];
-    }
-  }
-
-  Future<void> setFavRecipes() async {
-    try {
-      final filePath = await _getFilePath();
-      final file = File(filePath);
-      String favRecipes = jsonEncode(recetasFavoritas);
-      await file.writeAsString(favRecipes);
-    } catch (e) {
-      print("Error writing favorite recipes: $e");
-    }
-  }
 
   Future<void> setApiKey(String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
