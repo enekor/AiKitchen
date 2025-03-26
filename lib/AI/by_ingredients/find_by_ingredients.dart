@@ -1,6 +1,7 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/foundation.dart';
@@ -39,7 +40,8 @@ class _FindByIngredientsState extends State<FindByIngredients> {
       if (kIsWeb) {
         await _loadJson();
       } else {
-        await AppSingleton().getFavRecipes();
+        AppSingleton().recetasFavoritas =
+            await JsonDocumentsService.getFavRecipes();
         recetas = AppSingleton().recetasFavoritas;
       }
 
@@ -73,9 +75,16 @@ class _FindByIngredientsState extends State<FindByIngredients> {
             response.replaceAll("```json", "").replaceAll("```", ""),
           );
         });
+      } else if (response.toLowerCase().contains('no puedo') ||
+          response.toLowerCase().contains('no se') ||
+          response.toLowerCase().contains('no se puede') ||
+          response.toLowerCase().contains('no se ha podido') ||
+          response.toLowerCase().contains('no debo')) {
+        Toaster.showToast('Gemini: $response', long: true);
       } else {
-        Toaster.showToast('''Hubo un problema: $response,
-          buscando en recetas favoritas''');
+        Toaster.showToast(
+          '''No se ha podido completar la solicitud... Buscando en recetas favoritas''',
+        );
       }
     } on NoApiKeyException {
       setState(() {
@@ -135,7 +144,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
       AppSingleton().recetasFavoritas.add(recipe);
     }
 
-    AppSingleton().setFavRecipes();
+    JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
   @override

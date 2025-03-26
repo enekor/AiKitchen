@@ -2,6 +2,7 @@ import 'package:aikitchen/AI/by_name/find_by_name_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -26,7 +27,8 @@ class _FindByNameState extends State<FindByName> {
     });
 
     if (_isFav || isfav) {
-      await AppSingleton().getFavRecipes();
+      AppSingleton().recetasFavoritas =
+          await JsonDocumentsService.getFavRecipes();
       _recetas = AppSingleton().recetasFavoritas;
       _recetas =
           AppSingleton().recetasFavoritas
@@ -48,7 +50,8 @@ class _FindByNameState extends State<FindByName> {
           name,
           AppSingleton().numRecetas,
           AppSingleton().personality,
-        ),context
+        ),
+        context,
       );
       if (response.contains('preparacion')) {
         setState(() {
@@ -56,14 +59,21 @@ class _FindByNameState extends State<FindByName> {
             response.replaceAll("```json", "").replaceAll("```", ""),
           );
         });
+      } else if (response.toLowerCase().contains('no puedo') ||
+          response.toLowerCase().contains('no se') ||
+          response.toLowerCase().contains('no se puede') ||
+          response.toLowerCase().contains('no se ha podido') ||
+          response.toLowerCase().contains('no debo')) {
+        Toaster.showToast('Gemini: $response', long: true);
       } else {
-        Toaster.showToast('''Hubo un problema: $response,
-          buscando en recetas favoritas''');
+        Toaster.showToast(
+          '''No se ha podido completar la solicitud... Buscando en recetas favoritas''',
+        );
       }
     } on NoApiKeyException {
       setState(() {
         Toaster.showToast(
-          'Por favor, configura tu API Key de Gemini para poder usar la aplicación',
+          'Por favor, configura tu API Key de Gemini para poder buscar usando la IA',
         );
       });
     } catch (e) {
@@ -106,7 +116,7 @@ class _FindByNameState extends State<FindByName> {
       AppSingleton().recetasFavoritas.add(recipe);
     }
 
-    AppSingleton().setFavRecipes();
+    JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
   @override

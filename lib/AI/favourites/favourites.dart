@@ -1,5 +1,6 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/recipe_list.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class _FavouritesState extends State<Favourites> {
 
   Future<void> _load() async {
     AppSingleton().recetasFavoritas.clear();
-    await AppSingleton().getFavRecipes();
+    AppSingleton().recetasFavoritas = await JsonDocumentsService.getFavRecipes();
     _recetasFavoritas = AppSingleton().recetasFavoritas;
   }
 
@@ -44,7 +45,7 @@ class _FavouritesState extends State<Favourites> {
                       recipe.descripcion == receta.descripcion &&
                       recipe.tiempoEstimado == receta.tiempoEstimado,
                 );
-                AppSingleton().setFavRecipes();
+                JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
                 setState(() {
                   _recetasFavoritas = AppSingleton().recetasFavoritas;
                 });
@@ -88,15 +89,13 @@ class _FavouritesState extends State<Favourites> {
                       onFavRecipe: removeFavRecipe,
                       isFav: true,
                     )
-                    : Expanded(
-                      child: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text('¯⁠\⁠_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
-                            Text('No se han encontrado recetas favoritas'),
-                          ],
-                        ),
+                    : Center(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('¯⁠⁠_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
+                          Text('No se han encontrado recetas favoritas'),
+                        ],
                       ),
                     ),
           );

@@ -12,8 +12,8 @@ class NeumorphicNavigationBar extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     this.isWeb = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -15,8 +15,8 @@ class RecipePreview extends StatelessWidget {
     required this.onClickRecipe,
     this.onIngredientsClick,
     this.isFavorite = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   void _showRecipeDetails(BuildContext context) {
     showModalBottomSheet(
@@ -197,8 +197,8 @@ class RecipesList extends StatelessWidget {
     required this.onClickRecipe,
     this.onIngredientsClick,
     this.isFav = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -235,8 +235,8 @@ class RecipesGrid extends StatelessWidget {
     required this.onClickRecipe,
     this.onIngredientsClick,
     this.isFav = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

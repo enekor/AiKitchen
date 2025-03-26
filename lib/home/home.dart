@@ -1,6 +1,3 @@
-import 'package:aikitchen/AI/by_ingredients/find_by_ingredients.dart';
-import 'package:aikitchen/AI/by_name/find_by_name.dart';
-import 'package:aikitchen/AI/favourites/favourites.dart';
 import 'package:aikitchen/AI/using_ai.dart';
 import 'package:aikitchen/DB/using_db.dart';
 import 'package:aikitchen/shopping_list.dart/shopping_list.dart';
