@@ -48,7 +48,8 @@ class _FindByNameState extends State<FindByName> {
           name,
           AppSingleton().numRecetas,
           AppSingleton().personality,
-        ),context
+        ),
+        context,
       );
       if (response.contains('preparacion')) {
         setState(() {
@@ -56,14 +57,21 @@ class _FindByNameState extends State<FindByName> {
             response.replaceAll("```json", "").replaceAll("```", ""),
           );
         });
+      } else if (response.toLowerCase().contains('no puedo') ||
+          response.toLowerCase().contains('no se') ||
+          response.toLowerCase().contains('no se puede') ||
+          response.toLowerCase().contains('no se ha podido') ||
+          response.toLowerCase().contains('no debo')) {
+        Toaster.showToast('Gemini: $response', long: true);
       } else {
-        Toaster.showToast('''Hubo un problema: $response,
-          buscando en recetas favoritas''');
+        Toaster.showToast(
+          '''No se ha podido completar la solicitud... Buscando en recetas favoritas''',
+        );
       }
     } on NoApiKeyException {
       setState(() {
         Toaster.showToast(
-          'Por favor, configura tu API Key de Gemini para poder usar la aplicación',
+          'Por favor, configura tu API Key de Gemini para poder buscar usando la IA',
         );
       });
     } catch (e) {

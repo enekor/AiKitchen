@@ -73,9 +73,16 @@ class _FindByIngredientsState extends State<FindByIngredients> {
             response.replaceAll("```json", "").replaceAll("```", ""),
           );
         });
+      } else if (response.toLowerCase().contains('no puedo') ||
+          response.toLowerCase().contains('no se') ||
+          response.toLowerCase().contains('no se puede') ||
+          response.toLowerCase().contains('no se ha podido') ||
+          response.toLowerCase().contains('no debo')) {
+        Toaster.showToast('Gemini: $response', long: true);
       } else {
-        Toaster.showToast('''Hubo un problema: $response,
-          buscando en recetas favoritas''');
+        Toaster.showToast(
+          '''No se ha podido completar la solicitud... Buscando en recetas favoritas''',
+        );
       }
     } on NoApiKeyException {
       setState(() {
