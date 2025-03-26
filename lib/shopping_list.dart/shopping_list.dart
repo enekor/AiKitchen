@@ -11,7 +11,11 @@ class _ShoppingListState extends State<ShoppingList> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Expanded(child: Center(child: Text('Tu lista de la compra'))),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Center(child: Text('Tu lista de la compra')),
+      ),
     );
   }
 }

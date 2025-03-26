@@ -11,7 +11,11 @@ class _UsingDBState extends State<UsingDB> {
   @override
   Widget build(BuildContext context) {
     return Container(
-       child: Expanded(child: Center(child: Text('Hola'),)),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Center(child: Text('Hola')),
+      ),
     );
   }
 }

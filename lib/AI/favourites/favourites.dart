@@ -88,15 +88,13 @@ class _FavouritesState extends State<Favourites> {
                       onFavRecipe: removeFavRecipe,
                       isFav: true,
                     )
-                    : Expanded(
-                      child: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text('¯⁠\⁠_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
-                            Text('No se han encontrado recetas favoritas'),
-                          ],
-                        ),
+                    : Center(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('¯⁠\⁠\_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
+                          Text('No se han encontrado recetas favoritas'),
+                        ],
                       ),
                     ),
           );
