@@ -93,7 +93,7 @@ class _FavouritesState extends State<Favourites> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('¯⁠\⁠\_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
+                          Text('¯⁠⁠_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
                           Text('No se han encontrado recetas favoritas'),
                         ],
                       ),

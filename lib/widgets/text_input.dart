@@ -28,11 +28,11 @@ class TextInput extends StatefulWidget {
 class _TextInputState extends State<TextInput> {
   @override
   Widget build(BuildContext context) {
-    TextEditingController _nameController = TextEditingController();
+    TextEditingController nameController = TextEditingController();
     return Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-        color: Theme.of(context).colorScheme.background,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           if (widget.isInnerShadow)
             BoxShadow(
@@ -99,7 +99,7 @@ class _TextInputState extends State<TextInput> {
                   horizontal: 10,
                 ),
                 child: TextField(
-                  controller: _nameController,
+                  controller: nameController,
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
@@ -116,7 +116,7 @@ class _TextInputState extends State<TextInput> {
                     ? const CircularProgressIndicator()
                     : const Icon(Icons.search),
             onPressed: () {
-              widget.onSearch(_nameController.text);
+              widget.onSearch(nameController.text);
             },
           ),
           if (widget.isFavorite != null && widget.onFav != null)

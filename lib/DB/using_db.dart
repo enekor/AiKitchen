@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class UsingDB extends StatefulWidget {
-  UsingDB({Key? key}) : super(key: key);
+  const UsingDB({super.key});
 
   @override
   _UsingDBState createState() => _UsingDBState();

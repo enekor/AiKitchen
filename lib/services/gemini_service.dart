@@ -8,10 +8,10 @@ class GeminiService {
   Future<String> generateContent(String prompt, String apiKey) async {
     try {
       
-      final _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: apiKey);
+      final model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: apiKey);
 
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await model.generateContent(content);
       return response.text ?? 'No se pudo generar una respuesta';
     } catch (e) {
       return 'Error: $e';

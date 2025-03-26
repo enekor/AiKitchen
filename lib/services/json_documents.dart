@@ -11,8 +11,8 @@ class JsonDocumentsService {
   }
 
   static String directory = '';
-  static String get favFilePath => '${directory}/fav_recipes.json';
-  static String get shoppingListFilePath => '${directory}/shopping_list.json';
+  static String get favFilePath => '$directory/fav_recipes.json';
+  static String get shoppingListFilePath => '$directory/shopping_list.json';
 
   static Future<List<Recipe>> getFavRecipes() async {
     try {

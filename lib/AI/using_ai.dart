@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 class UsingAi extends StatefulWidget {
-  UsingAi({Key? key}) : super(key: key);
+  const UsingAi({super.key});
 
   @override
   _UsingAiState createState() => _UsingAiState();

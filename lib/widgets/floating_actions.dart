@@ -30,8 +30,8 @@ class ModularFloatingActions extends StatelessWidget {
     this.spacing = 4,
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
     this.borderRadius = 20,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class ModularFloatingActions extends StatelessWidget {
                       padding: EdgeInsets.only(
                         right: action == actions.last ? 0 : spacing,
                       ),
-                      child: _buildActionButton(context, action),
+                      child: _buildActionButton(context, action, iconSize: iconSize),
                     );
                   }).toList(),
             ),
@@ -76,9 +76,15 @@ class ModularFloatingActions extends StatelessWidget {
     );
   }
 
+}
+  Widget NeumorphicIconButton(BuildContext context , NeumorphicActionButton action){
+    return _buildActionButton(context, action);
+  }
+
   Widget _buildActionButton(
     BuildContext context,
     NeumorphicActionButton action,
+    {double iconSize = 20}
   ) {
     final highlightColor =
         action.highlightColor ?? Theme.of(context).colorScheme.primary;
@@ -120,4 +126,3 @@ class ModularFloatingActions extends StatelessWidget {
       ),
     );
   }
-}
