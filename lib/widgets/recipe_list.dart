@@ -2,14 +2,14 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
-class RecipePreview extends StatelessWidget {
+class RecipePreview extends StatefulWidget {
   final Recipe recipe;
   final VoidCallback? onGavRecipe;
   final VoidCallback onClickRecipe;
   final VoidCallback? onIngredientsClick;
-  final bool isFavorite;
+  bool isFavorite;
 
-  const RecipePreview({
+  RecipePreview({
     required this.recipe,
     this.onGavRecipe,
     required this.onClickRecipe,
@@ -18,6 +18,11 @@ class RecipePreview extends StatelessWidget {
     super.key,
   });
 
+  @override
+  State<RecipePreview> createState() => _RecipePreviewState();
+}
+
+class _RecipePreviewState extends State<RecipePreview> {
   void _showRecipeDetails(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -55,14 +60,14 @@ class RecipePreview extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  recipe.nombre,
+                  widget.recipe.nombre,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '⏱ ${recipe.tiempoEstimado}',
+                  '⏱ ${widget.recipe.tiempoEstimado}',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 16),
@@ -73,7 +78,7 @@ class RecipePreview extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ...recipe.ingredientes.map(
+                ...widget.recipe.ingredientes.map(
                   (ing) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text('• $ing'),
@@ -86,7 +91,7 @@ class RecipePreview extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          onIngredientsClick?.call();
+                          widget.onIngredientsClick?.call();
                         },
                         child: const Text('USAR INGREDIENTES'),
                       ),
@@ -101,7 +106,7 @@ class RecipePreview extends StatelessWidget {
                         ),
                         onPressed: () {
                           Navigator.pop(context);
-                          onClickRecipe();
+                          widget.onClickRecipe();
                         },
                         child: const Text('VER RECETA'),
                       ),
@@ -154,25 +159,32 @@ class RecipePreview extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        recipe.nombre,
+                        widget.recipe.nombre,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    if (onGavRecipe != null)
+                    if (widget.onGavRecipe != null)
                       IconButton(
                         icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : null,
+                          widget.isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: widget.isFavorite ? Colors.red : null,
                         ),
-                        onPressed: onGavRecipe,
+                        onPressed: () {
+                          widget.onGavRecipe!();
+                          setState(() {
+                            widget.isFavorite = !widget.isFavorite;
+                          });
+                        },
                       ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  recipe.descripcion,
+                  widget.recipe.descripcion,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],

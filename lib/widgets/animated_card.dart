@@ -1,3 +1,4 @@
+import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
@@ -30,39 +31,7 @@ class AnimatedCard extends StatefulWidget {
 class _ExpandableCardState extends State<AnimatedCard> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16.0),
-        color: Theme.of(context).colorScheme.surface,
-        boxShadow: [
-          if (widget.isInnerShadow)
-            BoxShadow(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-              offset: const Offset(-4, -4),
-              blurRadius: 8,
-              inset: true,
-            ),
-          if (widget.isInnerShadow)
-            BoxShadow(
-              color: Theme.of(context).colorScheme.shadow.withOpacity(0.5),
-              offset: const Offset(4, 4),
-              blurRadius: 8,
-              inset: true,
-            ),
-          if (!widget.isInnerShadow)
-            BoxShadow(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-              offset: const Offset(-4, -4),
-              blurRadius: 8,
-            ),
-          if (!widget.isInnerShadow) BoxShadow(
-              color: Theme.of(context).colorScheme.shadow.withOpacity(0.5),
-              offset: const Offset(4, 4),
-              blurRadius: 8,
-            ),
-        ],
-      ),
-      
+    return NeumorphicCard(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         child: Column(
@@ -125,7 +94,7 @@ class _ExpandableCardState extends State<AnimatedCard> {
             if (widget.trailing != null) widget.trailing!,
           ],
         ),
-      )
+      ),
     );
   }
 }

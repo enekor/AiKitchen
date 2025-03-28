@@ -39,28 +39,40 @@ class NeumorphicCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(borderRadius),
             color: cardColor,
-            boxShadow: [
-              // Sombra exterior (luz)
-              BoxShadow(
-                color: theme.colorScheme.onSurface.withOpacity(0.1),
-                blurRadius: elevation * 2,
-                offset: Offset(-elevation, -elevation),
-              ),
-              // Sombra exterior (oscuridad)
-              BoxShadow(
-                color: theme.colorScheme.onSurface.withOpacity(0.2),
-                blurRadius: elevation * 2,
-                offset: Offset(elevation, elevation),
-              ),
-              // Sombra interior (opcional)
-              if (withInnerShadow)
-                BoxShadow(
-                  color: theme.colorScheme.onSurface.withOpacity(0.05),
-                  blurRadius: elevation,
-                  offset: Offset(-elevation / 2, -elevation / 2),
-                  inset: true,
-                ),
-            ],
+            boxShadow:
+                !withInnerShadow
+                    ? [
+                      BoxShadow(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.1),
+                        offset: const Offset(-4, -4),
+                        blurRadius: 8,
+                      ),
+                      BoxShadow(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.shadow.withOpacity(0.5),
+                        offset: const Offset(4, 4),
+                        blurRadius: 8,
+                      ),
+                    ]
+                    : [
+                      BoxShadow(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.1),
+                        offset: const Offset(-4, -4),
+                        blurRadius: 8,
+                      ),
+                      BoxShadow(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.shadow.withOpacity(0.5),
+                        offset: const Offset(4, 4),
+                        blurRadius: 8,
+                      ),
+                    ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(borderRadius),
