@@ -1,3 +1,5 @@
+import 'package:aikitchen/widgets/floating_actions.dart';
+import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
@@ -128,6 +130,78 @@ class _TextInputState extends State<TextInput> {
                 widget.onFav!();
               },
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class BasicTextInput extends StatefulWidget {
+  BasicTextInput({
+    super.key,
+    required this.onSearch,
+    this.checkIcon,
+    this.hint,
+    this.isInnerShadow = false,
+    this.padding = const EdgeInsets.all(8),
+    this.margin = const EdgeInsets.all(8),
+    this.initialValue,
+  });
+
+  Function(String) onSearch;
+  IconData? checkIcon;
+  String? hint;
+  bool isInnerShadow = false;
+  EdgeInsets padding = const EdgeInsets.all(8);
+  EdgeInsets margin = const EdgeInsets.all(8);
+  String? initialValue;
+
+  @override
+  State<BasicTextInput> createState() => _BasicTextInputState();
+}
+
+class _BasicTextInputState extends State<BasicTextInput> {
+  final _textConstroller = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _textConstroller.text = widget.initialValue ?? '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NeumorphicCard(
+      padding: widget.padding,
+      margin: widget.margin,
+      withInnerShadow: widget.isInnerShadow,
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: TextField(
+                controller: _textConstroller,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  labelText: null,
+                  hintText: widget.hint,
+                ),
+                onSubmitted: widget.onSearch,
+              ),
+            ),
+          ),
+          NeumorphicIconButton(
+            context,
+            NeumorphicActionButton(
+              icon: widget.checkIcon ?? Icons.check,
+              onPressed: () {
+                widget.onSearch(_textConstroller.text);
+              },
+            ),
+          ),
         ],
       ),
     );

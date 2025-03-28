@@ -1,3 +1,5 @@
+import 'package:aikitchen/widgets/neumorphic_switch.dart';
+import 'package:aikitchen/widgets/text_input.dart';
 import 'package:flutter/material.dart';
 
 class SwitchSetting extends StatefulWidget {
@@ -5,7 +7,8 @@ class SwitchSetting extends StatefulWidget {
   final String text;
   final ValueChanged<bool> onChange;
 
-  const SwitchSetting({super.key, 
+  const SwitchSetting({
+    super.key,
     required this.initialValue,
     required this.text,
     required this.onChange,
@@ -30,7 +33,7 @@ class _SwitchSettingState extends State<SwitchSetting> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(widget.text),
-        Switch(
+        NeumorphicSwitch(
           value: currentValue,
           onChanged: (bool value) {
             setState(() {
@@ -51,12 +54,13 @@ class ScrollbarSetting extends StatefulWidget {
   final int divisions;
   final int maxValue;
 
-  const ScrollbarSetting({super.key, 
+  const ScrollbarSetting({
+    super.key,
     required this.initialValue,
     required this.text,
     required this.onChange,
     required this.maxValue,
-    required this.divisions
+    required this.divisions,
   });
 
   @override
@@ -99,12 +103,13 @@ class _ScrollbarSettingState extends State<ScrollbarSetting> {
 class TextSetting extends StatefulWidget {
   final String initialValue;
   final String text;
-  final ValueChanged<String> onChange;
+  final Function(String) onSave;
 
-  const TextSetting({super.key, 
+  const TextSetting({
+    super.key,
     required this.initialValue,
     required this.text,
-    required this.onChange,
+    required this.onSave,
   });
 
   @override
@@ -112,37 +117,19 @@ class TextSetting extends StatefulWidget {
 }
 
 class _TextSettingState extends State<TextSetting> {
-  late TextEditingController controller = TextEditingController();
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   controller = TextEditingController(text: widget.initialValue);
-  // }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(widget.text),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(hintText: widget.initialValue),
-                controller: controller,
-                
-              ),
-            ),
-            IconButton(onPressed: ()=>widget.onChange(controller.text), icon: Icon(Icons.check_rounded))
-          ],
+        BasicTextInput(
+          isInnerShadow: true,
+          padding: EdgeInsets.all(2),
+          onSearch: widget.onSave,
+          initialValue: widget.initialValue,
+          checkIcon: Icons.save_rounded,
+          hint: "Borde pero gracioso",
         ),
       ],
     );

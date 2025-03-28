@@ -1,4 +1,5 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
@@ -29,20 +30,7 @@ class _RecipePreviewState extends State<RecipePreview> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder:
-          (context) => Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(25),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  spreadRadius: 3,
-                ),
-              ],
-            ),
+          (context) => NeumorphicCard(
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -126,29 +114,7 @@ class _RecipePreviewState extends State<RecipePreview> {
       onTap: () => _showRecipeDetails(context),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Theme.of(context).colorScheme.surface,
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(5, 5),
-              ),
-              BoxShadow(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                blurRadius: 10,
-                offset: const Offset(-5, -5),
-              ),
-              BoxShadow(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-                blurRadius: 3,
-                offset: const Offset(-4, -4),
-                inset: true,
-              ),
-            ],
-          ),
+        child: NeumorphicCard(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(

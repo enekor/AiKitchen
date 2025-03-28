@@ -1,3 +1,4 @@
+import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
@@ -17,30 +18,9 @@ class NeumorphicNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 54,
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(5, 5),
-          ),
-          BoxShadow(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-            blurRadius: 10,
-            offset: const Offset(-5, -5),
-          ),
-          BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-            blurRadius: 3,
-            offset: const Offset(-4, -4),
-            inset: true,
-          ),
-        ],
-      ),
+    return NeumorphicCard(
+      padding: EdgeInsets.zero,
+      margin: const EdgeInsets.only(left: 8, right: 8, bottom: 16, top: 8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25),
         child: BottomNavigationBar(

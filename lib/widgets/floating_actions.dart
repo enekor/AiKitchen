@@ -1,3 +1,4 @@
+import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
@@ -35,22 +36,9 @@ class ModularFloatingActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(2, 2),
-          ),
-          BoxShadow(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-            blurRadius: 6,
-            offset: const Offset(-2, -2),
-          ),
-        ],
-      ),
+    return NeumorphicCard(
+      padding: EdgeInsets.zero,
+      margin: const EdgeInsets.all(8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: Material(
@@ -66,7 +54,11 @@ class ModularFloatingActions extends StatelessWidget {
                       padding: EdgeInsets.only(
                         right: action == actions.last ? 0 : spacing,
                       ),
-                      child: _buildActionButton(context, action, iconSize: iconSize),
+                      child: _buildActionButton(
+                        context,
+                        action,
+                        iconSize: iconSize,
+                      ),
                     );
                   }).toList(),
             ),
@@ -75,54 +67,53 @@ class ModularFloatingActions extends StatelessWidget {
       ),
     );
   }
-
 }
-  Widget NeumorphicIconButton(BuildContext context , NeumorphicActionButton action){
-    return _buildActionButton(context, action);
-  }
 
-  Widget _buildActionButton(
-    BuildContext context,
-    NeumorphicActionButton action,
-    {double iconSize = 20}
-  ) {
-    final highlightColor =
-        action.highlightColor ?? Theme.of(context).colorScheme.primary;
-    final iconColor =
-        action.isHighlighted
-            ? highlightColor
-            : Theme.of(context).iconTheme.color;
+Widget NeumorphicIconButton(
+  BuildContext context,
+  NeumorphicActionButton action,
+) {
+  return _buildActionButton(context, action);
+}
 
-    return Tooltip(
-      message: action.tooltip ?? '',
-      child: GestureDetector(
-        onTap: action.onPressed,
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              if (!action.isHighlighted)
-                BoxShadow(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.05),
-                  blurRadius: 2,
-                  offset: const Offset(1, 1),
-                ),
-              if (action.isHighlighted)
-                BoxShadow(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.1),
-                  blurRadius: 2,
-                  offset: const Offset(-1, -1),
-                  inset: true,
-                ),
-            ],
-          ),
-          child: Icon(action.icon, size: iconSize, color: iconColor),
+Widget _buildActionButton(
+  BuildContext context,
+  NeumorphicActionButton action, {
+  double iconSize = 20,
+}) {
+  final highlightColor =
+      action.highlightColor ?? Theme.of(context).colorScheme.primary;
+  final iconColor =
+      action.isHighlighted ? highlightColor : Theme.of(context).iconTheme.color;
+
+  return Tooltip(
+    message: action.tooltip ?? '',
+    child: GestureDetector(
+      onTap: action.onPressed,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            if (!action.isHighlighted)
+              BoxShadow(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withOpacity(0.05),
+                blurRadius: 2,
+                offset: const Offset(1, 1),
+              ),
+            if (action.isHighlighted)
+              BoxShadow(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                blurRadius: 2,
+                offset: const Offset(-1, -1),
+                inset: true,
+              ),
+          ],
         ),
+        child: Icon(action.icon, size: iconSize, color: iconColor),
       ),
-    );
-  }
+    ),
+  );
+}

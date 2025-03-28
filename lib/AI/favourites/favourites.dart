@@ -17,8 +17,10 @@ class _FavouritesState extends State<Favourites> {
 
   Future<void> _load() async {
     AppSingleton().recetasFavoritas.clear();
-    AppSingleton().recetasFavoritas = await JsonDocumentsService.getFavRecipes();
+    AppSingleton().recetasFavoritas =
+        await JsonDocumentsService().getFavRecipes();
     _recetasFavoritas = AppSingleton().recetasFavoritas;
+    setState(() {});
   }
 
   void removeFavRecipe(Recipe receta) {
@@ -45,7 +47,9 @@ class _FavouritesState extends State<Favourites> {
                       recipe.descripcion == receta.descripcion &&
                       recipe.tiempoEstimado == receta.tiempoEstimado,
                 );
-                JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
+                JsonDocumentsService().setFavRecipes(
+                  AppSingleton().recetasFavoritas,
+                );
                 setState(() {
                   _recetasFavoritas = AppSingleton().recetasFavoritas;
                 });
@@ -69,38 +73,46 @@ class _FavouritesState extends State<Favourites> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _load(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return const Center(child: Text('Error loading data'));
-        } else {
-          return SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child:
-                _recetasFavoritas.isNotEmpty
-                    ? RecipesList(
-                      recipes: _recetasFavoritas,
-                      onClickRecipe: openRecipe,
-                      onFavRecipe: removeFavRecipe,
-                      isFav: true,
-                    )
-                    : Center(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('¯⁠⁠_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯'),
-                          Text('No se han encontrado recetas favoritas'),
-                        ],
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      child:
+          _recetasFavoritas.isNotEmpty
+              ? RecipesList(
+                recipes: _recetasFavoritas,
+                onClickRecipe: openRecipe,
+                onFavRecipe: removeFavRecipe,
+                isFav: true,
+              )
+              : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      '¯\\_(ツ)_/¯',
+                      style: TextStyle(
+                        fontSize: 40,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-          );
-        }
-      },
+                    const SizedBox(height: 16),
+                    Text('No se han encontrado recetas favoritas'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _load,
+                      child: const Text('Recargar'),
+                    ),
+                  ],
+                ),
+              ),
     );
   }
 }

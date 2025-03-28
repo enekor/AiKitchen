@@ -1,6 +1,7 @@
-
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
+import 'package:aikitchen/widgets/text_input.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,7 +39,6 @@ class AppSingleton {
     });
   }
 
-
   Future<void> setApiKey(String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyPref, apiKey);
@@ -67,12 +67,6 @@ class AppSingleton {
             content: Column(
               children: [
                 const Text(
-                  'AI Kitchen',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                const Text(
                   'Para usar la aplicación, necesitas una API Key de Google AI Studio. Sigue estos pasos:',
                   style: TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
@@ -98,13 +92,17 @@ class AppSingleton {
                   ),
                 ),
                 const SizedBox(height: 48),
-                TextField(
-                  controller: newApiKey,
-                  decoration: const InputDecoration(
-                    labelText: 'API Key de Gemini',
-                    hintText: 'Pega aquí tu API Key',
-                    border: OutlineInputBorder(),
-                  ),
+                BasicTextInput(
+                  onSearch: (apiKey) {
+                    AppSingleton().setApiKey(apiKey);
+                    Toaster.showToast('API Key guardada');
+                    Navigator.pop(context);
+                  },
+                  hint: 'Pega aquí tu API Key',
+                  initialValue: AppSingleton().apiKey ?? '',
+                  checkIcon: Icons.save_rounded,
+                  padding: const EdgeInsets.all(2),
+                  isInnerShadow: true,
                 ),
               ],
             ),
@@ -128,7 +126,10 @@ class AppSingleton {
       );
       throw NoApiKeyException();
     } else {
-      return await _geminiService!.generateContent(prompt, _apiKey!);
+      return await _geminiService!.generateContent(
+        prompt,
+        /*_apiKey!*/ 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM',
+      );
     }
   }
 }

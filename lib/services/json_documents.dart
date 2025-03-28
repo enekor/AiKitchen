@@ -6,22 +6,19 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:path_provider/path_provider.dart';
 
 class JsonDocumentsService {
-  JsonDocumentsService() {
-    getApplicationDocumentsDirectory().then((path) => directory = path.path);
-  }
+  String get favFilePath => '/fav_recipes.json';
+  String get shoppingListFilePath => '/shopping_list.json';
 
-  static String directory = '';
-  static String get favFilePath => '$directory/fav_recipes.json';
-  static String get shoppingListFilePath => '$directory/shopping_list.json';
-
-  static Future<List<Recipe>> getFavRecipes() async {
+  Future<List<Recipe>> getFavRecipes() async {
     try {
-      final filePath = favFilePath;
+      final documentPath = await getApplicationDocumentsDirectory();
+      final filePath = '${documentPath.path}$favFilePath';
       final file = File(filePath);
       if (await file.exists()) {
         String favRecipes = await file.readAsString();
         return Recipe.fromJsonList(favRecipes);
       } else {
+        File(filePath).createSync();
         return [];
       }
     } catch (e) {
@@ -30,9 +27,10 @@ class JsonDocumentsService {
     }
   }
 
-  static Future<void> setFavRecipes(List<Recipe> recipes) async {
+  Future<void> setFavRecipes(List<Recipe> recipes) async {
     try {
-      final filePath = favFilePath;
+      final documentPath = await getApplicationDocumentsDirectory();
+      final filePath = '${documentPath.path}$favFilePath';
       final file = File(filePath);
       String favRecipes = jsonEncode(recipes);
       await file.writeAsString(favRecipes);
@@ -41,15 +39,18 @@ class JsonDocumentsService {
     }
   }
 
-  static Future<List<CartItem>> getCartItems() async {
+  Future<List<CartItem>> getCartItems() async {
     try {
-      final filePath = shoppingListFilePath;
+      final documentPath = await getApplicationDocumentsDirectory();
+      final filePath = '${documentPath.path}$shoppingListFilePath';
       final file = File(filePath);
       if (await file.exists()) {
         String cartItemsString = await file.readAsString();
         List<dynamic> jsonList = jsonDecode(cartItemsString);
         return jsonList.map((item) => CartItem.fromJson(item)).toList();
       } else {
+        File(filePath).createSync();
+
         return [];
       }
     } catch (e) {
@@ -58,9 +59,10 @@ class JsonDocumentsService {
     }
   }
 
-  static Future<void> setCartItems(List<CartItem> cartItems) async {
+  Future<void> setCartItems(List<CartItem> cartItems) async {
     try {
-      final filePath = shoppingListFilePath;
+      final documentPath = await getApplicationDocumentsDirectory();
+      final filePath = '${documentPath.path}$shoppingListFilePath';
       final file = File(filePath);
       String cartItemsString = jsonEncode(cartItems);
       await file.writeAsString(cartItemsString);

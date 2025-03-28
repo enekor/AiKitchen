@@ -28,7 +28,7 @@ class _FindByNameState extends State<FindByName> {
 
     if (_isFav || isfav) {
       AppSingleton().recetasFavoritas =
-          await JsonDocumentsService.getFavRecipes();
+          await JsonDocumentsService().getFavRecipes();
       _recetas = AppSingleton().recetasFavoritas;
       _recetas =
           AppSingleton().recetasFavoritas
@@ -116,7 +116,7 @@ class _FindByNameState extends State<FindByName> {
       AppSingleton().recetasFavoritas.add(recipe);
     }
 
-    JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
+    JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
   @override

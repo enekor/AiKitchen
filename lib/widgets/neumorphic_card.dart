@@ -64,6 +64,7 @@ class NeumorphicCard extends StatelessWidget {
                         ).colorScheme.onSurface.withOpacity(0.1),
                         offset: const Offset(-4, -4),
                         blurRadius: 8,
+                        inset: true,
                       ),
                       BoxShadow(
                         color: Theme.of(
@@ -71,6 +72,7 @@ class NeumorphicCard extends StatelessWidget {
                         ).colorScheme.shadow.withOpacity(0.5),
                         offset: const Offset(4, 4),
                         blurRadius: 8,
+                        inset: true,
                       ),
                     ],
           ),

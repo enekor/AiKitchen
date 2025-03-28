@@ -41,7 +41,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         await _loadJson();
       } else {
         AppSingleton().recetasFavoritas =
-            await JsonDocumentsService.getFavRecipes();
+            await JsonDocumentsService().getFavRecipes();
         recetas = AppSingleton().recetasFavoritas;
       }
 
@@ -144,7 +144,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
       AppSingleton().recetasFavoritas.add(recipe);
     }
 
-    JsonDocumentsService.setFavRecipes(AppSingleton().recetasFavoritas);
+    JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
   @override

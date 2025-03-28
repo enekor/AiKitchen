@@ -1,6 +1,8 @@
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:aikitchen/widgets/setting_widget.dart';
+import 'package:aikitchen/widgets/text_input.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../singleton/app_singleton.dart';
@@ -14,7 +16,6 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  final TextEditingController _apiKeyController = TextEditingController();
   bool _isGeminiCardExpanded = false;
   bool _isSettingsCardExpanded = false;
 
@@ -67,15 +68,6 @@ class _SettingsState extends State<Settings> {
                       },
                       children: [
                         const Text(
-                          'AI Kitchen',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 48),
-                        const Text(
                           'Para usar la aplicación, necesitas una API Key de Google AI Studio. Sigue estos pasos:',
                           style: TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
@@ -102,34 +94,19 @@ class _SettingsState extends State<Settings> {
                           ),
                         ),
                         const SizedBox(height: 48),
-                        TextField(
-                          controller: _apiKeyController,
-                          decoration: const InputDecoration(
-                            labelText: 'API Key de Gemini',
-                            hintText: 'Pega aquí tu API Key',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Center(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (_apiKeyController.text.isNotEmpty) {
-                                await AppSingleton().setApiKey(
-                                  _apiKeyController.text,
-                                );
-                                if (context.mounted) {
-                                  Navigator.of(
-                                    context,
-                                  ).pushReplacementNamed('/home');
-                                }
-                              }
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: Text('Continuar'),
-                            ),
-                          ),
+                        BasicTextInput(
+                          onSearch: (apiKey) {
+                            setState(() {
+                              AppSingleton().setApiKey(apiKey);
+                            });
+                            Toaster.showToast('API Key guardada');
+                            Navigator.pop(context);
+                          },
+                          hint: 'Pega aquí tu API Key',
+                          initialValue: AppSingleton().apiKey ?? '',
+                          checkIcon: Icons.save_rounded,
+                          padding: const EdgeInsets.all(2),
+                          isInnerShadow: true,
                         ),
                       ],
                     ),
@@ -163,7 +140,7 @@ class _SettingsState extends State<Settings> {
                           TextSetting(
                             initialValue: AppSingleton().personality,
                             text: '¿Qué tono de texto prefieres?',
-                            onChange: (String value) {
+                            onSave: (String value) {
                               setState(() {
                                 AppSingleton().setPersonality = value;
                               });
@@ -183,11 +160,5 @@ class _SettingsState extends State<Settings> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _apiKeyController.dispose();
-    super.dispose();
   }
 }

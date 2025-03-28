@@ -11,6 +11,8 @@ class AnimatedCard extends StatefulWidget {
   bool isExpanded;
   final bool isInnerShadow;
   final VoidCallback? onTap;
+  final EdgeInsets padding;
+  final EdgeInsets margin;
 
   AnimatedCard({
     super.key,
@@ -22,6 +24,8 @@ class AnimatedCard extends StatefulWidget {
     this.isExpanded = false,
     this.isInnerShadow = false,
     this.onTap,
+    this.padding = const EdgeInsets.all(8),
+    this.margin = const EdgeInsets.all(8),
   });
 
   @override
@@ -32,6 +36,9 @@ class _ExpandableCardState extends State<AnimatedCard> {
   @override
   Widget build(BuildContext context) {
     return NeumorphicCard(
+      padding: widget.padding,
+      margin: widget.margin,
+      withInnerShadow: widget.isInnerShadow,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         child: Column(

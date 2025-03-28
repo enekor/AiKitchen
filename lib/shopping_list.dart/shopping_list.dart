@@ -3,6 +3,7 @@ import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/floating_actions.dart';
 import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:aikitchen/widgets/neumorphic_switch.dart';
+import 'package:aikitchen/widgets/text_input.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 
@@ -26,7 +27,7 @@ class _ShoppingListState extends State<ShoppingList> {
   }
 
   Future<void> _loadShoppingList() async {
-    _shoppingList = await JsonDocumentsService.getCartItems();
+    _shoppingList = await JsonDocumentsService().getCartItems();
     setState(() {});
   }
 
@@ -92,31 +93,14 @@ class _ShoppingListState extends State<ShoppingList> {
         child: Column(
           children: [
             if (_adding)
-              NeumorphicCard(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _newIngredient,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          labelText: null,
-                          hintText: 'Patatas',
-                        ),
-                      ),
-                    ),
-                    NeumorphicIconButton(
-                      context,
-                      NeumorphicActionButton(
-                        onPressed: () => _addNewIngredient(_newIngredient.text),
-                        icon: Icons.add_rounded,
-                      ),
-                    ),
-                  ],
-                ),
+              BasicTextInput(
+                onSearch: _addNewIngredient,
+                hint: "Patatas",
+                checkIcon: Icons.add_rounded,
+                padding: EdgeInsets.all(2),
+                isInnerShadow: true,
               ),
+            const SizedBox(height: 16),
             _buildShoppingListSection(
               title:
                   _showAvailable
@@ -159,23 +143,8 @@ class _ShoppingListState extends State<ShoppingList> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: theme.colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.onSurface.withOpacity(0.1),
-                    offset: const Offset(-4, -4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: theme.colorScheme.onSurface.withOpacity(0.2),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
+            child: NeumorphicCard(
+              withInnerShadow: true,
               child:
                   shoppingList.isEmpty
                       ? Center(
