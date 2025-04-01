@@ -45,14 +45,12 @@ class _FindByNameState extends State<FindByName> {
     }
 
     try {
-      final response = await AppSingleton().generateContent(
-        Prompt.recipePromptByName(
-          name,
-          AppSingleton().numRecetas,
-          AppSingleton().personality,
-        ),
-        context,
+      final prompt = Prompt.recipePromptByName(
+        name,
+        AppSingleton().numRecetas,
+        AppSingleton().personality,
       );
+      final response = await AppSingleton().generateContent(prompt, context);
       if (response.contains('preparacion')) {
         setState(() {
           _recetas = Recipe.fromJsonList(

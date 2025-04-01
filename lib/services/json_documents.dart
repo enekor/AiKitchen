@@ -70,4 +70,14 @@ class JsonDocumentsService {
       print("Error writing cart items: $e");
     }
   }
+
+  Future<void> updateCartItems(List<String> cartItems) async {
+    List<CartItem> myCartItems = await getCartItems();
+    for (String item in cartItems) {
+      if (!myCartItems.any((cartItem) => cartItem.name == item)) {
+        myCartItems.add(CartItem(name: item, isIn: false));
+      }
+    }
+    await setCartItems(myCartItems);
+  }
 }

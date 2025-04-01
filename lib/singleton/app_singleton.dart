@@ -65,6 +65,8 @@ class AppSingleton {
           return AlertDialog(
             title: const Text('Configurar API Key'),
             content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
                   'Para usar la aplicación, necesitas una API Key de Google AI Studio. Sigue estos pasos:',
@@ -93,11 +95,15 @@ class AppSingleton {
                 ),
                 const SizedBox(height: 48),
                 BasicTextInput(
+                  onChanged: (apiKey) {
+                    newApiKey.text = apiKey;
+                  },
                   onSearch: (apiKey) {
                     AppSingleton().setApiKey(apiKey);
                     Toaster.showToast('API Key guardada');
                     Navigator.pop(context);
                   },
+
                   hint: 'Pega aquí tu API Key',
                   initialValue: AppSingleton().apiKey ?? '',
                   checkIcon: Icons.save_rounded,

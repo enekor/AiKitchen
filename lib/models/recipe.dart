@@ -6,6 +6,8 @@ class Recipe {
   final String tiempoEstimado;
   final List<String> ingredientes;
   final List<String> preparacion;
+  final double calorias; // Nuevo parámetro
+  final int raciones; // Nuevo parámetro
 
   Recipe({
     required this.nombre,
@@ -13,6 +15,8 @@ class Recipe {
     required this.tiempoEstimado,
     required this.ingredientes,
     required this.preparacion,
+    required this.calorias, // Nuevo parámetro
+    required this.raciones, // Nuevo parámetro
   });
 
   // Método para crear una instancia de Recipe a partir de un JSON
@@ -23,6 +27,8 @@ class Recipe {
       tiempoEstimado: json['tiempo_estimado'],
       ingredientes: List<String>.from(json['ingredientes']),
       preparacion: List<String>.from(json['preparacion']),
+      calorias: json['calorias']?.toDouble() ?? 0, // Nuevo parámetro
+      raciones: json['raciones'] ?? 1, // Nuevo parámetro
     );
   }
 
@@ -34,6 +40,8 @@ class Recipe {
       'tiempo_estimado': tiempoEstimado,
       'ingredientes': ingredientes,
       'preparacion': preparacion,
+      'calorias': calorias, // Nuevo parámetro
+      'raciones': raciones, // Nuevo parámetro
     };
   }
 

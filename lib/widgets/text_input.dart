@@ -146,6 +146,7 @@ class BasicTextInput extends StatefulWidget {
     this.padding = const EdgeInsets.all(8),
     this.margin = const EdgeInsets.all(8),
     this.initialValue,
+    this.onChanged,
   });
 
   Function(String) onSearch;
@@ -155,6 +156,7 @@ class BasicTextInput extends StatefulWidget {
   EdgeInsets padding = const EdgeInsets.all(8);
   EdgeInsets margin = const EdgeInsets.all(8);
   String? initialValue;
+  Function(String)? onChanged;
 
   @override
   State<BasicTextInput> createState() => _BasicTextInputState();
@@ -182,6 +184,7 @@ class _BasicTextInputState extends State<BasicTextInput> {
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
               child: TextField(
+                onChanged: widget.onChanged,
                 controller: _textConstroller,
                 decoration: InputDecoration(
                   isDense: true,
