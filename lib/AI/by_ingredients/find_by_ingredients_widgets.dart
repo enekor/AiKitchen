@@ -1,9 +1,11 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
+import 'package:aikitchen/widgets/floating_actions.dart';
 import 'package:aikitchen/widgets/neumorphic_card.dart';
+import 'package:aikitchen/widgets/neumorphic_selections.dart';
 import 'package:aikitchen/widgets/recipe_list.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
-import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 
 class IngredientsPart extends StatefulWidget {
@@ -34,6 +36,7 @@ TextEditingController _ingredientController = TextEditingController();
 
 class _IngredientsPartState extends State<IngredientsPart> {
   bool _isCardExpanded = false; // Keep track of card expansion
+  bool _showUseLocalIngredients = false;
   void _addNewIngredient() {
     widget.onNewIngredient(_ingredientController.text);
     Toaster.showToast('Ingrediente añadido: ${_ingredientController.text}');
@@ -42,8 +45,44 @@ class _IngredientsPartState extends State<IngredientsPart> {
     });
   }
 
+  void _showIngredients() {
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (context) => ListView.builder(
+            itemBuilder:
+                (context, index) => ListTile(
+                  title: Text('• ${widget.ingredientes[index]}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      _removeIngredient(widget.ingredientes[index]);
+                    },
+                  ),
+                ),
+            itemCount: widget.ingredientes.length,
+          ),
+    );
+  }
+
   void _removeIngredient(String ingredient) {
     widget.onRemoveIngredient(ingredient);
+    setState(() {});
+  }
+
+  void _removeAllIngredients() {
+    widget.ingredientes.clear();
+    setState(() {});
+  }
+
+  void _addCartIngredients() async {
+    var ingredients = await JsonDocumentsService().getCartItems();
+    List<String> ingredientsList =
+        ingredients.where((ing) => ing.isIn).map((e) => e.name).toList();
+    for (String ingredient in ingredientsList) {
+      widget.onNewIngredient(ingredient);
+    }
+
     setState(() {});
   }
 
@@ -117,36 +156,95 @@ class _IngredientsPartState extends State<IngredientsPart> {
         Row(
           children: [
             Expanded(
-              child: TextFormField(
-                onEditingComplete: _addNewIngredient,
-                controller: _ingredientController,
-                decoration: const InputDecoration(
-                  hintText: 'Añadir ingrediente',
-                  border: OutlineInputBorder(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                child: Column(
+                  children: [
+                    NeumorphicCard(
+                      withInnerShadow: true,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: TextField(
+                                controller: _ingredientController,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  border: InputBorder.none,
+                                  labelText: null,
+                                  hintText: 'Añadir ingrediente',
+                                ),
+                                onSubmitted: (_) => _addNewIngredient,
+                              ),
+                            ),
+                          ),
+                          NeumorphicIconButton(
+                            context,
+                            NeumorphicActionButton(
+                              icon: Icons.add,
+                              onPressed: () {
+                                _addNewIngredient();
+                              },
+                            ),
+                          ),
+                          NeumorphicIconButton(
+                            context,
+                            NeumorphicActionButton(
+                              tooltip: "Usar ingredientes locales",
+                              icon:
+                                  _showUseLocalIngredients
+                                      ? Icons.expand_less_rounded
+                                      : Icons.expand_more_rounded,
+                              onPressed: () {
+                                setState(() {
+                                  _showUseLocalIngredients =
+                                      !_showUseLocalIngredients;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_showUseLocalIngredients)
+                      NeumorphicSelections(
+                        items: ["Usar propios", "Usar despensa"],
+                        onSelected: (index) {
+                          if (index == 1) {
+                            _removeAllIngredients();
+                            _addCartIngredients();
+                            Toaster.showToast(
+                              'Usando ingredientes de la despensa',
+                            );
+                          } else {
+                            _removeAllIngredients();
+                            Toaster.showToast('Cambiando a modo manual');
+                          }
+                        },
+                      ),
+                  ],
                 ),
               ),
-            ),
-            IconButton(
-              onPressed: _addNewIngredient,
-              icon: const Icon(Icons.add),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        const Text('Ingredientes:'),
-        ...widget.ingredientes.map(
-          (ingredient) => Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: Row(
-              children: [
-                Text('• $ingredient'),
-                IconButton(
-                  onPressed: () => _removeIngredient(ingredient),
-                  icon: const Icon(Icons.remove),
-                ),
-              ],
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: TextButton(
+                child: Text('Ver ${widget.ingredientes.length} ingredientes'),
+                onPressed: _showIngredients,
+              ),
             ),
-          ),
+            IconButton(
+              onPressed: _removeAllIngredients,
+              icon: const Icon(Icons.delete_forever_rounded),
+            ),
+          ],
         ),
       ],
     );

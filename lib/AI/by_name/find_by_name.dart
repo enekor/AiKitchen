@@ -149,11 +149,16 @@ class _FindByNameState extends State<FindByName> {
                         Container()
                       else if (_recetas != null && _recetas!.isNotEmpty)
                         Expanded(
-                          child: RecipesListHasData(
-                            recipes: _recetas!,
-                            onClickRecipe: onClickRecipe,
-                            onFavRecipe: onFavRecipe,
-                          ),
+                          child:
+                              _recetas != null && _recetas!.isNotEmpty
+                                  ? RecipesListHasData(
+                                    recipes: _recetas!,
+                                    onClickRecipe: onClickRecipe,
+                                    onFavRecipe: onFavRecipe,
+                                  )
+                                  : Center(
+                                    child: Text("No hay recetas para mostrar"),
+                                  ),
                         )
                       else
                         const SizedBox(height: 16),
