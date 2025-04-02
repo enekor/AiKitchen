@@ -36,6 +36,12 @@ class _ShoppingListState extends State<ShoppingList> {
       _shoppingList.add(CartItem(name: name, isIn: _showAvailable));
       _newIngredient.clear();
     });
+    JsonDocumentsService().updateCartItems([name]);
+  }
+
+  void _updateShoppingList() async {
+    await JsonDocumentsService().setCartItems(_shoppingList);
+    setState(() {});
   }
 
   @override

@@ -1,7 +1,7 @@
 import 'package:aikitchen/AI/using_ai.dart';
 import 'package:aikitchen/DB/using_db.dart';
 import 'package:aikitchen/screens/settings.dart';
-import 'package:aikitchen/shopping_list.dart/shopping_list.dart';
+import 'package:aikitchen/screens/shopping_list.dart';
 import 'package:aikitchen/widgets/navigation_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
