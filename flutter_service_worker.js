@@ -9,8 +9,8 @@ const RESOURCES = {"assets/AssetManifest.bin": "69e423ce56c3204f189edcd8fff2d764
 "assets/assets/ejemplo.json": "67bf393c66d54dfb8062e2ed3448147e",
 "assets/assets/loading.gif": "372cd3ce4d67057abf98c70121213171",
 "assets/FontManifest.json": "db8f453ee5bd623ef9ffbe9d7a009cf7",
-"assets/fonts/MaterialIcons-Regular.otf": "50207d6d1d1eb2aebf1e51cb2d070ea7",
-"assets/NOTICES": "a8ce277e88549f9906771b4d73803384",
+"assets/fonts/MaterialIcons-Regular.otf": "31eeb16e634d5e834324c9478d29ec9e",
+"assets/NOTICES": "9a4a63b5be873fe73557ee0fa599ac3a",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "33b7d9392238c04c131b6ce224e13711",
 "assets/packages/fluttertoast/assets/toastify.css": "a85675050054f179444bc5ad70ffc635",
 "assets/packages/fluttertoast/assets/toastify.js": "56e2c9cedd97f10e7e5f1cebd85d53e3",
@@ -33,16 +33,16 @@ const RESOURCES = {"assets/AssetManifest.bin": "69e423ce56c3204f189edcd8fff2d764
 "favicon.png": "df917c9edfff02a4ad1f1f9828e89bd2",
 "favicon2.svg": "0e12a4086d18c51372c685a5ad3649d3",
 "flutter.js": "1e28bc80be052b70b1e92d55bea86b2a",
-"flutter_bootstrap.js": "6f6cdb5c4deeee3225363052b4ce45f8",
+"flutter_bootstrap.js": "ec87a4203e8666f78cfd8f7e85a86fda",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
 "icons/Icon-maskable-192.png": "c457ef57daa1d16f64b27b786ec2ea3c",
 "icons/Icon-maskable-512.png": "301a7604d45b3e739efc881eb04896ea",
 "index.html": "dc4d7529fc5f1b9eebb4b6bc384d92ec",
 "/": "dc4d7529fc5f1b9eebb4b6bc384d92ec",
-"main.dart.js": "5eedabcdb202f490cad180ac39a5f708",
+"main.dart.js": "3aee7645ad7d5a13ffe60a0133877e91",
 "manifest.json": "e7c6e3f8a5fd4c29f897ad651d4e8350",
-"version.json": "59e753dcdfebb1536557b0123c584c34"};
+"version.json": "e32b4bdb6ad9623182dc63ef8e287b0e"};
 // The application shell files that are downloaded before a service worker can
 // start.
 const CORE = ["main.dart.js",
