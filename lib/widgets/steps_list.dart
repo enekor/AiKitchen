@@ -1,5 +1,6 @@
 import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
+import 'package:flutter_tts/flutter_tts.dart';
 
 class StepsList extends StatefulWidget {
   final List<String> steps;
@@ -17,6 +18,28 @@ class StepsList extends StatefulWidget {
 
 class _StepsListState extends State<StepsList> {
   int _currentStep = 0;
+  late FlutterTts _flutterTts;
+
+  @override
+  void initState() {
+    super.initState();
+    _flutterTts = FlutterTts();
+
+    // Configuración opcional para asegurarte de que funcione correctamente
+    _flutterTts.setLanguage("es-ES"); // Idioma español
+    _flutterTts.setSpeechRate(0.5); // Velocidad de habla
+    _flutterTts.setPitch(1.0); // Tono de voz
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop(); // Detener cualquier reproducción al salir
+    super.dispose();
+  }
+
+  Future<void> _speak(String text) async {
+    await _flutterTts.speak(text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,15 +64,20 @@ class _StepsListState extends State<StepsList> {
             withInnerShadow: true,
             child: Stepper(
               currentStep: _currentStep,
-              onStepTapped: (step) => setState(() => _currentStep = step),
+              onStepTapped: (step) {
+                setState(() => _currentStep = step);
+                _speak(widget.steps[step]); // Leer el paso seleccionado
+              },
               onStepContinue: () {
                 if (_currentStep < widget.steps.length - 1) {
                   setState(() => _currentStep++);
+                  _speak(widget.steps[_currentStep]); // Leer el siguiente paso
                 }
               },
               onStepCancel: () {
                 if (_currentStep > 0) {
                   setState(() => _currentStep--);
+                  _speak(widget.steps[_currentStep]); // Leer el paso anterior
                 }
               },
               steps:

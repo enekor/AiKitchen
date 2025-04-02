@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_inset_shadow: ^2.0.3
+  flutter_tts: ^4.2.2
   fluttertoast: ^8.2.12
   google_generative_ai: ^0.4.6
   lottie: ^3.3.1
