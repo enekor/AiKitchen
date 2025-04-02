@@ -31,12 +31,6 @@ class _ShoppingListState extends State<ShoppingList> {
     setState(() {});
   }
 
-  void _toggleShoppingListStatus(int index) {
-    setState(() {
-      _shoppingList[index].isIn = !_shoppingList[index].isIn;
-    });
-  }
-
   void _addNewIngredient(String name) {
     setState(() {
       _shoppingList.add(CartItem(name: name, isIn: _showAvailable));
@@ -53,69 +47,67 @@ class _ShoppingListState extends State<ShoppingList> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: ModularFloatingActions(
-          actions: [
-            NeumorphicActionButton(
-              icon: Icons.shopping_cart,
-              isHighlighted: _showAvailable == true,
-              onPressed: () {
-                setState(() {
-                  _showAvailable = true;
-                });
-              },
-            ),
-            NeumorphicActionButton(
-              icon: Icons.remove_shopping_cart_rounded,
-              onPressed: () {
-                setState(() {
-                  _showAvailable = false;
-                });
-              },
-              isHighlighted: _showAvailable == false,
-            ),
-            NeumorphicActionButton(
-              icon: Icons.add_rounded,
-              onPressed:
-                  () => setState(() {
-                    _adding = !_adding;
-                  }),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
       backgroundColor: theme.colorScheme.surface,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            if (_adding)
-              BasicTextInput(
-                onSearch: _addNewIngredient,
-                hint: "Patatas",
-                checkIcon: Icons.add_rounded,
-                padding: EdgeInsets.all(2),
-                isInnerShadow: true,
+      body: RefreshIndicator(
+        onRefresh: () => _loadShoppingList(),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              ModularFloatingActions(
+                actions: [
+                  NeumorphicActionButton(
+                    icon: Icons.shopping_cart,
+                    isHighlighted: _showAvailable == true,
+                    onPressed: () {
+                      setState(() {
+                        _showAvailable = true;
+                      });
+                    },
+                  ),
+                  NeumorphicActionButton(
+                    icon: Icons.remove_shopping_cart_rounded,
+                    onPressed: () {
+                      setState(() {
+                        _showAvailable = false;
+                      });
+                    },
+                    isHighlighted: _showAvailable == false,
+                  ),
+                  NeumorphicActionButton(
+                    icon: Icons.add_rounded,
+                    onPressed:
+                        () => setState(() {
+                          _adding = !_adding;
+                        }),
+                  ),
+                ],
               ),
-            const SizedBox(height: 16),
-            _buildShoppingListSection(
-              title:
-                  _showAvailable
-                      ? "En mi despensa (${groupedShoppingList["Tengo"]?.length ?? 0})"
-                      : "Faltan (${groupedShoppingList["Falta"]?.length ?? 0})",
-              shoppingList:
-                  _showAvailable
-                      ? groupedShoppingList["Tengo"] ?? []
-                      : groupedShoppingList["Falta"] ?? [],
-              color:
-                  _showAvailable
-                      ? theme.colorScheme.primary.withOpacity(0.2)
-                      : theme.colorScheme.secondary.withOpacity(0.2),
-            ),
-          ],
+              if (_adding)
+                BasicTextInput(
+                  onSearch: _addNewIngredient,
+                  hint: "Patatas",
+                  checkIcon: Icons.add_rounded,
+                  padding: EdgeInsets.all(2),
+                  isInnerShadow: true,
+                ),
+              const SizedBox(height: 16),
+              _buildShoppingListSection(
+                title:
+                    _showAvailable
+                        ? "En mi despensa (${groupedShoppingList["Tengo"]?.length ?? 0})"
+                        : "Faltan (${groupedShoppingList["Falta"]?.length ?? 0})",
+                shoppingList:
+                    _showAvailable
+                        ? groupedShoppingList["Tengo"] ?? []
+                        : groupedShoppingList["Falta"] ?? [],
+                color:
+                    _showAvailable
+                        ? theme.colorScheme.primary.withOpacity(0.2)
+                        : theme.colorScheme.secondary.withOpacity(0.2),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -197,11 +189,12 @@ class _ShoppingListState extends State<ShoppingList> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          trailing: NeumorphicSwitch(
-            value: item.isIn,
-            onChanged: (value) => _toggleShoppingListStatus(realIndex),
-            activeColor: theme.colorScheme.primary,
-            inactiveColor: theme.colorScheme.secondary.withOpacity(0.5),
+          trailing: IconButton(
+            icon: item.isIn ? Icon(Icons.close) : Icon(Icons.check),
+            onPressed:
+                () => setState(() {
+                  item.isIn = !item.isIn;
+                }),
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),

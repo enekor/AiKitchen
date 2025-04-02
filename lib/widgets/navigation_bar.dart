@@ -53,24 +53,24 @@ class NeumorphicNavigationBar extends StatelessWidget {
               ),
               label: 'AI',
             ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      currentIndex == 1
-                          ? Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.2)
-                          : Colors.transparent,
-                ),
-                child: Icon(
-                  currentIndex == 1 ? Icons.kitchen : Icons.kitchen_outlined,
-                ),
-              ),
-              label: 'DB',
-            ),
+            // BottomNavigationBarItem(
+            //   icon: Container(
+            //     padding: const EdgeInsets.all(8),
+            //     decoration: BoxDecoration(
+            //       shape: BoxShape.circle,
+            //       color:
+            //           currentIndex == 1
+            //               ? Theme.of(
+            //                 context,
+            //               ).colorScheme.primary.withOpacity(0.2)
+            //               : Colors.transparent,
+            //     ),
+            //     child: Icon(
+            //       currentIndex == 1 ? Icons.kitchen : Icons.kitchen_outlined,
+            //     ),
+            //   ),
+            //   label: 'DB',
+            // ),
             BottomNavigationBarItem(
               icon: Container(
                 padding: const EdgeInsets.all(8),
@@ -90,6 +90,24 @@ class NeumorphicNavigationBar extends StatelessWidget {
                 ),
               ),
               label: 'Lista de la compra',
+            ),
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      currentIndex == 3
+                          ? Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.2)
+                          : Colors.transparent,
+                ),
+                child: Icon(
+                  currentIndex == 3 ? Icons.settings : Icons.settings_outlined,
+                ),
+              ),
+              label: 'Ajustes',
             ),
           ],
         ),

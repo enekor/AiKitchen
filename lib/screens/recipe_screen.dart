@@ -1,4 +1,5 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/widgets/ingredients_list.dart';
 import 'package:aikitchen/widgets/steps_list.dart';
 import 'package:flutter/material.dart';
 
@@ -15,10 +16,21 @@ class _RecipeScreenState extends State<RecipeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.recipe.nombre)),
-      body: Center(
-        child: SingleChildScrollView(
-          child: StepsList(steps: widget.recipe.preparacion),
-        ),
+      body: PageView(
+        children: [
+          // Página 1: StepsList
+          Center(
+            child: SingleChildScrollView(
+              child: StepsList(steps: widget.recipe.preparacion),
+            ),
+          ),
+          // Página 2: IngredientsList
+          Center(
+            child: SingleChildScrollView(
+              child: IngredientsList(ingredients: widget.recipe.ingredientes),
+            ),
+          ),
+        ],
       ),
     );
   }

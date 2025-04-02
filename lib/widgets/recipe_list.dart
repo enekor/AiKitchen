@@ -123,6 +123,7 @@ class RecipesList extends StatelessWidget {
               isFavorite: isFav,
             ),
           ),
+          SizedBox(height: 50),
         ],
       ),
     );

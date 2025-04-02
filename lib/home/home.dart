@@ -1,5 +1,6 @@
 import 'package:aikitchen/AI/using_ai.dart';
 import 'package:aikitchen/DB/using_db.dart';
+import 'package:aikitchen/screens/settings.dart';
 import 'package:aikitchen/shopping_list.dart/shopping_list.dart';
 import 'package:aikitchen/widgets/navigation_bar.dart';
 import 'package:flutter/foundation.dart';
@@ -21,18 +22,14 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Kitchen'),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _navigateToSettings,
-          ),
-        ],
-      ),
-      body: IndexedStack(
-        index: _page,
-        children: [UsingAi(), UsingDB(), ShoppingList()],
+      body: Padding(
+        padding: EdgeInsets.only(
+          top: Theme.of(context).navigationBarTheme.height ?? 45,
+        ),
+        child: IndexedStack(
+          index: _page,
+          children: [UsingAi(), /*UsingDB(),*/ ShoppingList(), Settings()],
+        ),
       ),
 
       bottomNavigationBar: NeumorphicNavigationBar(

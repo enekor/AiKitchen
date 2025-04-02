@@ -31,7 +31,7 @@ class _IngredientModalState extends State<IngredientModal> {
       padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+
         children: [
           Center(
             child: Container(
@@ -73,11 +73,12 @@ class _IngredientModalState extends State<IngredientModal> {
           const SizedBox(height: 8),
           !_isSelectingIngredients
               ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ...widget.recipe.ingredientes.map(
                     (ing) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text('• $ing'),
+                      child: Text('• $ing', textAlign: TextAlign.start),
                     ),
                   ),
                 ],
