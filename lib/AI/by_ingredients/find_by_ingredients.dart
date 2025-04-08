@@ -149,62 +149,50 @@ class _FindByIngredientsState extends State<FindByIngredients> {
 
   @override
   Widget build(BuildContext context) {
-    Widget content =
-        _searching
-            ? const Center(
+    Widget content = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IngredientsPart(
+          onNewIngredient: onNewIngredient,
+          onRemoveIngredient: onRemoveIngredient,
+          ingredientes: ingredientes,
+          onSearch: _generateResponse,
+          onFav: onFav,
+          isLoading: _searching,
+          isFavourite: _isFav,
+        ),
+        if (_searching) ...[
+          const SizedBox(height: 16),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 8),
+          const Text('Generando recetas...'),
+        ] else if (recetas != null && recetas!.isNotEmpty)
+          Expanded(
+            child: RecipesListHasData(
+              recipes: recetas!,
+              onClickRecipe: onClickRecipe,
+              onFavRecipe: onFavRecipe,
+            ),
+          )
+        else if (recetas != null && recetas!.isEmpty)
+          const Expanded(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  LottieAnimationWidget(),
-                  SizedBox(height: 16),
-                  Text('Generando recetas...'),
+                  LottieAnimationWidget(type: LottieAnimationType.notfound),
+                  Text('No hay recetas disponibles'),
                 ],
               ),
-            )
-            : Column(
-              children: [
-                IngredientsPart(
-                  onNewIngredient: onNewIngredient,
-                  onRemoveIngredient: onRemoveIngredient,
-                  ingredientes: ingredientes,
-                  onSearch: _generateResponse,
-                  onFav: onFav,
-                  isLoading: _searching,
-                  isFavourite: _isFav,
-                ),
-                const SizedBox(height: 16),
-                if (recetas == null)
-                  Container()
-                else if (recetas != null && recetas!.isNotEmpty)
-                  Expanded(
-                    child: RecipesListHasData(
-                      recipes: recetas!,
-                      onClickRecipe: onClickRecipe,
-                      onFavRecipe: onFavRecipe,
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LottieAnimationWidget(
-                            type: LottieAnimationType.notfound,
-                          ),
-                          Text('No hay recetas disponibles'),
-                        ],
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 16),
-              ],
-            );
+            ),
+          ),
+      ],
+    );
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: SizedBox(
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height * 0.8,
         child: content,
       ),
     );
