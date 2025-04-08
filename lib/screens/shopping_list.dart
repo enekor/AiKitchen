@@ -2,7 +2,6 @@ import 'package:aikitchen/models/cart_item.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/floating_actions.dart';
 import 'package:aikitchen/widgets/neumorphic_card.dart';
-import 'package:aikitchen/widgets/neumorphic_switch.dart';
 import 'package:aikitchen/widgets/text_input.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
@@ -31,17 +30,17 @@ class _ShoppingListState extends State<ShoppingList> {
     setState(() {});
   }
 
+  Future<void> _updateShoppingList() async {
+    await JsonDocumentsService().setCartItems(_shoppingList);
+    setState(() {});
+  }
+
   void _addNewIngredient(String name) {
     setState(() {
       _shoppingList.add(CartItem(name: name, isIn: _showAvailable));
       _newIngredient.clear();
     });
-    JsonDocumentsService().updateCartItems([name]);
-  }
-
-  void _updateShoppingList() async {
-    await JsonDocumentsService().setCartItems(_shoppingList);
-    setState(() {});
+    _updateShoppingList();
   }
 
   @override
@@ -196,87 +195,19 @@ class _ShoppingListState extends State<ShoppingList> {
             ),
           ),
           trailing: IconButton(
-            icon: item.isIn ? Icon(Icons.close) : Icon(Icons.check),
-            onPressed:
-                () => setState(() {
-                  item.isIn = !item.isIn;
-                }),
+            icon: item.isIn ? const Icon(Icons.close) : const Icon(Icons.check),
+            onPressed: () async {
+              setState(() {
+                item.isIn = !item.isIn;
+              });
+              await _updateShoppingList();
+            },
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
         ),
       ),
-    );
-  }
-
-  void _showAddIngredientDialog(BuildContext context) {
-    final theme = Theme.of(context);
-    final textController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: theme.colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "Añadir Ingrediente",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: textController,
-                  decoration: InputDecoration(
-                    labelText: "Nombre del ingrediente",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        "Cancelar",
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (textController.text.isNotEmpty) {
-                          _addNewIngredient(textController.text);
-                          Navigator.pop(context);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text("Añadir"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
