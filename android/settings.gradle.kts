@@ -14,6 +14,15 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    resolutionStrategy {
+        eachPlugin {
+            when (requested.id.id) {
+                "org.jetbrains.kotlin.android" -> useVersion("1.9.23")
+                "org.jetbrains.kotlin.jvm" -> useVersion("1.9.23")
+            }
+        }
+    }
 }
 
 plugins {
