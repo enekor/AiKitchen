@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
 import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:url_launcher/url_launcher.dart';
@@ -136,6 +141,22 @@ class AppSingleton {
         prompt,
         /*_apiKey!*/ 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM',
       );
+    }
+  }
+
+  Future<void> shareRecipe(Recipe recipe) async {
+    try {
+      final directory = await getExternalStorageDirectory();
+      if (directory != null) {
+        final file = File('${directory.path}/${recipe.nombre}.aikr');
+        await file.writeAsString(jsonEncode(recipe.toJson()));
+        final xFile = XFile(file.path);
+        await Share.shareXFiles([xFile], text: 'Mira esta receta:');
+      } else {
+        Toaster.showToast('No se pudo acceder al almacenamiento externo');
+      }
+    } catch (e) {
+      Toaster.showToast('Error al guardar o compartir la receta: $e');
     }
   }
 }
