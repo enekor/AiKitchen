@@ -119,53 +119,62 @@ class _FindByNameState extends State<FindByName> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child:
-          _searching
-              ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    LottieAnimationWidget(type: LottieAnimationType.loading),
-                    SizedBox(height: 16),
-                    Text('Generando recetas...'),
-                  ],
-                ),
-              )
-              : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  child: Column(
-                    children: [
-                      nameInputPart(
-                        onSearch: _searchByName,
-                        onFav: _fav,
-                        isLoading: _searching,
-                        isFavorite: _isFav,
-                      ),
-                      const SizedBox(height: 16),
-                      if (_recetas == null)
-                        Container()
-                      else if (_recetas != null && _recetas!.isNotEmpty)
-                        Expanded(
-                          child:
-                              _recetas != null && _recetas!.isNotEmpty
-                                  ? RecipesListHasData(
-                                    recipes: _recetas!,
-                                    onClickRecipe: onClickRecipe,
-                                    onFavRecipe: onFavRecipe,
-                                  )
-                                  : Center(
-                                    child: Text("No hay recetas para mostrar"),
-                                  ),
-                        )
-                      else
-                        const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
+    Widget content = Column(
+      children: [
+        nameInputPart(
+          onSearch: _searchByName,
+          onFav: _fav,
+          isLoading: _searching,
+          isFavorite: _isFav,
+        ),
+        const SizedBox(height: 16),
+        if (_searching)
+          const Column(
+            children: [
+              LottieAnimationWidget(type: LottieAnimationType.loading),
+              SizedBox(height: 16),
+              Text('Generando recetas...'),
+            ],
+          )
+        else if (_recetas != null && _recetas!.isNotEmpty)
+          Expanded(
+            child: RecipesListHasData(
+              recipes: _recetas!,
+              onClickRecipe: onClickRecipe,
+              onFavRecipe: onFavRecipe,
+            ),
+          )
+        else if (_recetas != null && _recetas!.isEmpty)
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LottieAnimationWidget(type: LottieAnimationType.notfound),
+                  Text("No hay recetas para mostrar"),
+                ],
               ),
+            ),
+          ),
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        child:
+            _recetas == null || _recetas!.isEmpty && !_searching
+                ? Center(
+                  child: nameInputPart(
+                    onSearch: _searchByName,
+                    onFav: _fav,
+                    isLoading: _searching,
+                    isFavorite: _isFav,
+                  ),
+                )
+                : content,
+      ),
     );
   }
 }

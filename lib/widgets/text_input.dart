@@ -115,7 +115,10 @@ class _TextInputState extends State<TextInput> {
           IconButton(
             icon:
                 widget.isLoading
-                    ? const CircularProgressIndicator()
+                    ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: const CircularProgressIndicator(),
+                    )
                     : const Icon(Icons.search),
             onPressed: () {
               widget.onSearch(nameController.text);

@@ -163,7 +163,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         ),
         if (_searching) ...[
           const SizedBox(height: 16),
-          const CircularProgressIndicator(),
+          const LottieAnimationWidget(type: LottieAnimationType.loading),
           const SizedBox(height: 8),
           const Text('Generando recetas...'),
         ] else if (recetas != null && recetas!.isNotEmpty)

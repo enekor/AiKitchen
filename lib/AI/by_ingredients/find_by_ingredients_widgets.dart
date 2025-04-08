@@ -133,7 +133,10 @@ class _IngredientsPartState extends State<IngredientsPart> {
             onPressed: widget.onSearch,
             icon:
                 widget.isLoading
-                    ? const CircularProgressIndicator()
+                    ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: const CircularProgressIndicator(),
+                    )
                     : const Icon(Icons.search),
           ),
           IconButton(
