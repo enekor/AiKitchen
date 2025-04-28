@@ -49,6 +49,8 @@ class _FindByNameState extends State<FindByName> {
         name,
         AppSingleton().numRecetas,
         AppSingleton().personality,
+        AppSingleton().idioma,
+        AppSingleton().tipoReceta,
       );
       final response = await AppSingleton().generateContent(prompt, context);
       if (response.contains('preparacion')) {

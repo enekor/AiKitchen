@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
+import 'package:aikitchen/services/shared_preferences_service.dart';
+import 'package:aikitchen/widgets/api_key_generator.dart';
 import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -14,14 +16,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 class AppSingleton {
   static final AppSingleton _instance = AppSingleton._internal();
-  static const String _apiKeyPref = 'gemini_api_key';
 
   String? _apiKey;
   Recipe? recipe;
   int _numRecetas = 5;
+  String _idioma = 'español';
   String _personality = 'neutral';
   List<Recipe> recetasFavoritas = [];
   GeminiService? _geminiService;
+  String _tipoReceta = 'omnívora';
 
   factory AppSingleton() {
     return _instance;
@@ -33,20 +36,42 @@ class AppSingleton {
   int get numRecetas => _numRecetas;
   set setNumRecetas(int value) => _numRecetas = value;
   String get personality => _personality;
+  String get idioma => _idioma;
+  String get tipoReceta => _tipoReceta;
+
+  set setTipoReceta(String value) => _tipoReceta = value;
+  set setIdioma(String value) => _idioma = value;
   set setPersonality(String value) => _personality = value;
 
   Future<void> initializeWithStoredKey() async {
-    await SharedPreferences.getInstance().then((prefs) async {
-      _numRecetas = int.parse(prefs.getString('numRecetas') ?? '5');
-      _personality = prefs.getString('tonoTextos') ?? 'neutral';
-      _apiKey = prefs.getString(_apiKeyPref);
-      _geminiService = GeminiService();
-    });
+    _numRecetas = int.parse(
+      await SharedPreferencesService.getStringValue(
+            SharedPreferencesKeys.numRecetas,
+          ) ??
+          '5',
+    );
+    _personality =
+        await SharedPreferencesService.getStringValue(
+          SharedPreferencesKeys.tonoTextos,
+        ) ??
+        'neutral';
+    _idioma =
+        await SharedPreferencesService.getStringValue(
+          SharedPreferencesKeys.idioma,
+        ) ??
+        'español';
+    _apiKey = await SharedPreferencesService.getStringValue(
+      SharedPreferencesKeys.geminiApiKey,
+    );
+
+    _geminiService = GeminiService();
   }
 
   Future<void> setApiKey(String apiKey) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_apiKeyPref, apiKey);
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.geminiApiKey,
+      apiKey,
+    );
     _apiKey = apiKey;
   }
 
@@ -69,53 +94,10 @@ class AppSingleton {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Configurar API Key'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Para usar la aplicación, necesitas una API Key de Google AI Studio. Sigue estos pasos:',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                const Text('1. Ve a Google AI Studio'),
-                const SizedBox(height: 8),
-                const Text('2. Inicia sesión con tu cuenta de Google'),
-                const SizedBox(height: 8),
-                const Text('3. Ve a "Get API Key"'),
-                const SizedBox(height: 8),
-                const Text('4. Crea una nueva API Key o usa una existente'),
-                const SizedBox(height: 24),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed:
-                        () => _launchUrl(
-                          'https://makersuite.google.com/app/apikey',
-                          context,
-                        ),
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text('Ir a Google AI Studio'),
-                  ),
-                ),
-                const SizedBox(height: 48),
-                BasicTextInput(
-                  onChanged: (apiKey) {
-                    newApiKey.text = apiKey;
-                  },
-                  onSearch: (apiKey) {
-                    AppSingleton().setApiKey(apiKey);
-                    Toaster.showToast('API Key guardada');
-                    Navigator.pop(context);
-                  },
-
-                  hint: 'Pega aquí tu API Key',
-                  initialValue: AppSingleton().apiKey ?? '',
-                  checkIcon: Icons.save_rounded,
-                  padding: const EdgeInsets.all(2),
-                  isInnerShadow: true,
-                ),
-              ],
+            content: ApiKeyGenerator(
+              onChange: (String value) {
+                newApiKey.text = value;
+              },
             ),
             actions: [
               TextButton(

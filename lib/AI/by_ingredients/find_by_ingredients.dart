@@ -66,6 +66,8 @@ class _FindByIngredientsState extends State<FindByIngredients> {
           ingredientes,
           AppSingleton().numRecetas,
           AppSingleton().personality,
+          AppSingleton().idioma,
+          AppSingleton().tipoReceta,
         ),
         context,
       );

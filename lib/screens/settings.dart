@@ -1,7 +1,7 @@
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
+import 'package:aikitchen/widgets/api_key_generator.dart';
 import 'package:aikitchen/widgets/setting_widget.dart';
-import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -47,69 +47,7 @@ class _SettingsState extends State<Settings> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 15,
                   children: [
-                    AnimatedCard(
-                      isExpanded:
-                          widget.isNotApiKeySetted
-                              ? true
-                              : _isGeminiCardExpanded,
-                      text:
-                          'Gemini api key ${AppSingleton().apiKey != null ? 'aplicada' : 'no aplicada'}',
-                      icon:
-                          AppSingleton().apiKey == null
-                              ? const Icon(Icons.api_rounded)
-                              : const Icon(
-                                Icons.check_circle_rounded,
-                                color: Colors.green,
-                              ),
-                      onTap: () {
-                        setState(() {
-                          _isGeminiCardExpanded = !_isGeminiCardExpanded;
-                        });
-                      },
-                      children: [
-                        const Text(
-                          'Para usar la aplicación, necesitas una API Key de Google AI Studio. Sigue estos pasos:',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 32),
-                        const Text('1. Ve a Google AI Studio'),
-                        const SizedBox(height: 8),
-                        const Text('2. Inicia sesión con tu cuenta de Google'),
-                        const SizedBox(height: 8),
-                        const Text('3. Ve a "Get API Key"'),
-                        const SizedBox(height: 8),
-                        const Text(
-                          '4. Crea una nueva API Key o usa una existente',
-                        ),
-                        const SizedBox(height: 24),
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed:
-                                () => _launchUrl(
-                                  'https://makersuite.google.com/app/apikey',
-                                ),
-                            icon: const Icon(Icons.open_in_new),
-                            label: const Text('Ir a Google AI Studio'),
-                          ),
-                        ),
-                        const SizedBox(height: 48),
-                        BasicTextInput(
-                          onSearch: (apiKey) {
-                            setState(() {
-                              AppSingleton().setApiKey(apiKey);
-                            });
-                            Toaster.showToast('API Key guardada');
-                            Navigator.pop(context);
-                          },
-                          hint: 'Pega aquí tu API Key',
-                          initialValue: AppSingleton().apiKey ?? '',
-                          checkIcon: Icons.save_rounded,
-                          padding: const EdgeInsets.all(2),
-                          isInnerShadow: true,
-                        ),
-                      ],
-                    ),
+                    ApiKeyGenerator(),
                     if (!widget.isNotApiKeySetted)
                       AnimatedCard(
                         isExpanded: _isSettingsCardExpanded,
@@ -147,6 +85,46 @@ class _SettingsState extends State<Settings> {
                               SharedPreferencesService.setStringValue(
                                 SharedPreferencesKeys.tonoTextos,
                                 value,
+                              );
+
+                              Toaster.showToast(
+                                'El tono de texto se ha cambiado a $value',
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          TextSetting(
+                            initialValue: AppSingleton().idioma,
+                            text: '¿En qué idioma quieres las recetas?',
+                            onSave: (String value) {
+                              setState(() {
+                                AppSingleton().setIdioma = value;
+                              });
+                              SharedPreferencesService.setStringValue(
+                                SharedPreferencesKeys.idioma,
+                                value,
+                              );
+
+                              Toaster.showToast(
+                                'El idioma se ha cambiado a $value',
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          TextSetting(
+                            initialValue: AppSingleton().tipoReceta,
+                            text: '¿Que tipos de recetas haras?',
+                            onSave: (String value) {
+                              setState(() {
+                                AppSingleton().setPersonality = value;
+                              });
+                              SharedPreferencesService.setStringValue(
+                                SharedPreferencesKeys.tipoReceta,
+                                value,
+                              );
+
+                              Toaster.showToast(
+                                'El tipo de receta se ha cambiado a $value',
                               );
                             },
                           ),

@@ -7,6 +7,7 @@ environment:
   sdk: ^3.8.0-91.0.dev
 
 dependencies:
+  carousel_slider: ^5.0.0
   cupertino_icons: ^1.0.8
   dynamic_color: ^1.6.8
   flutter:
@@ -33,3 +34,7 @@ flutter:
   assets:
     - assets/ejemplo.json
     - assets/loading.gif
+    - assets/guide/step1.png
+    - assets/guide/step2.png
+    - assets/guide/step3.png
+    - assets/guide/step4.png

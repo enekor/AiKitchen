@@ -1,6 +1,13 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum SharedPreferencesKeys { numRecetas, tonoTextos, favRecipes }
+enum SharedPreferencesKeys {
+  numRecetas,
+  tonoTextos,
+  favRecipes,
+  idioma,
+  geminiApiKey,
+  tipoReceta,
+}
 
 class SharedPreferencesService {
   static Future<void> setStringValue(
@@ -13,7 +20,7 @@ class SharedPreferencesService {
 
   static Future<String?> getStringValue(SharedPreferencesKeys key) async {
     final prefs = await SharedPreferences.getInstance();
-    var ret =  prefs.getString(key.toString());
+    var ret = prefs.getString(key.toString());
 
     return ret;
   }
