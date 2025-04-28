@@ -34,7 +34,10 @@ flutter:
   assets:
     - assets/ejemplo.json
     - assets/loading.gif
-    - assets/guide/step1.png
-    - assets/guide/step2.png
-    - assets/guide/step3.png
-    - assets/guide/step4.png
+    - assets/guide/step1.jpg
+    - assets/guide/step2.jpg
+    - assets/guide/step3.jpg
+    - assets/guide/step4.jpg
+    - assets/guide/step2b.jpg
+    - assets/guide/step2c.jpg
+    - assets/guide/step2d.jpg

@@ -15,6 +15,7 @@ class ApiKeyGenerator extends StatefulWidget {
 }
 
 bool _isGeminiCardExpanded = false;
+int _currentIndex = 0;
 
 class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
   @override
@@ -86,27 +87,66 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
               autoPlay: false,
               pageSnapping: true,
               padEnds: true,
+              onPageChanged: (index, reason) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
             ),
             items: [
               _buildCarouselItem(
-                'assets/guide/step1.png',
-                '1. Ve a Google AI Studio e inicia sesión',
+                'assets/guide/step1.jpg',
+                '1. Ve a Google AI Studio inicia sesión y seleciona "Crear clave de api',
               ),
               _buildCarouselItem(
-                'assets/guide/step2.png',
-                '2. Haz clic en "Get API Key" en el menú',
+                'assets/guide/step2.jpg',
+                '2. Dale al boton de copiar para copiar la API Key, si te da una pantalla diferente ve al siguiente paso, si no, ve al paso 3',
               ),
               _buildCarouselItem(
-                'assets/guide/step3.png',
-                '3. Crea una nueva API Key',
+                'assets/guide/step2b.jpg',
+                '2.1. Si te sale la pantalla como esta dale a la X para cerrar la ventana y vuelve a la pantalla anterior',
               ),
               _buildCarouselItem(
-                'assets/guide/step4.png',
-                '4. Copia la API Key y pégala en la app',
+                'assets/guide/step2c.jpg',
+                '2.2. Haz scroll hacia abajo hasta que veas una tabla',
               ),
+              _buildCarouselItem(
+                'assets/guide/step2d.jpg',
+                '2.3. Selecciona el texto azul y verás el recuadro del paso 2 para poder seguirlo',
+              ),
+              _buildCarouselItem(
+                'assets/guide/step3.jpg',
+                '3. Pega la API Key en la barra de texto de la app',
+              ),
+              _buildCarouselItem(
+                'assets/guide/step4.jpg',
+                '4. Dale al boton de guardar',
+              ),
+              _buildCarouselItem('assets/guide/step5.jpg', ''),
             ],
           ),
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children:
+              [0, 1, 2, 3, 4, 5, 6].map((index) {
+                return Container(
+                  width: 10.0,
+                  height: 10.0,
+                  margin: EdgeInsets.symmetric(horizontal: 4.0),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        _currentIndex == index
+                            ? Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha(45)
+                            : Colors.grey.shade300,
+                  ),
+                );
+              }).toList(),
+        ),
+        const SizedBox(height: 16),
         const SizedBox(height: 16),
         Center(
           child: ElevatedButton.icon(
