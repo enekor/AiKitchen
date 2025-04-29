@@ -1,5 +1,6 @@
 import 'package:aikitchen/AI/using_ai.dart';
 import 'package:aikitchen/DB/using_db.dart';
+import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/screens/settings.dart';
 import 'package:aikitchen/screens/shopping_list.dart';
 import 'package:aikitchen/widgets/navigation_bar.dart';
@@ -28,7 +29,12 @@ class _HomeState extends State<Home> {
         ),
         child: IndexedStack(
           index: _page,
-          children: [UsingAi(), /*UsingDB(),*/ ShoppingList(), Settings()],
+          children: [
+            UsingAi(),
+            /*UsingDB(),*/ CreateRecipe(),
+            ShoppingList(),
+            Settings(),
+          ],
         ),
       ),
 

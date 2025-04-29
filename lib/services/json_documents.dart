@@ -57,6 +57,14 @@ class JsonDocumentsService {
     }
   }
 
+  Future<void> updateFavRecipes(Recipe recipe) async {
+    List<Recipe> myFavRecipes = await getFavRecipes();
+
+    myFavRecipes.add(recipe);
+
+    await setFavRecipes(myFavRecipes);
+  }
+
   Future<List<CartItem>> getCartItems() async {
     try {
       final documentPath = await getApplicationDocumentsDirectory();

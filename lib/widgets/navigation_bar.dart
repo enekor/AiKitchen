@@ -77,6 +77,22 @@ class NeumorphicNavigationBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color:
+                      currentIndex == 1
+                          ? Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.2)
+                          : Colors.transparent,
+                ),
+                child: Icon(currentIndex == 1 ? Icons.add : Icons.add_outlined),
+              ),
+              label: 'Crear receta',
+            ),
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
                       currentIndex == 2
                           ? Theme.of(
                             context,
