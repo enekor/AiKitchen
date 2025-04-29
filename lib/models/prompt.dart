@@ -61,4 +61,13 @@ para las recetas tengo estos parametros que el usuario ha especificado:
     String tipoReceta,
   ) =>
       '$basePrompt numero de recetas: $numRecetas, idioma de las recetas: $idioma, tipo de cocina especifica: $tipoReceta, tono de los pasos de la receta: $tono, nombre de la receta que quiere el usuario: $nombreReceta';
+
+  static String shoppingListPrompt(String userInfo, String tipoAlimentacion) =>
+      '''
+Estas dentro de una aplicacion de generacion de recetas y listas de la compra, y el usuario ha decidido que quiere ir a comprar y quiere una lista de las cosas que puede llegar a necesitar al mes. 
+Para ello, te ha provisto de estas especificaciones: $userInfo.
+El tipo de alimentacion del usuario es: $tipoAlimentacion.
+Para darme los datos vas a darme solo la lista de la compra, nada mas, y para ello, vas a darme uno tras otro seguido de una coma, es decir, por ejemplo, "patatas, lechuga, tomate", y si quieres puedes poner cantidades o peso a considerar.
+En caso de no poder generar la lista, me das el por qué de esta forma: "error: la causa"
+''';
 }

@@ -93,24 +93,16 @@ class AppSingleton {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Configurar API Key'),
-            content: ApiKeyGenerator(
-              onChange: (String value) {
-                newApiKey.text = value;
-              },
+            title: const Text('Api key no configurada'),
+            content: const Text(
+              'Para poder utilizar las funciones de IA de la aplicación necesita aplicar una api key en la seccion de ajustes. No se preocupe, viene bien explicado como obtener una.',
             ),
             actions: [
               TextButton(
-                child: const Text('Cancelar'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              TextButton(
-                child: const Text('Confirmar'),
-                onPressed: () async {
-                  if (newApiKey.text.isNotEmpty) {
-                    await setApiKey(newApiKey.text);
-                    Navigator.of(context).pop();
-                  }
+                child: const Text('Vamos allá'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).pushNamed('/api_key');
                 },
               ),
             ],
@@ -119,10 +111,7 @@ class AppSingleton {
       );
       throw NoApiKeyException();
     } else {
-      return await _geminiService!.generateContent(
-        prompt,
-        /*_apiKey!*/ 'AIzaSyBuQtTiEEyB6MrJPrdV4PqG-STYj4_PIzM',
-      );
+      return await _geminiService!.generateContent(prompt, _apiKey!);
     }
   }
 

@@ -213,3 +213,74 @@ class _BasicTextInputState extends State<BasicTextInput> {
     );
   }
 }
+
+class BasicMultilineTextInput extends StatefulWidget {
+  BasicMultilineTextInput({
+    super.key,
+    this.hint,
+    this.isInnerShadow = false,
+    this.padding = const EdgeInsets.all(8),
+    this.margin = const EdgeInsets.all(8),
+    this.initialValue,
+    this.onChanged,
+    this.maxLines = 3,
+  });
+
+  final String? hint;
+  final bool isInnerShadow;
+  final EdgeInsets padding;
+  final EdgeInsets margin;
+  final String? initialValue;
+  final Function(String)? onChanged;
+  final int? maxLines;
+
+  @override
+  State<BasicMultilineTextInput> createState() =>
+      _BasicMultilineTextInputState();
+}
+
+class _BasicMultilineTextInputState extends State<BasicMultilineTextInput> {
+  final _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _textController.text = widget.initialValue ?? '';
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NeumorphicCard(
+      padding: widget.padding,
+      margin: widget.margin,
+      withInnerShadow: widget.isInnerShadow,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: TextField(
+                onChanged: widget.onChanged,
+                controller: _textController,
+                maxLines: widget.maxLines,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  labelText: null,
+                  hintText: widget.hint,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ApiKeyGenerator extends StatefulWidget {
-  ApiKeyGenerator({super.key, this.onChange});
+  ApiKeyGenerator({super.key, this.onChange, this.isPopup = false});
   Function(String)? onChange;
+  bool isPopup = false;
 
   @override
   State<ApiKeyGenerator> createState() => _ApiKeyGeneratorState();
@@ -56,7 +57,7 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
     }
 
     return AnimatedCard(
-      isExpanded: _isGeminiCardExpanded,
+      isExpanded: widget.isPopup ? true : _isGeminiCardExpanded,
       text:
           'Gemini api key ${AppSingleton().apiKey != null ? 'aplicada' : 'no aplicada'}',
       icon:

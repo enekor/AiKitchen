@@ -131,224 +131,227 @@ class _CreateRecipeState extends State<CreateRecipe> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Crear receta')),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Primera tarjeta - Información básica
-              NeumorphicCard(
-                withInnerShadow: _basicInfoHasFocus,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _nameController,
-                        focusNode: _nameFocus,
-                        decoration: const InputDecoration(labelText: 'Nombre'),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Crear nueva receta',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 20),
+            // Primera tarjeta - Información básica
+            NeumorphicCard(
+              withInnerShadow: _basicInfoHasFocus,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      focusNode: _nameFocus,
+                      decoration: const InputDecoration(labelText: 'Nombre'),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _descriptionController,
+                      focusNode: _descriptionFocus,
+                      decoration: const InputDecoration(
+                        labelText: 'Descripción',
                       ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _descriptionController,
-                        focusNode: _descriptionFocus,
-                        decoration: const InputDecoration(
-                          labelText: 'Descripción',
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _rationsController,
+                            focusNode: _rationsFocus,
+                            decoration: const InputDecoration(
+                              labelText: 'Número de platos',
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
                         ),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _rationsController,
-                              focusNode: _rationsFocus,
-                              decoration: const InputDecoration(
-                                labelText: 'Número de platos',
-                              ),
-                              keyboardType: TextInputType.number,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: _estimatedTimeController,
+                            focusNode: _timeFocus,
+                            decoration: const InputDecoration(
+                              labelText: 'Tiempo (min)',
                             ),
+                            keyboardType: TextInputType.number,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextField(
-                              controller: _estimatedTimeController,
-                              focusNode: _timeFocus,
-                              decoration: const InputDecoration(
-                                labelText: 'Tiempo (min)',
-                              ),
-                              keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: _caloriesController,
+                            focusNode: _caloriesFocus,
+                            decoration: const InputDecoration(
+                              labelText: 'Calorías por ración',
                             ),
+                            keyboardType: TextInputType.number,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextField(
-                              controller: _caloriesController,
-                              focusNode: _caloriesFocus,
-                              decoration: const InputDecoration(
-                                labelText: 'Calorías por ración',
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-              // Segunda tarjeta - Ingredientes
-              NeumorphicCard(
-                withInnerShadow: _ingredientsHasFocus,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Ingredientes',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+            // Segunda tarjeta - Ingredientes
+            NeumorphicCard(
+              withInnerShadow: _ingredientsHasFocus,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Ingredientes',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 16),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _ingredients.length,
-                        itemBuilder: (context, index) {
-                          // Añadir nuevo focus node si es necesario
-                          if (index >= _ingredientFocusNodes.length) {
-                            _addIngredientFocusNode();
-                          }
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  focusNode: _ingredientFocusNodes[index],
-                                  decoration: InputDecoration(
-                                    labelText: 'Ingrediente ${index + 1}',
-                                  ),
-                                  onChanged: (value) {
-                                    _ingredients[index] = value;
-                                  },
+                    ),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _ingredients.length,
+                      itemBuilder: (context, index) {
+                        // Añadir nuevo focus node si es necesario
+                        if (index >= _ingredientFocusNodes.length) {
+                          _addIngredientFocusNode();
+                        }
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                focusNode: _ingredientFocusNodes[index],
+                                decoration: InputDecoration(
+                                  labelText: 'Ingrediente ${index + 1}',
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline),
-                                onPressed: () {
-                                  if (_ingredients.length > 1) {
-                                    setState(() {
-                                      _ingredients.removeAt(index);
-                                    });
-                                  }
+                                onChanged: (value) {
+                                  _ingredients[index] = value;
                                 },
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _ingredients.add('');
-                          });
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Añadir ingrediente'),
-                      ),
-                    ],
-                  ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: () {
+                                if (_ingredients.length > 1) {
+                                  setState(() {
+                                    _ingredients.removeAt(index);
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _ingredients.add('');
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Añadir ingrediente'),
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-              // Tercera tarjeta - Pasos de preparación
-              NeumorphicCard(
-                withInnerShadow: _stepsHasFocus,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Pasos de preparación',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+            // Tercera tarjeta - Pasos de preparación
+            NeumorphicCard(
+              withInnerShadow: _stepsHasFocus,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Pasos de preparación',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 16),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _steps.length,
-                        itemBuilder: (context, index) {
-                          // Añadir nuevo focus node si es necesario
-                          if (index >= _stepFocusNodes.length) {
-                            _addStepFocusNode();
-                          }
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  focusNode: _stepFocusNodes[index],
-                                  decoration: InputDecoration(
-                                    labelText: 'Paso ${index + 1}',
-                                  ),
-                                  maxLines: 3,
-                                  onChanged: (value) {
-                                    _steps[index] = value;
-                                  },
+                    ),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _steps.length,
+                      itemBuilder: (context, index) {
+                        // Añadir nuevo focus node si es necesario
+                        if (index >= _stepFocusNodes.length) {
+                          _addStepFocusNode();
+                        }
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                focusNode: _stepFocusNodes[index],
+                                decoration: InputDecoration(
+                                  labelText: 'Paso ${index + 1}',
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline),
-                                onPressed: () {
-                                  if (_steps.length > 1) {
-                                    setState(() {
-                                      _steps.removeAt(index);
-                                    });
-                                  }
+                                maxLines: 3,
+                                onChanged: (value) {
+                                  _steps[index] = value;
                                 },
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                      SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _steps.add('');
-                          });
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Añadir paso'),
-                      ),
-                    ],
-                  ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: () {
+                                if (_steps.length > 1) {
+                                  setState(() {
+                                    _steps.removeAt(index);
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _steps.add('');
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Añadir paso'),
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: saveRecipe,
-                child: const Text('Guardar receta'),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: saveRecipe,
+              child: const Text('Guardar receta'),
+            ),
+            const SizedBox(height: 16),
+          ],
         ),
       ),
     );
