@@ -80,39 +80,42 @@ class _FavouritesState extends State<Favourites> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      child:
-          _recetasFavoritas.isNotEmpty
-              ? RecipesList(
-                recipes: _recetasFavoritas,
-                onClickRecipe: openRecipe,
-                onFavRecipe: removeFavRecipe,
-                isFav: true,
-              )
-              : Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      '¯\\_(ツ)_/¯',
-                      style: TextStyle(
-                        fontSize: 40,
-                        color: Theme.of(context).colorScheme.primary,
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child:
+            _recetasFavoritas.isNotEmpty
+                ? RecipesList(
+                  recipes: _recetasFavoritas,
+                  onClickRecipe: openRecipe,
+                  onFavRecipe: removeFavRecipe,
+                  isFav: true,
+                )
+                : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '¯\\_(ツ)_/¯',
+                        style: TextStyle(
+                          fontSize: 40,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text('No se han encontrado recetas favoritas'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _load,
-                      child: const Text('Recargar'),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text('No se han encontrado recetas favoritas'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _load,
+                        child: const Text('Recargar'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+      ),
     );
   }
 }
