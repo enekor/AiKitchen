@@ -101,6 +101,7 @@ class _TextInputState extends State<TextInput> {
                   horizontal: 10,
                 ),
                 child: TextField(
+                  onSubmitted: (_) => widget.onSearch(nameController.text),
                   controller: nameController,
                   decoration: InputDecoration(
                     isDense: true,
