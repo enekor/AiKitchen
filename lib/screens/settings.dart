@@ -104,7 +104,6 @@ class _SettingsState extends State<Settings> {
                                 SharedPreferencesKeys.idioma,
                                 value,
                               );
-
                               Toaster.showToast(
                                 'El idioma se ha cambiado a $value',
                               );

@@ -10,27 +10,59 @@ class nameInputPart extends StatefulWidget {
     required this.onFav,
     required this.isLoading,
     required this.isFavorite,
+    required this.history,
   });
   Function(String) onSearch;
   Function onFav;
   bool isLoading;
   bool isFavorite;
+  List<String> history;
   @override
   State<nameInputPart> createState() => _nameInputPartState();
 }
 
 class _nameInputPartState extends State<nameInputPart> {
   final TextEditingController _nameController = TextEditingController();
+  bool _showHistory = false;
 
   @override
   Widget build(BuildContext context) {
-    return TextInput(
-      onSearch: widget.onSearch,
-      isLoading: widget.isLoading,
-      onFav: widget.onFav,
-      isFavorite: widget.isFavorite,
-      prefixIcon: Icon(Icons.soup_kitchen_outlined),
-      hint: 'Ejemplo: Tarta de manzana',
+    return Column(
+      children: [
+        TextInput(
+          onSearch: widget.onSearch,
+          isLoading: widget.isLoading,
+          onFav: widget.onFav,
+          isFavorite: widget.isFavorite,
+          prefixIcon: Icon(Icons.soup_kitchen_outlined),
+          hint: 'Ejemplo: Tarta de manzana',
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.history),
+              onPressed: () {
+                setState(() {
+                  _showHistory = !_showHistory;
+                });
+              },
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 35,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                ...widget.history.map(
+                  (v) => TextButton(
+                    child: Text('· $v'),
+                    onPressed: () => widget.onSearch(v),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
