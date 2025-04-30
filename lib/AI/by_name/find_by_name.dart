@@ -3,7 +3,9 @@ import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +19,31 @@ class FindByName extends StatefulWidget {
 
 class _FindByNameState extends State<FindByName> {
   List<Recipe>? _recetas;
+  List<String> _historial = [];
   bool _searching = false;
   bool _isFav = false;
+  bool _showHistory = false;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferencesService.getStringListValue(
+      SharedPreferencesKeys.historialBusquedaNombres,
+    ).then((value) {
+      _historial = value;
+    });
+  }
 
   void _searchByName(String name, {bool isfav = false}) async {
+    setState(() {
+      _historial.add(name);
+    });
+
+    SharedPreferencesService.setStringListValue(
+      SharedPreferencesKeys.historialBusquedaNombres,
+      _historial,
+    );
+
     setState(() {
       _recetas = [];
       _searching = true;
@@ -119,11 +142,18 @@ class _FindByNameState extends State<FindByName> {
     JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
+  void onHistory() {
+    setState(() {
+      _showHistory = !_showHistory;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = Column(
       children: [
         nameInputPart(
+          history: _historial,
           onSearch: _searchByName,
           onFav: _fav,
           isLoading: _searching,
@@ -169,6 +199,7 @@ class _FindByNameState extends State<FindByName> {
             _recetas == null || _recetas!.isEmpty && !_searching
                 ? Center(
                   child: nameInputPart(
+                    history: _historial,
                     onSearch: _searchByName,
                     onFav: _fav,
                     isLoading: _searching,

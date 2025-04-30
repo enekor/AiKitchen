@@ -13,6 +13,7 @@ class TextInput extends StatefulWidget {
     this.onFav,
     this.isFavorite,
     this.isInnerShadow = false,
+    this.actions,
   });
 
   Function(String) onSearch;
@@ -22,6 +23,7 @@ class TextInput extends StatefulWidget {
   Icon prefixIcon;
   String? hint;
   bool isInnerShadow = false;
+  List<IconButton>? actions;
 
   @override
   _TextInputState createState() => _TextInputState();
@@ -101,6 +103,7 @@ class _TextInputState extends State<TextInput> {
                   horizontal: 10,
                 ),
                 child: TextField(
+                  onSubmitted: (_) => widget.onSearch(nameController.text),
                   controller: nameController,
                   decoration: InputDecoration(
                     isDense: true,
@@ -133,6 +136,7 @@ class _TextInputState extends State<TextInput> {
                 widget.onFav!();
               },
             ),
+          if (widget.actions != null) ...widget.actions!,
         ],
       ),
     );
