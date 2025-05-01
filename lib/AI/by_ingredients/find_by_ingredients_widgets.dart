@@ -46,21 +46,30 @@ class _IngredientsPartState extends State<IngredientsPart> {
   }
 
   void _showIngredients() {
+    List<String> ingredients = widget.ingredientes;
+    if (ingredients.isEmpty) {
+      Toaster.showToast('No hay ingredientes añadidos');
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       builder:
           (context) => ListView.builder(
             itemBuilder:
                 (context, index) => ListTile(
-                  title: Text('• ${widget.ingredientes[index]}'),
+                  title: Text('• ${ingredients[index]}'),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
+                      setState(() {
+                        ingredients.removeAt(index);
+                      });
                       _removeIngredient(widget.ingredientes[index]);
                     },
                   ),
                 ),
-            itemCount: widget.ingredientes.length,
+            itemCount: ingredients.length,
           ),
     );
   }

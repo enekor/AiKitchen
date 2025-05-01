@@ -47,21 +47,22 @@ class _nameInputPartState extends State<nameInputPart> {
             ),
           ],
         ),
-        SizedBox(
-          height: 35,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                ...widget.history.map(
-                  (v) => TextButton(
-                    child: Text('· $v'),
-                    onPressed: () => widget.onSearch(v),
+        if (_showHistory)
+          SizedBox(
+            height: 56,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  ...widget.history.toSet().where((v)=>v.isNotEmpty).map(
+                    (v) => TextButton(
+                      child: Text('· $v'),
+                      onPressed: () => widget.onSearch(v),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
       ],
     );
   }

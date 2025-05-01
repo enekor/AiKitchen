@@ -29,7 +29,7 @@ class _SwitchSettingState extends State<SwitchSetting> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(widget.text),
