@@ -142,12 +142,6 @@ class _FindByNameState extends State<FindByName> {
     JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
-  void onHistory() {
-    setState(() {
-      _showHistory = !_showHistory;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     Widget content = Column(

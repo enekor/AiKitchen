@@ -1,3 +1,4 @@
+import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_tts/flutter_tts.dart';
@@ -39,7 +40,9 @@ class _StepsListState extends State<StepsList> {
   }
 
   Future<void> _speak(String text) async {
-    await _flutterTts.speak(text);
+    if(AppSingleton().useTTS) {
+      await _flutterTts.speak(text);
+    }
   }
 
   @override

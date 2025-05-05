@@ -32,6 +32,13 @@ class _SettingsState extends State<Settings> {
     }
   }
 
+  void _useTTS(bool value) {
+    setState(() {
+      AppSingleton().setUseTTS = value;
+    });
+    SharedPreferencesService.setBoolValue(SharedPreferencesKeys.useTTS, value);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,6 +80,12 @@ class _SettingsState extends State<Settings> {
                                 value.toString(),
                               );
                             },
+                          ),
+                          const SizedBox(height: 24),
+                          SwitchSetting(
+                            initialValue: AppSingleton().useTTS,
+                            text: 'Leer las recetas en alto',
+                            onChange: _useTTS,
                           ),
                           const SizedBox(height: 24),
                           TextSetting(

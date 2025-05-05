@@ -25,6 +25,7 @@ class AppSingleton {
   List<Recipe> recetasFavoritas = [];
   GeminiService? _geminiService;
   String _tipoReceta = 'omnívora';
+  bool _useTTS = false;
 
   factory AppSingleton() {
     return _instance;
@@ -34,11 +35,13 @@ class AppSingleton {
 
   String? get apiKey => _apiKey;
   int get numRecetas => _numRecetas;
-  set setNumRecetas(int value) => _numRecetas = value;
+  bool get useTTS => _useTTS;
   String get personality => _personality;
   String get idioma => _idioma;
   String get tipoReceta => _tipoReceta;
 
+  set setNumRecetas(int value) => _numRecetas = value;
+  set setUseTTS(bool setUseTTS) => _useTTS = setUseTTS;
   set setTipoReceta(String value) => _tipoReceta = value;
   set setIdioma(String value) => _idioma = value;
   set setPersonality(String value) => _personality = value;
@@ -62,6 +65,10 @@ class AppSingleton {
         'español';
     _apiKey = await SharedPreferencesService.getStringValue(
       SharedPreferencesKeys.geminiApiKey,
+    );
+
+    _useTTS = await SharedPreferencesService.getBoolValue(
+      SharedPreferencesKeys.useTTS,
     );
 
     _geminiService = GeminiService();
