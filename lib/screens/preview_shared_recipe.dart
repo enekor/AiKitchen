@@ -1,99 +1,245 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/recipe_from_file_service.dart';
+import 'package:aikitchen/widgets/neumorphic_card.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 
 class PreviewSharedFiles extends StatefulWidget {
-  PreviewSharedFiles({Key? key, required this.recipeUri}) : super(key: key);
+  const PreviewSharedFiles({Key? key, required this.recipeUri})
+    : super(key: key);
 
   final String recipeUri;
-  late Recipe receta;
+
   @override
-  _PreviewSharedFilesState createState() => _PreviewSharedFilesState();
+  State<PreviewSharedFiles> createState() => _PreviewSharedFilesState();
 }
 
 class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
-  @override
-  void initState() async {
-    widget.receta = await RecipeFromFileService().loadRecipe(widget.recipeUri);
+  Recipe? _recipe;
+  late Future<Recipe?> _recipeFuture;
 
+  @override
+  void initState() {
     super.initState();
+    _recipeFuture = _loadRecipe();
+  }
+
+  Future<Recipe?> _loadRecipe() async {
+    try {
+      final recipe = await RecipeFromFileService().loadRecipe(widget.recipeUri);
+      if (mounted) {
+        setState(() => _recipe = recipe);
+      }
+      return recipe;
+    } catch (e) {
+      debugPrint('Error loading recipe: $e');
+      return null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return // Suggested code may be subject to a license. Learn more: ~LicenseLog:1252231295.
-    // Suggested code may be subject to a license. Learn more: ~LicenseLog:2711979707.
-    // Suggested code may be subject to a license. Learn more: ~LicenseLog:4095339582.
-    // Suggested code may be subject to a license. Learn more: ~LicenseLog:593838829.
-    // Suggested code may be subject to a license. Learn more: ~LicenseLog:15262127.
-    // Suggested code may be subject to a license. Learn more: ~LicenseLog:3568740846.
-    // Suggested code may be subject to a license. Learn more: ~LicenseLog:3680493086.
-    Scaffold(
-      appBar: AppBar(title: const Text('Recipe Preview')),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _buildSectionTitle('Recipe Name'),
-              _buildDetailCard(widget.receta.nombre),
-              _buildSectionTitle('Description'),
-              _buildDetailCard(widget.receta.descripcion),
-              _buildSectionTitle('Ingredients'),
-              _buildDetailCard(widget.receta.ingredientes.join(', ')),
-              _buildSectionTitle('Instructions'),
-              _buildDetailCard(widget.receta.preparacion.join('\n')),
-              _buildSectionTitle('Total Time'),
-              _buildDetailCard(widget.receta.tiempoEstimado),
-              _buildSectionTitle('Calorias'),
-              _buildDetailCard('${widget.receta.calorias} cal'),
-              _buildSectionTitle('Servings'),
-              _buildDetailCard('${widget.receta.raciones} reciones'),
-            ],
-          ),
-        ),
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_recipe?.nombre ?? 'Vista previa de receta'),
+        centerTitle: true,
+      ),
+      floatingActionButton:
+          _recipe != null
+              ? FloatingActionButton.extended(
+                onPressed: () {
+                  JsonDocumentsService().updateFavRecipes(_recipe!);
+                  Toaster.showToast(
+                    '${_recipe!.nombre} guardada como favorita',
+                  );
+                },
+                label: const Text('Guardar receta'),
+                icon: const Icon(Icons.save),
+              )
+              : null,
+      body: FutureBuilder<Recipe?>(
+        future: _recipeFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al cargar la receta',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final recipe = snapshot.data!;
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Información básica
+                  NeumorphicCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            recipe.nombre,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            recipe.descripcion,
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildInfoItem(
+                                icon: Icons.timer,
+                                label: 'Tiempo',
+                                value: recipe.tiempoEstimado,
+                              ),
+                              _buildInfoItem(
+                                icon: Icons.local_fire_department,
+                                label: 'Calorías',
+                                value: '${recipe.calorias} cal',
+                              ),
+                              _buildInfoItem(
+                                icon: Icons.restaurant,
+                                label: 'Raciones',
+                                value: '${recipe.raciones}',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Ingredientes
+                  NeumorphicCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ingredientes',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ...(recipe.ingredientes.map(
+                            (ingredient) => Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.fiber_manual_record,
+                                    size: 8,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(ingredient)),
+                                ],
+                              ),
+                            ),
+                          )),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Pasos
+                  NeumorphicCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Preparación',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ...(recipe.preparacion.asMap().entries.map(
+                            (entry) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${entry.key + 1}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: Text(entry.value)),
+                                ],
+                              ),
+                            ),
+                          )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Widget _buildDetailCard(String detail) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12.0),
-      margin: const EdgeInsets.only(bottom: 16.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade500,
-            offset: const Offset(4, 4),
-            blurRadius: 15,
-            spreadRadius: 1,
-          ),
-          const BoxShadow(
-            color: Colors.white,
-            offset: Offset(-4, -4),
-            blurRadius: 15,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Text(
-        detail,
-        style: TextStyle(fontSize: 16, color: Colors.grey.shade900),
-      ),
+  Widget _buildInfoItem({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Column(
+      children: [
+        Icon(icon),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
     );
   }
 }

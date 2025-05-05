@@ -1,6 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/recipe_list.dart';
 import 'package:flutter/material.dart';
@@ -72,6 +73,10 @@ class _FavouritesState extends State<Favourites> {
     );
   }
 
+  void shareRecipe(Recipe receta) async {
+    await ShareRecipeService().shareRecipe(receta);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +97,7 @@ class _FavouritesState extends State<Favourites> {
                   onClickRecipe: openRecipe,
                   onFavRecipe: removeFavRecipe,
                   isFav: true,
+                  onShareRecipe: shareRecipe,
                 )
                 : Center(
                   child: Column(

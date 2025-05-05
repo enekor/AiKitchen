@@ -37,6 +37,7 @@ TextEditingController _ingredientController = TextEditingController();
 class _IngredientsPartState extends State<IngredientsPart> {
   bool _isCardExpanded = false; // Keep track of card expansion
   bool _showUseLocalIngredients = false;
+  bool _showIngredients = false;
   void _addNewIngredient() {
     widget.onNewIngredient(_ingredientController.text);
     Toaster.showToast('Ingrediente añadido: ${_ingredientController.text}');
@@ -45,37 +46,43 @@ class _IngredientsPartState extends State<IngredientsPart> {
     });
   }
 
-  void _showIngredients() {
-    List<String> ingredients = widget.ingredientes;
-    if (ingredients.isEmpty) {
-      Toaster.showToast('No hay ingredientes añadidos');
-      return;
-    }
+  // void _showIngredients() {
+  //   List<String> ingredients = widget.ingredientes;
+  //   if (ingredients.isEmpty) {
+  //     Toaster.showToast('No hay ingredientes añadidos');
+  //     return;
+  //   }
 
-    showModalBottomSheet(
-      context: context,
-      builder:
-          (context) => ListView.builder(
-            itemBuilder:
-                (context, index) => ListTile(
-                  title: Text('• ${ingredients[index]}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      setState(() {
-                        ingredients.removeAt(index);
-                      });
-                      _removeIngredient(widget.ingredientes[index]);
-                    },
-                  ),
-                ),
-            itemCount: ingredients.length,
-          ),
-    );
-  }
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder:
+  //         (context) => ListView.builder(
+  //           itemBuilder:
+  //               (context, index) => ListTile(
+  //                 title: Text('• ${ingredients[index]}'),
+  //                 trailing: IconButton(
+  //                   icon: const Icon(Icons.delete),
+  //                   onPressed: () {
+  //                     setState(() {
+  //                       ingredients.removeAt(index);
+  //                     });
+  //                     _removeIngredient(widget.ingredientes[index]);
+  //                   },
+  //                 ),
+  //               ),
+  //           itemCount: ingredients.length,
+  //         ),
+  //   );
+  // }
 
   void _removeIngredient(String ingredient) {
     widget.onRemoveIngredient(ingredient);
+    if (widget.ingredientes.isEmpty) {
+      Toaster.showToast('No hay ingredientes añadidos');
+      _showIngredients = false;
+    } else {
+      Toaster.showToast('Ingrediente eliminado: $ingredient');
+    }
     setState(() {});
   }
 
@@ -249,7 +256,10 @@ class _IngredientsPartState extends State<IngredientsPart> {
               padding: EdgeInsets.only(left: 8.0),
               child: TextButton(
                 child: Text('Ver ${widget.ingredientes.length} ingredientes'),
-                onPressed: _showIngredients,
+                onPressed:
+                    () => setState(() {
+                      _showIngredients = !_showIngredients;
+                    }),
               ),
             ),
             IconButton(
@@ -258,6 +268,31 @@ class _IngredientsPartState extends State<IngredientsPart> {
             ),
           ],
         ),
+        if (_showIngredients)
+          SizedBox(
+            height:
+                widget.ingredientes.length <= 4
+                    ? widget.ingredientes.length * 50.0
+                    : 200.0,
+            child: SingleChildScrollView(
+              child: Column(
+                children:
+                    widget.ingredientes
+                        .map(
+                          (ingredient) => ListTile(
+                            title: Text('• $ingredient'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                _removeIngredient(ingredient);
+                              },
+                            ),
+                          ),
+                        )
+                        .toList(),
+              ),
+            ),
+          ),
       ],
     );
   }

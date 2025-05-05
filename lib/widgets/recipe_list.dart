@@ -9,6 +9,7 @@ class RecipePreview extends StatefulWidget {
   final VoidCallback? onGavRecipe;
   final VoidCallback onClickRecipe;
   final VoidCallback onIngredientsClick;
+  final Function()? onShareRecipe;
   bool isFavorite;
 
   RecipePreview({
@@ -17,6 +18,7 @@ class RecipePreview extends StatefulWidget {
     required this.onClickRecipe,
     required this.onIngredientsClick,
     this.isFavorite = false,
+    this.onShareRecipe,
     super.key,
   });
 
@@ -76,6 +78,13 @@ class _RecipePreviewState extends State<RecipePreview> {
                           });
                         },
                       ),
+                    if (widget.onShareRecipe != null)
+                      IconButton(
+                        icon: const Icon(Icons.share),
+                        onPressed: () {
+                          widget.onShareRecipe!();
+                        },
+                      ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -98,6 +107,7 @@ class RecipesList extends StatelessWidget {
   final Function(Recipe) onClickRecipe;
   final Function(Recipe)? onIngredientsClick;
   final bool isFav;
+  final Function(Recipe)? onShareRecipe;
 
   const RecipesList({
     required this.recipes,
@@ -105,6 +115,7 @@ class RecipesList extends StatelessWidget {
     required this.onClickRecipe,
     this.onIngredientsClick,
     this.isFav = false,
+    this.onShareRecipe,
     super.key,
   });
 
@@ -121,6 +132,8 @@ class RecipesList extends StatelessWidget {
               onClickRecipe: () => onClickRecipe(recipe),
               onIngredientsClick: () => onIngredientsClick!(recipe),
               isFavorite: isFav,
+              onShareRecipe:
+                  onShareRecipe != null ? () => onShareRecipe!(recipe) : null,
             ),
           ),
           SizedBox(height: 50),
