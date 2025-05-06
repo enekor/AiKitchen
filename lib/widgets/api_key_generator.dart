@@ -166,7 +166,9 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
             Toaster.showToast('API Key guardada');
           },
           hint: 'Pega aquí tu API Key',
-          initialValue: AppSingleton().apiKey ?? '',
+          initialValue:
+              AppSingleton().apiKey ??
+              '',
           checkIcon: Icons.save_rounded,
           padding: const EdgeInsets.all(2),
           isInnerShadow: true,

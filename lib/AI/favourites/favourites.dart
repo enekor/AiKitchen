@@ -98,6 +98,10 @@ class _FavouritesState extends State<Favourites> {
                   onFavRecipe: removeFavRecipe,
                   isFav: true,
                   onShareRecipe: shareRecipe,
+                  favIcon: Icon(
+                    Icons.recycling_rounded,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                 )
                 : Center(
                   child: Column(

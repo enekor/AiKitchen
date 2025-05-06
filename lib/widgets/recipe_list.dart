@@ -10,6 +10,7 @@ class RecipePreview extends StatefulWidget {
   final VoidCallback onClickRecipe;
   final VoidCallback onIngredientsClick;
   final Function()? onShareRecipe;
+  final Icon? favIcon;
   bool isFavorite;
 
   RecipePreview({
@@ -19,6 +20,7 @@ class RecipePreview extends StatefulWidget {
     required this.onIngredientsClick,
     this.isFavorite = false,
     this.onShareRecipe,
+    this.favIcon,
     super.key,
   });
 
@@ -66,7 +68,9 @@ class _RecipePreviewState extends State<RecipePreview> {
                     if (widget.onGavRecipe != null)
                       IconButton(
                         icon: Icon(
-                          widget.isFavorite
+                          widget.favIcon != null
+                              ? widget.favIcon!.icon
+                              : widget.isFavorite
                               ? Icons.favorite
                               : Icons.favorite_border,
                           color: widget.isFavorite ? Colors.red : null,
@@ -108,6 +112,7 @@ class RecipesList extends StatelessWidget {
   final Function(Recipe)? onIngredientsClick;
   final bool isFav;
   final Function(Recipe)? onShareRecipe;
+  final Icon? favIcon;
 
   const RecipesList({
     required this.recipes,
@@ -116,6 +121,7 @@ class RecipesList extends StatelessWidget {
     this.onIngredientsClick,
     this.isFav = false,
     this.onShareRecipe,
+    this.favIcon,
     super.key,
   });
 
@@ -126,6 +132,7 @@ class RecipesList extends StatelessWidget {
         children: [
           ...recipes.map(
             (recipe) => RecipePreview(
+              favIcon: favIcon,
               recipe: recipe,
               onGavRecipe:
                   onFavRecipe != null ? () => onFavRecipe!(recipe) : null,
