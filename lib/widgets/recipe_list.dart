@@ -13,6 +13,7 @@ class RecipePreview extends StatefulWidget {
   final bool? selected;
   final Function(Recipe)? onSelected;
   bool isFavorite;
+  final Function(Recipe)? onEdit;
 
   RecipePreview({
     required this.recipe,
@@ -24,6 +25,7 @@ class RecipePreview extends StatefulWidget {
     this.favIcon,
     this.selected,
     this.onSelected,
+    this.onEdit,
     super.key,
   });
 
@@ -62,13 +64,18 @@ class _RecipePreviewState extends State<RecipePreview> {
                   children: [
                     if (widget.selected != null)
                       IconButton(
-                            icon: Icon(
-                               widget.selected! ? Icons.check_circle:Icons.check_circle,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            onPressed: widget.onSelected != null ? widget.onSelected!(widget.recipe) : (){} ,
-                          ),
-                          
+                        icon: Icon(
+                          widget.selected!
+                              ? Icons.check_circle
+                              : Icons.check_circle,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        onPressed:
+                            widget.onSelected != null
+                                ? widget.onSelected!(widget.recipe)
+                                : () {},
+                      ),
+
                     Expanded(
                       child: Text(
                         widget.recipe.nombre,
@@ -101,6 +108,13 @@ class _RecipePreviewState extends State<RecipePreview> {
                           widget.onShareRecipe!();
                         },
                       ),
+                    if (widget.onEdit != null)
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          widget.onEdit!(widget.recipe);
+                        },
+                      ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -125,6 +139,7 @@ class RecipesList extends StatefulWidget {
   final bool isFav;
   final Function(List<Recipe>)? onShareRecipe;
   final Icon? favIcon;
+  final Function(Recipe) onEdit;
 
   const RecipesList({
     required this.recipes,
@@ -134,6 +149,7 @@ class RecipesList extends StatefulWidget {
     this.isFav = false,
     this.onShareRecipe,
     this.favIcon,
+    required this.onEdit,
     super.key,
   });
 
@@ -147,7 +163,7 @@ class _RecipesListState extends State<RecipesList> {
     bool _selecting = false;
     List<Recipe> _selectedRecipes = [];
 
- return Stack(
+    return Stack(
       children: [
         SingleChildScrollView(
           child: Column(
@@ -166,12 +182,14 @@ class _RecipesListState extends State<RecipesList> {
                             ? () => widget.onFavRecipe!(recipe)
                             : null,
                     onClickRecipe: () => widget.onClickRecipe(recipe),
-                    onIngredientsClick: () => widget.onIngredientsClick!(recipe),
+                    onIngredientsClick:
+                        () => widget.onIngredientsClick!(recipe),
                     isFavorite: widget.isFav,
                     onShareRecipe:
                         widget.onShareRecipe != null
                             ? () => widget.onShareRecipe!([recipe])
                             : null,
+                    onEdit: widget.onEdit,
                   ),
                 ),
               ),
@@ -196,6 +214,5 @@ class _RecipesListState extends State<RecipesList> {
           ),
       ],
     );
-
   }
 }

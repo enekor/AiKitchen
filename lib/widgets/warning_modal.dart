@@ -17,12 +17,7 @@ class WarningModal {
           actions: [
             TextButton(
               child: Text(okText ?? "Ok"),
-              onPressed:
-                  () =>
-                      onAccept ??
-                      () {
-                        Navigator.pop(context);
-                      },
+              onPressed: onAccept != null ? () => onAccept() : () {},
             ),
           ],
         );

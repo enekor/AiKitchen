@@ -302,12 +302,14 @@ class RecipesListHasData extends StatelessWidget {
   final List<Recipe> recipes;
   final Function(Recipe) onClickRecipe;
   final Function(Recipe) onFavRecipe;
+  final Function(Recipe) onEditRecipe;
 
   const RecipesListHasData({
     super.key,
     required this.recipes,
     required this.onClickRecipe,
     required this.onFavRecipe,
+    required this.onEditRecipe
   });
 
   @override
@@ -318,6 +320,7 @@ class RecipesListHasData extends StatelessWidget {
       recipes: recipes,
       onClickRecipe: onClickRecipe,
       onFavRecipe: onFavRecipe,
+      onEdit: onEditRecipe,
     );
   }
 }

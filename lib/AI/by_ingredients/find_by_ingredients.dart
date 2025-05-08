@@ -1,6 +1,8 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/screens/create_recipe.dart';
+import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -158,6 +160,13 @@ class _FindByIngredientsState extends State<FindByIngredients> {
     JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
+  void onEditRecipe(Recipe recipe) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CreateRecipe(recipe: recipe)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = Column(
@@ -183,6 +192,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
               recipes: recetas!,
               onClickRecipe: onClickRecipe,
               onFavRecipe: onFavRecipe,
+              onEditRecipe: onEditRecipe,
             ),
           )
         else if (recetas != null && recetas!.isEmpty)
