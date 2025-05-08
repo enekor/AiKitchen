@@ -73,7 +73,7 @@ class _FavouritesState extends State<Favourites> {
     );
   }
 
-  void shareRecipe(Recipe receta) async {
+  void shareRecipe(List<Recipe> receta) async {
     await ShareRecipeService().shareRecipe(receta);
   }
 
