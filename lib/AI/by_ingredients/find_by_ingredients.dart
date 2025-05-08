@@ -1,9 +1,12 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/screens/create_recipe.dart';
+import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/warning_modal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -79,10 +82,14 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         });
       } else if (response.toLowerCase().contains('no puedo') ||
           response.toLowerCase().contains('no se') ||
-          response.toLowerCase().contains('no se puede') ||
-          response.toLowerCase().contains('no se ha podido') ||
+          response.toLowerCase().contains('error') ||
           response.toLowerCase().contains('no debo')) {
         Toaster.showToast('Gemini: $response', long: true);
+        WarningModal.ShowWarningDialog(
+          texto: response,
+          context: context,
+          title: "Mensaje de Gemini",
+        );
       } else {
         Toaster.showToast(
           '''No se ha podido completar la solicitud... Buscando en recetas favoritas''',
@@ -95,7 +102,11 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         );
       });
     } catch (e) {
-      Toaster.showToast('Error al procesar la respuesta: $e');
+      WarningModal.ShowWarningDialog(
+        texto: 'Se ha producido un error al procesar la solicitud: $e',
+        title: "Error de solicitud",
+        context: context,
+      );
     } finally {
       if (recetas == null || recetas!.isEmpty) {
         setState(() {
@@ -149,6 +160,13 @@ class _FindByIngredientsState extends State<FindByIngredients> {
     JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
   }
 
+  void onEditRecipe(Recipe recipe) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CreateRecipe(recipe: recipe)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = Column(
@@ -174,6 +192,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
               recipes: recetas!,
               onClickRecipe: onClickRecipe,
               onFavRecipe: onFavRecipe,
+              onEditRecipe: onEditRecipe,
             ),
           )
         else if (recetas != null && recetas!.isEmpty)

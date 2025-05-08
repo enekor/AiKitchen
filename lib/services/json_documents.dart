@@ -57,8 +57,13 @@ class JsonDocumentsService {
     }
   }
 
-  Future<void> updateFavRecipes(Recipe recipe) async {
+  Future<void> updateFavRecipes(Recipe recipe, {Recipe? outdatedRecipe}) async {
     List<Recipe> myFavRecipes = await getFavRecipes();
+
+    if (outdatedRecipe != null &&
+        myFavRecipes.any((re) => re == outdatedRecipe)) {
+      myFavRecipes.remove(outdatedRecipe);
+    }
 
     myFavRecipes.add(recipe);
 

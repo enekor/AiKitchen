@@ -1,5 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/screens/create_recipe.dart';
+import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
@@ -73,7 +75,14 @@ class _FavouritesState extends State<Favourites> {
     );
   }
 
-  void shareRecipe(Recipe receta) async {
+  void onEditRecipe(Recipe recipe) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CreateRecipe(recipe: recipe)),
+    );
+  }
+
+  void shareRecipe(List<Recipe> receta) async {
     await ShareRecipeService().shareRecipe(receta);
   }
 
@@ -93,11 +102,16 @@ class _FavouritesState extends State<Favourites> {
         child:
             _recetasFavoritas.isNotEmpty
                 ? RecipesList(
+                  onEdit: onEditRecipe,
                   recipes: _recetasFavoritas,
                   onClickRecipe: openRecipe,
                   onFavRecipe: removeFavRecipe,
                   isFav: true,
                   onShareRecipe: shareRecipe,
+                  favIcon: Icon(
+                    Icons.recycling_rounded,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                 )
                 : Center(
                   child: Column(

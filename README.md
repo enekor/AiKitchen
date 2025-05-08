@@ -10,7 +10,11 @@
 
 ## 🚀 Instalación
 
-### 📱 Android
+### 📱 Android (Play Store)
+1. **Descargar la aplicación**: [Enlace de la play store](https://play.google.com/store/apps/details?id=com.N3k0chan.aikitchen)
+2. **¡Disfruta!**: Abre AiKitchen y empieza a explorar recetas deliciosas. 🍽️
+   
+### 📱 Android (APK)
 
 1. **Descarga la APK**: [Enlace de descarga](https://github.com/enekor/aikitchen/releases/latest)
 2. **Instala la aplicación**: Abre el archivo APK descargado y sigue las instrucciones en pantalla.

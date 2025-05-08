@@ -99,6 +99,12 @@ class _MyAppState extends State<MyApp> {
                       as RecipeScreenArguments;
               return RecipeScreen(recipe: args.recipe);
             },
+            '/edit_recipe': (context) {
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as RecipeScreenArguments;
+              return RecipeScreen(recipe: args.recipe);
+            }
           },
         );
       },

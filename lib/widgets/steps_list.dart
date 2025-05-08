@@ -40,7 +40,7 @@ class _StepsListState extends State<StepsList> {
   }
 
   Future<void> _speak(String text) async {
-    if(AppSingleton().useTTS) {
+    if (AppSingleton().useTTS) {
       await _flutterTts.speak(text);
     }
   }
@@ -130,11 +130,18 @@ class _StepsListState extends State<StepsList> {
                     children: [
                       ElevatedButton(
                         onPressed: details.onStepCancel,
-                        child: const Text('Atrás'),
+                        child: const Text('Paso anterior'),
                       ),
                       ElevatedButton(
-                        onPressed: details.onStepContinue,
-                        child: const Text('Siguiente'),
+                        onPressed:
+                            _currentStep == widget.steps.length - 1
+                                ? Navigator.of(context).pop
+                                : details.onStepContinue,
+                        child: Text(
+                          _currentStep == widget.steps.length - 1
+                              ? 'Terminar receta'
+                              : 'paso siguiente',
+                        ),
                       ),
                     ],
                   );

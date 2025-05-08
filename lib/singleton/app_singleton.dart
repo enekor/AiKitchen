@@ -4,13 +4,11 @@ import 'dart:io';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
-import 'package:aikitchen/widgets/api_key_generator.dart';
-import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/warning_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -96,33 +94,25 @@ class AppSingleton {
   Future<String> generateContent(String prompt, BuildContext context) async {
     if (_apiKey == null || _apiKey == "" || _apiKey!.isEmpty) {
       TextEditingController newApiKey = TextEditingController();
-      await showDialog(
+      await WarningModal.ShowWarningDialog(
+        title: 'Api key no configurada',
+        texto:
+            'Para poder utilizar las funciones de IA de la aplicación necesita aplicar una api key en la seccion de ajustes. No se preocupe, viene bien explicado como obtener una.',
         context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Api key no configurada'),
-            content: const Text(
-              'Para poder utilizar las funciones de IA de la aplicación necesita aplicar una api key en la seccion de ajustes. No se preocupe, viene bien explicado como obtener una.',
-            ),
-            actions: [
-              TextButton(
-                child: const Text('Vamos allá'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.of(context).pushNamed('/api_key');
-                },
-              ),
-            ],
-          );
+        okText: 'Vamos allá',
+        onAccept: () {
+          Navigator.pop(context);
+          Navigator.of(context).pushNamed('/api_key');
         },
       );
+
       throw NoApiKeyException();
     } else {
       return await _geminiService!.generateContent(prompt, _apiKey!);
     }
   }
 
-  Future<void> shareRecipe(Recipe recipe) async {
+  Future<void> shareRecipe(Recipe recipe, BuildContext context) async {
     try {
       final directory = await getExternalStorageDirectory();
       if (directory != null) {
@@ -131,7 +121,10 @@ class AppSingleton {
         final xFile = XFile(file.path);
         await Share.shareXFiles([xFile], text: 'Mira esta receta:');
       } else {
-        Toaster.showToast('No se pudo acceder al almacenamiento externo');
+        await WarningModal.ShowWarningDialog(
+          texto: 'No se pudo acceder al almacenamiento externo',
+          context: context,
+        );
       }
     } catch (e) {
       Toaster.showToast('Error al guardar o compartir la receta: $e');
