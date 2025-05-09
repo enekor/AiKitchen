@@ -10,6 +10,7 @@ class RecipePreview extends StatefulWidget {
   final VoidCallback onIngredientsClick;
   final Function()? onShareRecipe;
   final Icon? favIcon;
+  final Icon shareIcon;
   final bool? selected;
   final Function(Recipe)? onSelected;
   bool isFavorite;
@@ -26,6 +27,7 @@ class RecipePreview extends StatefulWidget {
     this.selected,
     this.onSelected,
     this.onEdit,
+    this.shareIcon = const Icon(Icons.share),
     super.key,
   });
 
@@ -103,7 +105,7 @@ class _RecipePreviewState extends State<RecipePreview> {
                       ),
                     if (widget.onShareRecipe != null)
                       IconButton(
-                        icon: const Icon(Icons.share),
+                        icon: widget.shareIcon,
                         onPressed: () {
                           widget.onShareRecipe!();
                         },
@@ -157,47 +159,43 @@ class RecipesList extends StatefulWidget {
   State<RecipesList> createState() => _RecipesListState();
 }
 
+List<Recipe> _selectedRecipes = [];
+
 class _RecipesListState extends State<RecipesList> {
   @override
   Widget build(BuildContext context) {
-    bool _selecting = false;
-    List<Recipe> _selectedRecipes = [];
-
     return Stack(
       children: [
         SingleChildScrollView(
           child: Column(
             children: [
               ...widget.recipes.map(
-                (recipe) => GestureDetector(
-                  onLongPress:
+                (recipe) => RecipePreview(
+                  favIcon: widget.favIcon,
+                  recipe: recipe,
+                  onGavRecipe:
+                      widget.onFavRecipe != null
+                          ? () => widget.onFavRecipe!(recipe)
+                          : null,
+                  onClickRecipe: () => widget.onClickRecipe(recipe),
+                  onIngredientsClick: () => widget.onIngredientsClick!(recipe),
+                  isFavorite: widget.isFav,
+                  onShareRecipe:
                       () => setState(() {
-                        _selecting = !_selecting;
+                        _selectedRecipes.add(recipe);
                       }),
-                  child: RecipePreview(
-                    favIcon: widget.favIcon,
-                    recipe: recipe,
-                    onGavRecipe:
-                        widget.onFavRecipe != null
-                            ? () => widget.onFavRecipe!(recipe)
-                            : null,
-                    onClickRecipe: () => widget.onClickRecipe(recipe),
-                    onIngredientsClick:
-                        () => widget.onIngredientsClick!(recipe),
-                    isFavorite: widget.isFav,
-                    onShareRecipe:
-                        widget.onShareRecipe != null
-                            ? () => widget.onShareRecipe!([recipe])
-                            : null,
-                    onEdit: widget.onEdit,
-                  ),
+                  onEdit: widget.onEdit,
+                  shareIcon:
+                      _selectedRecipes.contains(recipe)
+                          ? const Icon(Icons.check_circle)
+                          : const Icon(Icons.share),
                 ),
               ),
               const SizedBox(height: 50),
             ],
           ),
         ),
-        if (_selecting && widget.onShareRecipe != null)
+        if (_selectedRecipes.isNotEmpty)
           Positioned(
             bottom: 16,
             right: 16,
@@ -205,7 +203,6 @@ class _RecipesListState extends State<RecipesList> {
               onPressed: () {
                 widget.onShareRecipe!(_selectedRecipes);
                 setState(() {
-                  _selecting = false;
                   _selectedRecipes.clear();
                 });
               },

@@ -7,8 +7,9 @@ import 'package:share_plus/share_plus.dart';
 class ShareRecipeService {
   Future<void> shareRecipe(List<Recipe> recipe) async {
     try {
+      debugPrint('Sharing recipes...' + recipe.length.toString());
       // Convert the Recipe object to JSON
-      final recipeJson = jsonEncode(recipe.map((r)=>r.toJson()));
+      final recipeJson = jsonEncode(recipe);
 
       // Create a temporary file with .aikr extension
       final tempDir = Directory.systemTemp;

@@ -121,3 +121,4 @@ Thumbs.db
 *.log
 android/keystore.properties
 android/app/build.gradle.kts
+android/app/build.gradle.kts

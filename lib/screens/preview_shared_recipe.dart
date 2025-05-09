@@ -94,6 +94,8 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
           final recipe = snapshot.data!;
           return CarouselSlider(
             options: CarouselOptions(
+              height: MediaQuery.of(context).size.height,
+              initialPage: _showingRecipe,
               viewportFraction: 0.9,
               enlargeCenterPage: true,
               enableInfiniteScroll: false,

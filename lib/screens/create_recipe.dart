@@ -32,8 +32,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
       preparacion: _steps,
       tiempoEstimado: "${_estimatedTimeController.text}min",
     );
-    
-    JsonDocumentsService().updateFavRecipes(recipe, outdatedRecipe: widget.recipe);
+
+    JsonDocumentsService().updateFavRecipes(
+      recipe,
+      outdatedRecipe: widget.recipe,
+    );
 
     Toaster.showToast('${_nameController.text} guardada con éxito');
   }
@@ -186,6 +189,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                   child: Column(
                     children: [
                       TextField(
+                        enabled: widget.recipe == null,
                         controller: _nameController,
                         focusNode: _nameFocus,
                         decoration: const InputDecoration(labelText: 'Nombre'),
