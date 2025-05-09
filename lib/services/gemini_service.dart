@@ -3,10 +3,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 class GeminiService {
   Future<String> generateContent(String prompt, String apiKey) async {
     try {
-      final model = GenerativeModel(
-        model: 'gemini-1.5-flash-latest',
-        apiKey: apiKey,
-      );
+      final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: apiKey);
 
       final content = [Content.text(prompt)];
       final response = await model.generateContent(content);
