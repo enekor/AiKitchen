@@ -7,7 +7,9 @@ class RecipeFromFileService {
   Future<List<Recipe>> loadRecipes(String uri) async {
     //read file from uri
     final file = File(uri);
-    final jsonString = await file.readAsString();
+    String jsonString = await file.readAsString();
+
+    jsonString = jsonString.startsWith('{') ? '[$jsonString]' : jsonString;
     //decode json
     return Recipe.fromJsonList(jsonString);
   }

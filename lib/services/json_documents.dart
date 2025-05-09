@@ -61,7 +61,7 @@ class JsonDocumentsService {
     List<Recipe> myFavRecipes = await getFavRecipes();
 
     if (outdatedRecipe != null &&
-        myFavRecipes.any((re) => re == outdatedRecipe)) {
+        myFavRecipes.any((re) => re.nombre == outdatedRecipe.nombre)) {
       myFavRecipes.remove(outdatedRecipe);
     }
 

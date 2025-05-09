@@ -19,16 +19,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
       body: PageView(
         children: [
           // Página 1: StepsList
-          Center(
-            child: SingleChildScrollView(
-              child: StepsList(steps: widget.recipe.preparacion),
-            ),
-          ),
+          Center(child: StepsList(steps: widget.recipe.preparacion)),
           // Página 2: IngredientsList
           Center(
-            child: SingleChildScrollView(
-              child: IngredientsList(ingredients: widget.recipe.ingredientes),
-            ),
+            child: IngredientsList(ingredients: widget.recipe.ingredientes),
           ),
         ],
       ),

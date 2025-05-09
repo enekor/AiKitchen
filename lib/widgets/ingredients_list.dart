@@ -15,38 +15,40 @@ class IngredientsList extends StatelessWidget {
       child: NeumorphicCard(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children:
-                ingredients.map((ingredient) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Punto para cada ingrediente
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Texto del ingrediente
-                        Expanded(
-                          child: Text(
-                            ingredient,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w500,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children:
+                  ingredients.map((ingredient) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Punto para cada ingrediente
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              shape: BoxShape.circle,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                          const SizedBox(width: 12),
+                          // Texto del ingrediente
+                          Expanded(
+                            child: Text(
+                              ingredient,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+            ),
           ),
         ),
       ),

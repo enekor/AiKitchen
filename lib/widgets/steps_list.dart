@@ -88,64 +88,68 @@ class _StepsListState extends State<StepsList> {
               margin: const EdgeInsets.only(top: 16),
               padding: const EdgeInsets.all(5),
               withInnerShadow: true,
-              child: Stepper(
-                currentStep: _currentStep,
-                onStepTapped: (step) {
-                  setState(() => _currentStep = step);
-                  _speak(widget.steps[step]); // Leer el paso seleccionado
-                },
-                onStepContinue: () {
-                  if (_currentStep < widget.steps.length - 1) {
-                    setState(() => _currentStep++);
-                    _speak(
-                      widget.steps[_currentStep],
-                    ); // Leer el siguiente paso
-                  }
-                },
-                onStepCancel: () {
-                  if (_currentStep > 0) {
-                    setState(() => _currentStep--);
-                    _speak(widget.steps[_currentStep]); // Leer el paso anterior
-                  }
-                },
-                steps:
-                    widget.steps.asMap().entries.map((entry) {
-                      return Step(
-                        title: Text(
-                          'Paso ${entry.key + 1}',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+              child: SingleChildScrollView(
+                child: Stepper(
+                  currentStep: _currentStep,
+                  onStepTapped: (step) {
+                    setState(() => _currentStep = step);
+                    _speak(widget.steps[step]); // Leer el paso seleccionado
+                  },
+                  onStepContinue: () {
+                    if (_currentStep < widget.steps.length - 1) {
+                      setState(() => _currentStep++);
+                      _speak(
+                        widget.steps[_currentStep],
+                      ); // Leer el siguiente paso
+                    }
+                  },
+                  onStepCancel: () {
+                    if (_currentStep > 0) {
+                      setState(() => _currentStep--);
+                      _speak(
+                        widget.steps[_currentStep],
+                      ); // Leer el paso anterior
+                    }
+                  },
+                  steps:
+                      widget.steps.asMap().entries.map((entry) {
+                        return Step(
+                          title: Text(
+                            'Paso ${entry.key + 1}',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          content: Text(
+                            entry.value,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          isActive: _currentStep >= entry.key,
+                        );
+                      }).toList(),
+                  controlsBuilder: (context, details) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ElevatedButton(
+                          onPressed: details.onStepCancel,
+                          child: const Text('Paso anterior'),
+                        ),
+                        ElevatedButton(
+                          onPressed:
+                              _currentStep == widget.steps.length - 1
+                                  ? Navigator.of(context).pop
+                                  : details.onStepContinue,
+                          child: Text(
+                            _currentStep == widget.steps.length - 1
+                                ? 'Terminar receta'
+                                : 'paso siguiente',
                           ),
                         ),
-                        content: Text(
-                          entry.value,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        isActive: _currentStep >= entry.key,
-                      );
-                    }).toList(),
-                controlsBuilder: (context, details) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        onPressed: details.onStepCancel,
-                        child: const Text('Paso anterior'),
-                      ),
-                      ElevatedButton(
-                        onPressed:
-                            _currentStep == widget.steps.length - 1
-                                ? Navigator.of(context).pop
-                                : details.onStepContinue,
-                        child: Text(
-                          _currentStep == widget.steps.length - 1
-                              ? 'Terminar receta'
-                              : 'paso siguiente',
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
         ],
