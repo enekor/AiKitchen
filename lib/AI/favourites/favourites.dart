@@ -87,12 +87,6 @@ class _FavouritesState extends State<Favourites> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: _load,

@@ -41,10 +41,10 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
     }
   }
 
+  int _showingRecipe = 0;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    int _showingRecipe = 0;
 
     return Scaffold(
       appBar: AppBar(
