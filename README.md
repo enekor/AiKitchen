@@ -7,6 +7,9 @@
 - **🔍 Buscar por Ingredientes**: Introduce una lista de ingredientes y obtén recetas que los incluyan. ¡Perfecto para aprovechar lo que tienes en casa! 🥕🍅
 - **🔎 Buscar por Nombre**: Introduce el nombre de una receta y obtén recetas relacionadas. ¡Encuentra esa receta que tanto te gusta! 🍝🍲
 - **❤️ Guardar Favoritos**: Guarda tus recetas favoritas para acceder a ellas fácilmente en el futuro (disponible solo en Android). ¡Nunca pierdas de vista tus platos preferidos! 📚✨
+- **🍳 Comparte tus recetas favoritas**: Comparte las recetas que quieras compartir con tus amigos o familiares. 🧑‍🍳
+- **✍️ Crea tus recetas: Crea tus propias** recetas para poder guardarlas para el futuro.
+- **✏️ Edita recetas existentes**: Si tienes mejoras de una receta que te han pasado o de una que se ha generado por la IA, no te preocupes, solo edítala y quédate con la versión actualizada.
 
 ## 🚀 Instalación
 
