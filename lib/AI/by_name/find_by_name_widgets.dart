@@ -7,15 +7,15 @@ class nameInputPart extends StatefulWidget {
   nameInputPart({
     super.key,
     required this.onSearch,
-    required this.onFav,
+    this.onFav,
     required this.isLoading,
-    required this.isFavorite,
+    this.isFavorite,
     required this.history,
   });
   Function(String) onSearch;
-  Function onFav;
+  Function? onFav;
   bool isLoading;
-  bool isFavorite;
+  bool? isFavorite;
   List<String> history;
   @override
   State<nameInputPart> createState() => _nameInputPartState();
@@ -53,12 +53,15 @@ class _nameInputPartState extends State<nameInputPart> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  ...widget.history.toSet().where((v)=>v.isNotEmpty).map(
-                    (v) => TextButton(
-                      child: Text('· $v'),
-                      onPressed: () => widget.onSearch(v),
-                    ),
-                  ),
+                  ...widget.history
+                      .toSet()
+                      .where((v) => v.isNotEmpty)
+                      .map(
+                        (v) => TextButton(
+                          child: Text('· $v'),
+                          onPressed: () => widget.onSearch(v),
+                        ),
+                      ),
                 ],
               ),
             ),

@@ -12,10 +12,10 @@ class IngredientsPart extends StatefulWidget {
   final List<String> ingredientes;
   final Function(String) onNewIngredient;
   final Function(String) onRemoveIngredient;
-  final Function onFav;
+  final Function? onFav;
   final Function() onSearch;
   final bool isLoading;
-  final bool isFavourite;
+  final bool? isFavourite;
 
   const IngredientsPart({
     super.key,
@@ -23,9 +23,9 @@ class IngredientsPart extends StatefulWidget {
     required this.onRemoveIngredient,
     required this.ingredientes,
     required this.onSearch,
-    required this.onFav,
+    this.onFav,
     required this.isLoading,
-    required this.isFavourite,
+    this.isFavourite,
   });
 
   @override
@@ -155,14 +155,15 @@ class _IngredientsPartState extends State<IngredientsPart> {
                     )
                     : const Icon(Icons.search),
           ),
-          IconButton(
-            onPressed: () {
-              widget.onFav();
-            },
-            icon: Icon(
-              widget.isFavourite ? Icons.favorite : Icons.favorite_outline,
+          if (widget.onFav != null && widget.isFavourite != null)
+            IconButton(
+              onPressed: () {
+                widget.onFav!();
+              },
+              icon: Icon(
+                widget.isFavourite! ? Icons.favorite : Icons.favorite_outline,
+              ),
             ),
-          ),
         ],
       ),
       onTap: () {
@@ -309,7 +310,7 @@ class RecipesListHasData extends StatelessWidget {
     required this.recipes,
     required this.onClickRecipe,
     required this.onFavRecipe,
-    required this.onEditRecipe
+    required this.onEditRecipe,
   });
 
   @override

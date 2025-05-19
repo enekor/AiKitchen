@@ -49,110 +49,122 @@ class _StepsListState extends State<StepsList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Título
-          Text(
-            widget.title,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Mostrar botón de Play si el Stepper no está visible
-          if (!_showStepper)
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showStepper = true; // Mostrar el Stepper
-                  });
-                  _speak(widget.steps[_currentStep]); // Leer el primer paso
-                },
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Comenzar'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0,
-                    vertical: 12.0,
-                  ),
-                ),
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Título
+            Text(
+              widget.title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
-          // Mostrar el Stepper si el usuario presionó el botón de Play
-          if (_showStepper)
-            NeumorphicCard(
-              margin: const EdgeInsets.only(top: 16),
-              padding: const EdgeInsets.all(5),
-              withInnerShadow: true,
-              child: SingleChildScrollView(
-                child: Stepper(
-                  currentStep: _currentStep,
-                  onStepTapped: (step) {
-                    setState(() => _currentStep = step);
-                    _speak(widget.steps[step]); // Leer el paso seleccionado
-                  },
-                  onStepContinue: () {
-                    if (_currentStep < widget.steps.length - 1) {
-                      setState(() => _currentStep++);
-                      _speak(
-                        widget.steps[_currentStep],
-                      ); // Leer el siguiente paso
-                    }
-                  },
-                  onStepCancel: () {
-                    if (_currentStep > 0) {
-                      setState(() => _currentStep--);
-                      _speak(
-                        widget.steps[_currentStep],
-                      ); // Leer el paso anterior
-                    }
-                  },
-                  steps:
-                      widget.steps.asMap().entries.map((entry) {
-                        return Step(
-                          title: Text(
-                            'Paso ${entry.key + 1}',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
+            const SizedBox(height: 16),
+            // Mostrar botón de Play si el Stepper no está visible
+            Expanded(
+              child: Container(
+                child:
+                    !_showStepper
+                        ? Center(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _showStepper = true; // Mostrar el Stepper
+                              });
+                              _speak(
+                                widget.steps[_currentStep],
+                              ); // Leer el primer paso
+                            },
+                            icon: const Icon(Icons.play_arrow),
+                            label: const Text('Comenzar'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0,
+                                vertical: 12.0,
+                              ),
                             ),
                           ),
-                          content: Text(
-                            entry.value,
-                            style: theme.textTheme.bodyMedium,
+                        )
+                        // Mostrar el Stepper si el usuario presionó el botón de Play
+                        : NeumorphicCard(
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.all(5),
+                          withInnerShadow: true,
+                          child: Stepper(
+                            currentStep: _currentStep,
+                            onStepTapped: (step) {
+                              setState(() => _currentStep = step);
+                              _speak(
+                                widget.steps[step],
+                              ); // Leer el paso seleccionado
+                            },
+                            onStepContinue: () {
+                              if (_currentStep < widget.steps.length - 1) {
+                                setState(() => _currentStep++);
+                                _speak(
+                                  widget.steps[_currentStep],
+                                ); // Leer el siguiente paso
+                              }
+                            },
+                            onStepCancel: () {
+                              if (_currentStep > 0) {
+                                setState(() => _currentStep--);
+                                _speak(
+                                  widget.steps[_currentStep],
+                                ); // Leer el paso anterior
+                              }
+                            },
+                            steps:
+                                widget.steps.asMap().entries.map((entry) {
+                                  return Step(
+                                    title: Text(
+                                      'Paso ${entry.key + 1}',
+                                      style: theme.textTheme.bodyLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    content: Text(
+                                      entry.value,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                    isActive: _currentStep >= entry.key,
+                                  );
+                                }).toList(),
+                            controlsBuilder: (context, details) {
+                              return Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: details.onStepCancel,
+                                    child: const Text('Anterior'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed:
+                                        _currentStep == widget.steps.length - 1
+                                            ? Navigator.of(context).pop
+                                            : details.onStepContinue,
+                                    child: Text(
+                                      _currentStep == widget.steps.length - 1
+                                          ? 'Salir'
+                                          : 'Siguiente',
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
-                          isActive: _currentStep >= entry.key,
-                        );
-                      }).toList(),
-                  controlsBuilder: (context, details) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          onPressed: details.onStepCancel,
-                          child: const Text('Paso anterior'),
                         ),
-                        ElevatedButton(
-                          onPressed:
-                              _currentStep == widget.steps.length - 1
-                                  ? Navigator.of(context).pop
-                                  : details.onStepContinue,
-                          child: Text(
-                            _currentStep == widget.steps.length - 1
-                                ? 'Terminar receta'
-                                : 'paso siguiente',
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

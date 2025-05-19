@@ -3,11 +3,9 @@ import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
-import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
-import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +22,6 @@ class _FindByNameState extends State<FindByName> {
   List<String> _historial = [];
   bool _searching = false;
   bool _isFav = false;
-  bool _showHistory = false;
 
   @override
   void initState() {
@@ -36,7 +33,8 @@ class _FindByNameState extends State<FindByName> {
     });
   }
 
-  void _searchByName(String name, {bool isfav = false}) async {
+  int _totalTries = 0;
+  void _searchByName(String name) async {
     setState(() {
       _historial.add(name);
     });
@@ -51,24 +49,6 @@ class _FindByNameState extends State<FindByName> {
       _searching = true;
     });
 
-    if (_isFav || isfav) {
-      AppSingleton().recetasFavoritas =
-          await JsonDocumentsService().getFavRecipes();
-      _recetas = AppSingleton().recetasFavoritas;
-      _recetas =
-          AppSingleton().recetasFavoritas
-              .where(
-                (recipe) =>
-                    recipe.nombre.toLowerCase().contains(name.toLowerCase()),
-              )
-              .toList();
-
-      setState(() {
-        _searching = false;
-      });
-      return;
-    }
-
     try {
       final prompt = Prompt.recipePromptByName(
         name,
@@ -79,10 +59,11 @@ class _FindByNameState extends State<FindByName> {
       );
       final response = await AppSingleton().generateContent(prompt, context);
       if (response.contains('preparacion')) {
+        _recetas = Recipe.fromJsonList(
+          response.replaceAll("```json", "").replaceAll("```", ""),
+        );
         setState(() {
-          _recetas = Recipe.fromJsonList(
-            response.replaceAll("```json", "").replaceAll("```", ""),
-          );
+          _searching = false;
         });
       } else if (response.toLowerCase().contains('no puedo') ||
           response.toLowerCase().contains('no se') ||
@@ -92,7 +73,7 @@ class _FindByNameState extends State<FindByName> {
         Toaster.showToast('Gemini: $response', long: true);
       } else {
         Toaster.showToast(
-          '''No se ha podido completar la solicitud... Buscando en recetas favoritas''',
+          '''Hubo un problema, vuelve a intentarlo mas tarde''',
         );
       }
     } on NoApiKeyException {
@@ -102,28 +83,13 @@ class _FindByNameState extends State<FindByName> {
         );
       });
     } catch (e) {
-      Toaster.showToast('Error al procesar la respuesta: $e');
-    } finally {
-      if (_recetas == null || _recetas!.isEmpty) {
-        setState(() {
-          _searchByName(name, isfav: true);
-        });
+      _totalTries++;
+      if (_totalTries < 3) {
+        _searchByName(name);
+      } else {
+        Toaster.showToast('No se ha podido completar la solicitud...');
       }
-
-      setState(() {
-        _searching = false;
-      });
     }
-  }
-
-  void _fav() {
-    setState(() {
-      _isFav = !_isFav;
-    });
-
-    Toaster.showToast(
-      _isFav ? 'Mostrando recetas favoritas' : 'Generando recetas con la IA',
-    );
   }
 
   void onClickRecipe(Recipe recipe) {
@@ -158,9 +124,7 @@ class _FindByNameState extends State<FindByName> {
         nameInputPart(
           history: _historial,
           onSearch: _searchByName,
-          onFav: _fav,
           isLoading: _searching,
-          isFavorite: _isFav,
         ),
         const SizedBox(height: 16),
         if (_searching)
@@ -205,7 +169,6 @@ class _FindByNameState extends State<FindByName> {
                   child: nameInputPart(
                     history: _historial,
                     onSearch: _searchByName,
-                    onFav: _fav,
                     isLoading: _searching,
                     isFavorite: _isFav,
                   ),

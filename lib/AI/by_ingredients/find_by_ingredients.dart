@@ -2,7 +2,6 @@ import 'package:aikitchen/AI/by_ingredients/find_by_ingredients_widgets.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
-import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -33,6 +32,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
     });
   }
 
+  int _totalTries = 0;
   Future<void> _generateResponse() async {
     setState(() {
       recetas = [];
@@ -91,9 +91,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
           title: "Mensaje de Gemini",
         );
       } else {
-        Toaster.showToast(
-          '''No se ha podido completar la solicitud... Buscando en recetas favoritas''',
-        );
+        Toaster.showToast('''No se ha podido completar la solicitud...''');
       }
     } on NoApiKeyException {
       setState(() {
@@ -102,30 +100,22 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         );
       });
     } catch (e) {
-      WarningModal.ShowWarningDialog(
-        texto: 'Se ha producido un error al procesar la solicitud: $e',
-        title: "Error de solicitud",
-        context: context,
-      );
-    } finally {
-      if (recetas == null || recetas!.isEmpty) {
-        setState(() {
-          _isFav = true;
-          _generateResponse();
-        });
+      _totalTries++;
+      if (_totalTries < 3) {
+        _generateResponse();
+      } else {
+        WarningModal.ShowWarningDialog(
+          texto:
+              'No se ha podido completar la solicitud, vuelva a intentarlo mas tarde',
+          context: context,
+          title: "Error",
+        );
       }
     }
 
     setState(() {
       _searching = false;
     });
-  }
-
-  void onFav() {
-    _isFav = !_isFav;
-    Toaster.showToast(
-      _isFav ? 'Buscando en recetas favoritas' : 'Buscando recetas con la IA',
-    );
   }
 
   void onNewIngredient(String ingrediente) {
@@ -177,9 +167,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
           onRemoveIngredient: onRemoveIngredient,
           ingredientes: ingredientes,
           onSearch: _generateResponse,
-          onFav: onFav,
           isLoading: _searching,
-          isFavourite: _isFav,
         ),
         if (_searching) ...[
           const SizedBox(height: 16),
