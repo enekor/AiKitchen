@@ -4,6 +4,7 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
@@ -92,6 +93,10 @@ class _FindByNameState extends State<FindByName> {
     }
   }
 
+  void shareRecipe(List<Recipe> receta) async {
+    await ShareRecipeService().shareRecipe(receta);
+  }
+
   void onClickRecipe(Recipe recipe) {
     Navigator.pushNamed(
       context,
@@ -142,6 +147,7 @@ class _FindByNameState extends State<FindByName> {
               onClickRecipe: onClickRecipe,
               onFavRecipe: onFavRecipe,
               onEdit: onEditRecipe,
+              onShareRecipe: shareRecipe,
             ),
           )
         else if (_recetas != null && _recetas!.isEmpty)

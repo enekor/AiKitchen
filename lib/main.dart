@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
+import 'package:aikitchen/services/shared_preferences_service.dart';
+import 'package:aikitchen/widgets/terminos_y_condiciones.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -86,10 +89,49 @@ class _MyAppState extends State<MyApp> {
                 ),
             useMaterial3: true,
           ),
-          home:
-              _sharedFiles.isNotEmpty
-                  ? PreviewSharedFiles(recipeUri: _sharedFiles.first.path)
-                  : Home(),
+          home: FutureBuilder<bool?>(
+            future: SharedPreferencesService.getBoolValue(
+              SharedPreferencesKeys.termsAccepted,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.data == true) {
+                return _sharedFiles.isNotEmpty
+                    ? PreviewSharedFiles(recipeUri: _sharedFiles.first.path)
+                    : Home();
+              }
+              return TerminosYCondicionesModal(
+                onAccept: () {
+                  setState(() {
+                    SharedPreferencesService.setBoolValue(
+                      SharedPreferencesKeys.termsAccepted,
+                      true,
+                    );
+                  });
+
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder:
+                          (context) =>
+                              _sharedFiles.isNotEmpty
+                                  ? PreviewSharedFiles(
+                                    recipeUri: _sharedFiles.first.path,
+                                  )
+                                  : Home(),
+                    ),
+                  );
+                },
+                onReject: () {
+                  setState(() {
+                    SharedPreferencesService.setBoolValue(
+                      SharedPreferencesKeys.termsAccepted,
+                      false,
+                    );
+                  });
+                  exit(0);
+                },
+              );
+            },
+          ),
           routes: {
             '/home': (context) => const Home(),
             '/api_key': (context) => Settings(),
@@ -104,7 +146,7 @@ class _MyAppState extends State<MyApp> {
                   ModalRoute.of(context)!.settings.arguments
                       as RecipeScreenArguments;
               return RecipeScreen(recipe: args.recipe);
-            }
+            },
           },
         );
       },

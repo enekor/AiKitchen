@@ -3,6 +3,7 @@ import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/warning_modal.dart';
@@ -32,36 +33,16 @@ class _FindByIngredientsState extends State<FindByIngredients> {
     });
   }
 
+  void shareRecipe(List<Recipe> receta) async {
+    await ShareRecipeService().shareRecipe(receta);
+  }
+
   int _totalTries = 0;
   Future<void> _generateResponse() async {
     setState(() {
       recetas = [];
       _searching = true;
     });
-
-    if (_isFav) {
-      if (kIsWeb) {
-        await _loadJson();
-      } else {
-        AppSingleton().recetasFavoritas =
-            await JsonDocumentsService().getFavRecipes();
-        recetas = AppSingleton().recetasFavoritas;
-      }
-
-      for (String ingrediente in ingredientes) {
-        recetas =
-            recetas!
-                .where(
-                  (element) => element.recipeContainsIngredient(ingrediente),
-                )
-                .toList();
-      }
-
-      setState(() {
-        _searching = false;
-      });
-      return;
-    }
 
     try {
       final response = await AppSingleton().generateContent(
@@ -181,6 +162,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
               onClickRecipe: onClickRecipe,
               onFavRecipe: onFavRecipe,
               onEditRecipe: onEditRecipe,
+              onShareRecipe: shareRecipe,
             ),
           )
         else if (recetas != null && recetas!.isEmpty)

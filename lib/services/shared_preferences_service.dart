@@ -7,7 +7,9 @@ enum SharedPreferencesKeys {
   idioma,
   geminiApiKey,
   tipoReceta,
-  historialBusquedaNombres, useTTS,
+  historialBusquedaNombres,
+  useTTS,
+  termsAccepted,
 }
 
 class SharedPreferencesService {
@@ -43,7 +45,7 @@ class SharedPreferencesService {
     await prefs.setStringList(key.toString(), value);
   }
 
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1442050122.
+  // Suggested code may be subject to a license. Learn more: ~LicenseLog:1442050122.
   static Future<void> setBoolValue(
     SharedPreferencesKeys key,
     bool value,

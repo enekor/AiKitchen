@@ -135,3 +135,62 @@ class _TextSettingState extends State<TextSetting> {
     );
   }
 }
+
+class ListSetting extends StatefulWidget {
+  final String initialValue;
+  final String text;
+  final List<String> options;
+  final ValueChanged<String> onChange;
+
+  const ListSetting({
+    super.key,
+    required this.initialValue,
+    required this.text,
+    required this.options,
+    required this.onChange,
+  });
+
+  @override
+  _ListSettingState createState() => _ListSettingState();
+}
+
+class _ListSettingState extends State<ListSetting> {
+  late String currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    currentValue = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Expanded(flex: 6, child: Text(widget.text)),
+        Expanded(
+          flex: 4,
+          child: DropdownButton<String>(
+            value: currentValue,
+            items:
+                widget.options.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+            onChanged: (String? value) {
+              if (value != null) {
+                setState(() {
+                  currentValue = value;
+                });
+                widget.onChange(value);
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}

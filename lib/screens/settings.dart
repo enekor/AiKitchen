@@ -15,6 +15,92 @@ class Settings extends StatefulWidget {
   State<Settings> createState() => _SettingsState();
 }
 
+enum Personality {
+  amistoso,
+  profesional,
+  casual,
+  divertido,
+  educativo,
+  hiriente,
+  bromista,
+  sarcastico,
+  entusiasta,
+  neutral;
+
+  String get displayName {
+    String text = name.replaceAll('_', ' ').toLowerCase();
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
+  static List<String> get displayNames {
+    return values.map((e) => e.displayName).toList();
+  }
+
+  static Personality fromDisplayName(String displayName) {
+    return values.firstWhere(
+      (e) => e.displayName == displayName.toLowerCase(),
+      orElse: () => Personality.neutral, // valor por defecto
+    );
+  }
+}
+
+enum Idioma {
+  espanhol,
+  gallego,
+  andaluz,
+  ingles,
+  frances,
+  aleman,
+  italiano;
+
+  String get displayName {
+    String text = name.replaceAll('nh', 'ñ').toLowerCase();
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
+  static List<String> get displayNames {
+    return values.map((e) => e.displayName).toList();
+  }
+
+  static Idioma fromDisplayName(String displayName) {
+    return values.firstWhere(
+      (e) => e.displayName == displayName.toLowerCase(),
+      orElse: () => Idioma.espanhol,
+    );
+  }
+}
+
+enum TipoReceta {
+  vegana,
+  vegetariana,
+  carnivora,
+  pescetariana,
+  sin_gluten,
+  sin_lactosa,
+  omnivora,
+  sin_azucar,
+  sin_huevo,
+  sin_frutosSecos,
+  sin_cereales,
+  sin_legumbres;
+
+  String get displayName {
+    String text = name.replaceAll('_', ' ').toLowerCase();
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
+  static List<String> get displayNames {
+    return values.map((e) => e.displayName).toList();
+  }
+
+  static TipoReceta fromDisplayName(String displayName) {
+    return values.firstWhere(
+      (e) => e.displayName == displayName.toLowerCase(),
+      orElse: () => TipoReceta.omnivora,
+    );
+  }
+}
+
 class _SettingsState extends State<Settings> {
   bool _isGeminiCardExpanded = false;
   bool _isSettingsCardExpanded = false;
@@ -37,6 +123,16 @@ class _SettingsState extends State<Settings> {
       AppSingleton().setUseTTS = value;
     });
     SharedPreferencesService.setBoolValue(SharedPreferencesKeys.useTTS, value);
+  }
+
+  String compareEnumValues(String value, List<String> options) {
+    for (String option in options) {
+      if (option.toLowerCase().replaceAll("ñ", "nh").replaceAll(' ', '_') ==
+          value.toLowerCase()) {
+        return option;
+      }
+    }
+    return options.first; // Default to the first option if no match found
   }
 
   @override
@@ -88,55 +184,75 @@ class _SettingsState extends State<Settings> {
                             onChange: _useTTS,
                           ),
                           const SizedBox(height: 24),
-                          TextSetting(
-                            initialValue: AppSingleton().personality,
+                          ListSetting(
+                            initialValue: compareEnumValues(
+                              AppSingleton().personality,
+                              Personality.displayNames,
+                            ),
                             text: '¿Qué tono de texto prefieres?',
-                            onSave: (String value) {
+                            options: Personality.displayNames,
+                            onChange: (String value) {
+                              final personality = Personality.fromDisplayName(
+                                value,
+                              );
                               setState(() {
-                                AppSingleton().setPersonality = value;
+                                AppSingleton().setPersonality =
+                                    personality.name;
                               });
                               SharedPreferencesService.setStringValue(
                                 SharedPreferencesKeys.tonoTextos,
-                                value,
+                                personality.name,
                               );
-
                               Toaster.showToast(
-                                'El tono de texto se ha cambiado a $value',
+                                'El tono de texto se ha cambiado a ${personality.displayName}',
                               );
                             },
                           ),
+
                           const SizedBox(height: 24),
-                          TextSetting(
-                            initialValue: AppSingleton().idioma,
+                          ListSetting(
+                            initialValue: compareEnumValues(
+                              AppSingleton().idioma,
+                              Idioma.displayNames,
+                            ),
                             text: '¿En qué idioma quieres las recetas?',
-                            onSave: (String value) {
+                            options: Idioma.displayNames,
+                            onChange: (String value) {
+                              final idioma = Idioma.fromDisplayName(value);
                               setState(() {
-                                AppSingleton().setIdioma = value;
+                                AppSingleton().setIdioma = idioma.name;
                               });
                               SharedPreferencesService.setStringValue(
                                 SharedPreferencesKeys.idioma,
-                                value,
+                                idioma.name,
                               );
                               Toaster.showToast(
-                                'El idioma se ha cambiado a $value',
+                                'El idioma se ha cambiado a ${idioma.displayName}',
                               );
                             },
                           ),
+
                           const SizedBox(height: 24),
-                          TextSetting(
-                            initialValue: AppSingleton().tipoReceta,
-                            text: '¿Que tipos de recetas haras?',
-                            onSave: (String value) {
+                          ListSetting(
+                            initialValue: compareEnumValues(
+                              AppSingleton().tipoReceta,
+                              TipoReceta.displayNames,
+                            ),
+                            text: '¿Qué tipos de recetas harás?',
+                            options: TipoReceta.displayNames,
+                            onChange: (String value) {
+                              final tipoReceta = TipoReceta.fromDisplayName(
+                                value,
+                              );
                               setState(() {
-                                AppSingleton().setPersonality = value;
+                                AppSingleton().setTipoReceta = tipoReceta.name;
                               });
                               SharedPreferencesService.setStringValue(
                                 SharedPreferencesKeys.tipoReceta,
-                                value,
+                                tipoReceta.name,
                               );
-
                               Toaster.showToast(
-                                'El tipo de receta se ha cambiado a $value',
+                                'El tipo de receta se ha cambiado a ${tipoReceta.displayName}',
                               );
                             },
                           ),

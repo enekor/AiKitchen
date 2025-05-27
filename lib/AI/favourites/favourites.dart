@@ -26,6 +26,12 @@ class _FavouritesState extends State<Favourites> {
     setState(() {});
   }
 
+  @override
+  void initState() {
+    _load();
+    super.initState();
+  }
+
   void removeFavRecipe(Recipe receta) {
     showDialog(
       context: context,

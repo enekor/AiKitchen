@@ -28,6 +28,7 @@ class _nameInputPartState extends State<nameInputPart> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         TextInput(
           onSearch: widget.onSearch,
@@ -48,21 +49,30 @@ class _nameInputPartState extends State<nameInputPart> {
           ],
         ),
         if (_showHistory)
-          SizedBox(
-            height: 56,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  ...widget.history
+          Container(
+            height: 120,
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Card(
+              elevation: 1,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount:
+                    widget.history.toSet().where((v) => v.isNotEmpty).length,
+                itemBuilder: (context, index) {
+                  final item = widget.history
                       .toSet()
                       .where((v) => v.isNotEmpty)
-                      .map(
-                        (v) => TextButton(
-                          child: Text('· $v'),
-                          onPressed: () => widget.onSearch(v),
-                        ),
-                      ),
-                ],
+                      .elementAt(index);
+                  return ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.history, size: 16),
+                    title: Text(
+                      item,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    onTap: () => widget.onSearch(item),
+                  );
+                },
               ),
             ),
           ),
@@ -76,6 +86,7 @@ class RecipesListHasData extends StatelessWidget {
   final Function(Recipe) onClickRecipe;
   final Function(Recipe) onFavRecipe;
   final Function(Recipe) onEdit;
+  final Function(List<Recipe>) onShareRecipe;
 
   const RecipesListHasData({
     super.key,
@@ -83,6 +94,7 @@ class RecipesListHasData extends StatelessWidget {
     required this.onClickRecipe,
     required this.onFavRecipe,
     required this.onEdit,
+    required this.onShareRecipe,
   });
 
   @override
@@ -94,6 +106,7 @@ class RecipesListHasData extends StatelessWidget {
       onClickRecipe: onClickRecipe,
       onFavRecipe: onFavRecipe,
       onEdit: onEdit,
+      onShareRecipe: onShareRecipe,
     );
   }
 }
