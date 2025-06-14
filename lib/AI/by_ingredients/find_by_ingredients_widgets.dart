@@ -40,7 +40,7 @@ class _IngredientsPartState extends State<IngredientsPart> {
   bool _showIngredients = false;
   void _addNewIngredient() {
     widget.onNewIngredient(_ingredientController.text);
-    Toaster.showToast('Ingrediente añadido: ${_ingredientController.text}');
+    Toaster.showSuccess('Ingrediente añadido: ${_ingredientController.text}');
     setState(() {
       _ingredientController.text = '';
     });
@@ -78,10 +78,10 @@ class _IngredientsPartState extends State<IngredientsPart> {
   void _removeIngredient(String ingredient) {
     widget.onRemoveIngredient(ingredient);
     if (widget.ingredientes.isEmpty) {
-      Toaster.showToast('No hay ingredientes añadidos');
+      Toaster.showWarning('No hay ingredientes añadidos');
       _showIngredients = false;
     } else {
-      Toaster.showToast('Ingrediente eliminado: $ingredient');
+      Toaster.showSuccess('Ingrediente eliminado: $ingredient');
     }
     setState(() {});
   }

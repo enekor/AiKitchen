@@ -65,8 +65,7 @@ class _ShoppingListState extends State<ShoppingList> {
       setState(() {
         _showAIShoppingListLoading = false;
       });
-
-      Toaster.showToast(
+      Toaster.showError(
         "Error al generar la lista de la compra: ${response.split(":")[1]}",
       );
       return;
@@ -89,6 +88,39 @@ class _ShoppingListState extends State<ShoppingList> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondary.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.colorScheme.secondary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.shopping_cart,
+                color: theme.colorScheme.secondary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Lista de la compra',
+              style: TextStyle(
+                color: theme.colorScheme.secondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+      ),
       body: RefreshIndicator(
         onRefresh: () => _loadShoppingList(),
         child: Padding(
@@ -98,7 +130,7 @@ class _ShoppingListState extends State<ShoppingList> {
               ModularFloatingActions(
                 actions: [
                   NeumorphicActionButton(
-                    icon: Icons.shopping_cart,
+                    icon: Icons.kitchen,
                     isHighlighted: _showAvailable == true,
                     onPressed: () {
                       setState(() {
@@ -108,7 +140,7 @@ class _ShoppingListState extends State<ShoppingList> {
                     },
                   ),
                   NeumorphicActionButton(
-                    icon: Icons.remove_shopping_cart_rounded,
+                    icon: Icons.shopping_basket_outlined,
                     onPressed: () {
                       setState(() {
                         _showAvailable = false;
@@ -118,14 +150,14 @@ class _ShoppingListState extends State<ShoppingList> {
                     isHighlighted: _showAvailable == false,
                   ),
                   NeumorphicActionButton(
-                    icon: Icons.add_rounded,
+                    icon: Icons.add_shopping_cart,
                     onPressed:
                         () => setState(() {
                           _adding = !_adding;
                         }),
                   ),
                   NeumorphicActionButton(
-                    icon: Icons.generating_tokens_rounded,
+                    icon: Icons.auto_awesome,
                     onPressed:
                         () => setState(() {
                           _showAIShoppingList = true;
@@ -214,7 +246,6 @@ class _ShoppingListState extends State<ShoppingList> {
 
   Widget _buildIngredientCard(CartItem item, int originalIndex) {
     final theme = Theme.of(context);
-    final realIndex = _shoppingList.indexWhere((i) => i.name == item.name);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
@@ -308,7 +339,7 @@ class _ShoppingListState extends State<ShoppingList> {
                               _generatedShoppingList = [];
                               userInfo = '';
                             });
-                            Toaster.showToast(
+                            Toaster.showWarning(
                               "Reiniciando lista de la compra...",
                             );
                           },

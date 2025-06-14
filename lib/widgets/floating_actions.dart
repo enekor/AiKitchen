@@ -1,6 +1,5 @@
 import 'package:aikitchen/widgets/neumorphic_card.dart';
-import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
-import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
+import 'package:flutter/material.dart';
 
 class NeumorphicActionButton {
   final IconData icon;
@@ -81,10 +80,10 @@ Widget _buildActionButton(
   NeumorphicActionButton action, {
   double iconSize = 20,
 }) {
-  final highlightColor =
-      action.highlightColor ?? Theme.of(context).colorScheme.primary;
+  final theme = Theme.of(context);
+  final highlightColor = action.highlightColor ?? theme.colorScheme.primary;
   final iconColor =
-      action.isHighlighted ? highlightColor : Theme.of(context).iconTheme.color;
+      action.isHighlighted ? highlightColor : theme.iconTheme.color;
 
   return Tooltip(
     message: action.tooltip ?? '',
@@ -94,22 +93,19 @@ Widget _buildActionButton(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
+          color:
+              action.isHighlighted
+                  ? highlightColor.withOpacity(0.1)
+                  : theme.colorScheme.surface,
           boxShadow: [
-            if (!action.isHighlighted)
-              BoxShadow(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withOpacity(0.05),
-                blurRadius: 2,
-                offset: const Offset(1, 1),
-              ),
-            if (action.isHighlighted)
-              BoxShadow(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-                blurRadius: 2,
-                offset: const Offset(-1, -1),
-                inset: true,
-              ),
+            BoxShadow(
+              color: theme.colorScheme.onSurface.withOpacity(0.1),
+              blurRadius: action.isHighlighted ? 1 : 3,
+              offset:
+                  action.isHighlighted
+                      ? const Offset(0, 1)
+                      : const Offset(2, 2),
+            ),
           ],
         ),
         child: Icon(action.icon, size: iconSize, color: iconColor),

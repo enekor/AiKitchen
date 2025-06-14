@@ -127,7 +127,7 @@ class AppSingleton {
         );
       }
     } catch (e) {
-      Toaster.showToast('Error al guardar o compartir la receta: $e');
+      Toaster.showError('Error al guardar o compartir la receta: $e');
     }
   }
 }

@@ -163,7 +163,7 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
             setState(() {
               AppSingleton().setApiKey(apiKey);
             });
-            Toaster.showToast('API Key guardada');
+            Toaster.showSuccess('API Key guardada');
           },
           hint: 'Pega aquí tu API Key',
           initialValue: AppSingleton().apiKey ?? '',

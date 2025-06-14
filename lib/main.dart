@@ -5,6 +5,7 @@ import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/terminos_y_condiciones.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -74,21 +75,8 @@ class _MyAppState extends State<MyApp> {
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            colorScheme:
-                lightDynamic ??
-                ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            colorScheme:
-                darkDynamic ??
-                ColorScheme.fromSeed(
-                  seedColor: Colors.deepPurple,
-                  brightness: Brightness.dark,
-                ),
-            useMaterial3: true,
-          ),
+          theme: CookingTheme.lightTheme,
+          darkTheme: CookingTheme.darkTheme,
           home: FutureBuilder<bool?>(
             future: SharedPreferencesService.getBoolValue(
               SharedPreferencesKeys.termsAccepted,

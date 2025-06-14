@@ -1,7 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/ingredient_modal.dart';
 import 'package:aikitchen/widgets/neumorphic_card.dart';
-import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
+import 'package:flutter/material.dart' hide BoxShadow;
 
 class RecipePreview extends StatefulWidget {
   final Recipe recipe;
@@ -46,6 +46,31 @@ class _RecipePreviewState extends State<RecipePreview> {
             recipe: widget.recipe,
             onClickRecipe: widget.onClickRecipe,
           ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -123,6 +148,31 @@ class _RecipePreviewState extends State<RecipePreview> {
                 Text(
                   widget.recipe.descripcion,
                   style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                // Información adicional con chips temáticos
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    _buildInfoChip(
+                      Icons.timer,
+                      widget.recipe.tiempoEstimado,
+                      Theme.of(context).colorScheme.secondary,
+                    ),
+                    _buildInfoChip(
+                      Icons.local_fire_department,
+                      '${widget.recipe.calorias.toInt()} cal',
+                      Theme.of(context).colorScheme.tertiary,
+                    ),
+                    _buildInfoChip(
+                      Icons.restaurant,
+                      '${widget.recipe.raciones} raciones',
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                  ],
                 ),
               ],
             ),

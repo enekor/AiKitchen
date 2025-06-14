@@ -45,27 +45,32 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _recipe![_showingRecipe].nombre ?? 'Vista previa de recetas',
-        ),
+        title: const Text('Vista previa de recetas'),
         centerTitle: true,
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.restaurant_menu),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       floatingActionButton:
-          _recipe != null
+          _recipe != null && _recipe!.isNotEmpty
               ? FloatingActionButton.extended(
                 onPressed: () {
                   JsonDocumentsService().updateFavRecipes(
                     _recipe![_showingRecipe],
                   );
-                  Toaster.showToast(
+                  Toaster.showSuccess(
                     '${_recipe![_showingRecipe].nombre} guardada como favorita',
                   );
                 },
+                backgroundColor: theme.colorScheme.secondary,
+                foregroundColor: Colors.white,
                 label: const Text('Guardar receta'),
-                icon: const Icon(Icons.save),
+                icon: const Icon(Icons.favorite),
               )
               : null,
       body: FutureBuilder<List<Recipe>?>(
@@ -108,10 +113,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                 });
               },
             ),
-            items: [
-              ...recipe?.map((r) => _recipePreview(r, theme)) ??
-                  [Center(child: Text('No hay nada aqui'))],
-            ],
+            items: [...recipe.map((r) => _recipePreview(r, theme))],
           );
         },
       ),
@@ -132,64 +134,159 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      recipe.nombre,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(recipe.descripcion, style: theme.textTheme.bodyLarge),
-                    const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildInfoItem(
-                          icon: Icons.timer,
-                          label: 'Tiempo',
-                          value: recipe.tiempoEstimado,
+                        Icon(
+                          Icons.restaurant_menu,
+                          color: theme.colorScheme.primary,
+                          size: 28,
                         ),
-                        _buildInfoItem(
-                          icon: Icons.local_fire_department,
-                          label: 'Calorías',
-                          value: '${recipe.calorias} cal',
-                        ),
-                        _buildInfoItem(
-                          icon: Icons.restaurant,
-                          label: 'Raciones',
-                          value: '${recipe.raciones}',
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            recipe.nombre,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(recipe.descripcion, style: theme.textTheme.bodyLarge),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildInfoItem(
+                            icon: Icons.timer,
+                            label: 'Tiempo',
+                            value: recipe.tiempoEstimado,
+                            color: theme.colorScheme.secondary,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: theme.colorScheme.outline.withOpacity(0.3),
+                          ),
+                          _buildInfoItem(
+                            icon: Icons.local_fire_department,
+                            label: 'Calorías',
+                            value: '${recipe.calorias} cal',
+                            color: const Color(0xFFE53E3E), // Red for calories
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: theme.colorScheme.outline.withOpacity(0.3),
+                          ),
+                          _buildInfoItem(
+                            icon: Icons.restaurant,
+                            label: 'Raciones',
+                            value: '${recipe.raciones}',
+                            color: theme.colorScheme.tertiary,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Ingredientes
+            const SizedBox(height: 16), // Ingredientes
             NeumorphicCard(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Ingredientes',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.shopping_basket,
+                          color: theme.colorScheme.secondary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Ingredientes',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.secondary,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.secondary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${recipe.ingredientes.length}',
+                            style: TextStyle(
+                              color: theme.colorScheme.secondary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
-                    ...(recipe.ingredientes.map(
-                      (ingredient) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.fiber_manual_record, size: 8),
-                            const SizedBox(width: 8),
-                            Expanded(child: Text(ingredient)),
-                          ],
+                    ...(recipe.ingredientes.asMap().entries.map(
+                      (entry) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: theme.colorScheme.outline.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.secondary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${entry.key + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(child: Text(entry.value)),
+                              Icon(
+                                Icons.check_circle_outline,
+                                color: theme.colorScheme.secondary.withOpacity(
+                                  0.5,
+                                ),
+                                size: 20,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     )),
@@ -197,48 +294,91 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Pasos
+            const SizedBox(height: 16), // Pasos
             NeumorphicCard(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Preparación',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.format_list_numbered,
+                          color: theme.colorScheme.tertiary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Preparación',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.tertiary,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.tertiary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${recipe.preparacion.length} pasos',
+                            style: TextStyle(
+                              color: theme.colorScheme.tertiary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     ...(recipe.preparacion.asMap().entries.map(
                       (entry) => Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${entry.key + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: theme.colorScheme.outline.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.tertiary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${entry.key + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text(entry.value)),
-                          ],
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  entry.value,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     )),
@@ -256,10 +396,11 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
     required IconData icon,
     required String label,
     required String value,
+    Color? color,
   }) {
     return Column(
       children: [
-        Icon(icon),
+        Icon(icon, color: color),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 12)),
         Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),

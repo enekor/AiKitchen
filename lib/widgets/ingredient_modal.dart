@@ -22,7 +22,7 @@ class _IngredientModalState extends State<IngredientModal> {
   List<String> _selectedIngredients = [];
   void saveIngredients() async {
     await JsonDocumentsService().updateCartItems(_selectedIngredients);
-    Toaster.showToast('Ingredientes guardados en la lista de la compra');
+    Toaster.showSuccess('Ingredientes guardados en la lista de la compra');
   }
 
   @override
@@ -61,12 +61,15 @@ class _IngredientModalState extends State<IngredientModal> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  infoCard(Icons.access_time, widget.recipe.tiempoEstimado),
+                  infoCard(Icons.timer, widget.recipe.tiempoEstimado),
                   infoCard(
-                    Icons.local_fire_department_rounded,
+                    Icons.local_fire_department,
                     '${widget.recipe.calorias} cal',
                   ),
-                  infoCard(Icons.person, '${widget.recipe.raciones} platos'),
+                  infoCard(
+                    Icons.restaurant,
+                    '${widget.recipe.raciones} platos',
+                  ),
                 ],
               ),
               const SizedBox(height: 16),

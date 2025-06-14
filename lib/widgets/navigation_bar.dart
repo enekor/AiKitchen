@@ -49,9 +49,13 @@ class NeumorphicNavigationBar extends StatelessWidget {
                           ).colorScheme.primary.withOpacity(0.2)
                           : Colors.transparent,
                 ),
-                child: Icon(kIsWeb ? Icons.star : Symbols.stars_2_rounded),
+                child: Icon(
+                  currentIndex == 0
+                      ? Icons.restaurant_menu
+                      : Icons.restaurant_menu_outlined,
+                ),
               ),
-              label: 'AI',
+              label: 'Recetas IA',
             ),
             // BottomNavigationBarItem(
             //   icon: Container(
@@ -83,7 +87,11 @@ class NeumorphicNavigationBar extends StatelessWidget {
                           ).colorScheme.primary.withOpacity(0.2)
                           : Colors.transparent,
                 ),
-                child: Icon(currentIndex == 1 ? Icons.add : Icons.add_outlined),
+                child: Icon(
+                  currentIndex == 1
+                      ? Icons.add_circle
+                      : Icons.add_circle_outline,
+                ),
               ),
               label: 'Crear receta',
             ),
@@ -101,8 +109,8 @@ class NeumorphicNavigationBar extends StatelessWidget {
                 ),
                 child: Icon(
                   currentIndex == 2
-                      ? Icons.checklist
-                      : Icons.checklist_outlined,
+                      ? Icons.shopping_cart
+                      : Icons.shopping_cart_outlined,
                 ),
               ),
               label: 'Lista de la compra',

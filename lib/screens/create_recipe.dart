@@ -1,5 +1,6 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/widgets/cooking_card.dart';
 import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,6 @@ class _CreateRecipeState extends State<CreateRecipe> {
   @override
   void initState() {
     super.initState();
-    // Initialize the text fields with data from the recipe if provided
     _initializeTextFields();
     _initializeFocusListeners();
   }
@@ -38,7 +38,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
       outdatedRecipe: widget.recipe,
     );
 
-    Toaster.showToast('${_nameController.text} guardada con éxito');
+    Toaster.showSuccess('${_nameController.text} guardada con éxito');
   }
 
   final List<String> _ingredients = [''];
@@ -68,12 +68,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
       _caloriesController.text = widget.recipe!.calorias.toString();
       _rationsController.text = widget.recipe!.raciones.toString();
 
-      // Initialize ingredients and steps with data from the recipe
       _ingredients.clear();
       _steps.clear();
       _ingredients.addAll(widget.recipe!.ingredientes);
       _steps.addAll(widget.recipe!.preparacion);
-      // Ensure we have enough focus nodes for the initial ingredients and steps
+
       while (_ingredientFocusNodes.length < _ingredients.length) {
         _addIngredientFocusNode();
       }
@@ -84,7 +83,6 @@ class _CreateRecipeState extends State<CreateRecipe> {
   }
 
   // Estados de focus para cada tarjeta
-  bool _basicInfoHasFocus = false;
   bool _ingredientsHasFocus = false;
   bool _stepsHasFocus = false;
 
@@ -92,27 +90,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
   final List<FocusNode> _ingredientFocusNodes = [];
   final List<FocusNode> _stepFocusNodes = [];
 
-  @override
   void _initializeFocusListeners() {
-    // Listeners para los focus nodes de información básica
-    void updateBasicInfoFocus() {
-      setState(() {
-        _basicInfoHasFocus =
-            _nameFocus.hasFocus ||
-            _descriptionFocus.hasFocus ||
-            _rationsFocus.hasFocus ||
-            _timeFocus.hasFocus ||
-            _caloriesFocus.hasFocus;
-      });
-    }
-
-    _nameFocus.addListener(updateBasicInfoFocus);
-    _descriptionFocus.addListener(updateBasicInfoFocus);
-    _rationsFocus.addListener(updateBasicInfoFocus);
-    _timeFocus.addListener(updateBasicInfoFocus);
-    _caloriesFocus.addListener(updateBasicInfoFocus);
-
-    // Inicializar focus nodes para el primer ingrediente y paso
     _addIngredientFocusNode();
     _addStepFocusNode();
   }
@@ -141,14 +119,12 @@ class _CreateRecipeState extends State<CreateRecipe> {
 
   @override
   void dispose() {
-    // Dispose de los focus nodes básicos
     _nameFocus.dispose();
     _descriptionFocus.dispose();
     _rationsFocus.dispose();
     _timeFocus.dispose();
     _caloriesFocus.dispose();
 
-    // Dispose de los focus nodes de ingredientes y pasos
     for (var node in _ingredientFocusNodes) {
       node.dispose();
     }
@@ -156,7 +132,6 @@ class _CreateRecipeState extends State<CreateRecipe> {
       node.dispose();
     }
 
-    // Limpieza de los controllers
     _nameController.dispose();
     _descriptionController.dispose();
     _estimatedTimeController.dispose();
@@ -167,112 +142,194 @@ class _CreateRecipeState extends State<CreateRecipe> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: null,
+      appBar: AppBar(
+        title: Text(widget.recipe == null ? 'Crear receta' : 'Editar receta'),
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Crear nueva receta',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium,
+              // Header with cooking icon
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      color: theme.colorScheme.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      widget.recipe == null
+                          ? 'Crear nueva receta'
+                          : 'Editar receta',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
+
               // Primera tarjeta - Información básica
-              NeumorphicCard(
-                withInnerShadow: _basicInfoHasFocus,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TextField(
-                        enabled: widget.recipe == null,
-                        controller: _nameController,
-                        focusNode: _nameFocus,
-                        decoration: const InputDecoration(labelText: 'Nombre'),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _descriptionController,
-                        focusNode: _descriptionFocus,
-                        decoration: const InputDecoration(
-                          labelText: 'Descripción',
+              CookingCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.primary,
+                          size: 20,
                         ),
-                        maxLines: 3,
+                        const SizedBox(width: 8),
+                        Text(
+                          'Información básica',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      enabled: widget.recipe == null,
+                      controller: _nameController,
+                      focusNode: _nameFocus,
+                      decoration: InputDecoration(
+                        labelText: 'Nombre de la receta',
+                        prefixIcon: const Icon(Icons.restaurant),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _rationsController,
-                              focusNode: _rationsFocus,
-                              decoration: const InputDecoration(
-                                labelText: 'Número de platos',
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextField(
-                              controller: _estimatedTimeController,
-                              focusNode: _timeFocus,
-                              decoration: const InputDecoration(
-                                labelText: 'Tiempo (min)',
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextField(
-                              controller: _caloriesController,
-                              focusNode: _caloriesFocus,
-                              decoration: const InputDecoration(
-                                labelText: 'Calorías por ración',
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _descriptionController,
+                      focusNode: _descriptionFocus,
+                      decoration: InputDecoration(
+                        labelText: 'Descripción',
+                        prefixIcon: const Icon(Icons.description),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ],
-                  ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _rationsController,
+                            focusNode: _rationsFocus,
+                            decoration: InputDecoration(
+                              labelText: 'Raciones',
+                              prefixIcon: const Icon(Icons.people),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: _estimatedTimeController,
+                            focusNode: _timeFocus,
+                            decoration: InputDecoration(
+                              labelText: 'Tiempo (min)',
+                              prefixIcon: const Icon(Icons.timer),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: _caloriesController,
+                            focusNode: _caloriesFocus,
+                            decoration: InputDecoration(
+                              labelText: 'Calorías',
+                              prefixIcon: const Icon(
+                                Icons.local_fire_department,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
 
               const SizedBox(height: 24),
 
               // Segunda tarjeta - Ingredientes
-              NeumorphicCard(
-                withInnerShadow: _ingredientsHasFocus,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Ingredientes',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              CookingCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.shopping_basket,
+                          color: theme.colorScheme.secondary,
+                          size: 20,
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _ingredients.length,
-                        itemBuilder: (context, index) {
-                          // Añadir nuevo focus node si es necesario
-                          if (index >= _ingredientFocusNodes.length) {
-                            _addIngredientFocusNode();
-                          }
-                          return Row(
+                        const SizedBox(width: 8),
+                        Text(
+                          'Ingredientes',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _ingredients.length,
+                      itemBuilder: (context, index) {
+                        if (index >= _ingredientFocusNodes.length) {
+                          _addIngredientFocusNode();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
                             children: [
                               Expanded(
                                 child: TextFormField(
@@ -280,12 +337,19 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                   focusNode: _ingredientFocusNodes[index],
                                   decoration: InputDecoration(
                                     labelText: 'Ingrediente ${index + 1}',
+                                    prefixIcon: const Icon(
+                                      Icons.add_shopping_cart,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                   onChanged: (value) {
                                     _ingredients[index] = value;
                                   },
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               IconButton(
                                 icon: const Icon(Icons.remove_circle_outline),
                                 onPressed: () {
@@ -297,52 +361,67 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                 },
                               ),
                             ],
-                          );
-                        },
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _ingredients.add('');
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Añadir ingrediente'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.secondary,
+                        foregroundColor: theme.colorScheme.onSecondary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _ingredients.add('');
-                          });
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Añadir ingrediente'),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
               const SizedBox(height: 24),
 
               // Tercera tarjeta - Pasos de preparación
-              NeumorphicCard(
-                withInnerShadow: _stepsHasFocus,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Pasos de preparación',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              CookingCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.format_list_numbered,
+                          color: theme.colorScheme.tertiary,
+                          size: 20,
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _steps.length,
-                        itemBuilder: (context, index) {
-                          // Añadir nuevo focus node si es necesario
-                          if (index >= _stepFocusNodes.length) {
-                            _addStepFocusNode();
-                          }
-                          return Row(
+                        const SizedBox(width: 8),
+                        Text(
+                          'Pasos de preparación',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.tertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _steps.length,
+                      itemBuilder: (context, index) {
+                        if (index >= _stepFocusNodes.length) {
+                          _addStepFocusNode();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
                             children: [
                               Expanded(
                                 child: TextFormField(
@@ -350,6 +429,10 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                   focusNode: _stepFocusNodes[index],
                                   decoration: InputDecoration(
                                     labelText: 'Paso ${index + 1}',
+                                    prefixIcon: const Icon(Icons.soup_kitchen),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                   maxLines: 3,
                                   onChanged: (value) {
@@ -357,6 +440,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                   },
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               IconButton(
                                 icon: const Icon(Icons.remove_circle_outline),
                                 onPressed: () {
@@ -368,28 +452,53 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                 },
                               ),
                             ],
-                          );
-                        },
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _steps.add('');
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Añadir paso'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.tertiary,
+                        foregroundColor: theme.colorScheme.onTertiary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _steps.add('');
-                          });
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Añadir paso'),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 24),
-              ElevatedButton(
+              const SizedBox(height: 32),
+
+              // Save button
+              ElevatedButton.icon(
                 onPressed: saveRecipe,
-                child: const Text('Guardar receta'),
+                icon: const Icon(Icons.save),
+                label: Text(
+                  widget.recipe == null
+                      ? 'Guardar receta'
+                      : 'Actualizar receta',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 24,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],
