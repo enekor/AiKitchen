@@ -18,10 +18,26 @@ class _ShoppingListState extends State<ShoppingList> {
   bool _isGenerating = false;
   final TextEditingController _itemController = TextEditingController();
 
+  // Controllers for AI generation modal
+  final TextEditingController _personasController = TextEditingController();
+  final TextEditingController _presupuestoIniController =
+      TextEditingController();
+  final TextEditingController _presupuestoFinController =
+      TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _loadShoppingList();
+  }
+
+  @override
+  void dispose() {
+    _itemController.dispose();
+    _personasController.dispose();
+    _presupuestoIniController.dispose();
+    _presupuestoFinController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadShoppingList() async {
@@ -109,7 +125,6 @@ class _ShoppingListState extends State<ShoppingList> {
         });
 
         await _updateShoppingList();
-        Navigator.pop(context);
         Toaster.showSuccess('Lista generada con ${items.length} artículos');
       }
     } catch (e) {
@@ -360,8 +375,11 @@ class _ShoppingListState extends State<ShoppingList> {
         onPressed: _showAIGeneratorModal,
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.auto_awesome),
-        label: const Text('Generar con IA'),
+        icon:
+            _isGenerating
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Icon(Icons.auto_awesome),
+        label: Text(_isGenerating ? 'Generando...' : 'Generar con IA'),
         heroTag: 'generate-shopping-list',
       ),
     );
@@ -369,9 +387,6 @@ class _ShoppingListState extends State<ShoppingList> {
 
   Widget _buildAIGeneratorModal() {
     final theme = Theme.of(context);
-    final personasController = TextEditingController();
-    final presupuestoIniController = TextEditingController();
-    final presupuestoFinController = TextEditingController();
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
@@ -452,11 +467,9 @@ class _ShoppingListState extends State<ShoppingList> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 16),
-
-                          // Número de personas
+                          const SizedBox(height: 16), // Número de personas
                           TextField(
-                            controller: personasController,
+                            controller: _personasController,
                             decoration: InputDecoration(
                               labelText: 'Número de personas',
                               hintText: 'Ej: 4',
@@ -474,7 +487,7 @@ class _ShoppingListState extends State<ShoppingList> {
                             children: [
                               Expanded(
                                 child: TextField(
-                                  controller: presupuestoIniController,
+                                  controller: _presupuestoIniController,
                                   decoration: InputDecoration(
                                     labelText: 'Presupuesto min.',
                                     hintText: '200',
@@ -497,7 +510,7 @@ class _ShoppingListState extends State<ShoppingList> {
                               ),
                               Expanded(
                                 child: TextField(
-                                  controller: presupuestoFinController,
+                                  controller: _presupuestoFinController,
                                   decoration: InputDecoration(
                                     labelText: 'Presupuesto max.',
                                     hintText: '300',
@@ -554,11 +567,12 @@ class _ShoppingListState extends State<ShoppingList> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     final formData = {
-                      'personas': personasController.text,
+                      'personas': _personasController.text,
                       'presupuesto':
-                          '${presupuestoIniController.text} - ${presupuestoFinController.text}',
+                          '${_presupuestoIniController.text} - ${_presupuestoFinController.text}',
                     };
                     _generateShoppingListWithAI(formData);
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
@@ -569,8 +583,10 @@ class _ShoppingListState extends State<ShoppingList> {
                     ),
                   ),
                   icon: const Icon(Icons.auto_awesome),
-                  label: const Text(
-                    'Generar lista de la compra',
+                  label: Text(
+                    _isGenerating
+                        ? 'Generando...'
+                        : 'Generar lista de la compra',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
