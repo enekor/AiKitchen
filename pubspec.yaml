@@ -1,7 +1,7 @@
 name: aikitchen
 description: "Aplicacion de recetas usando la IA de google"
 publish_to: "none"
-version: 2.1.0+20
+version: 2.1.0+22
 
 environment:
   sdk: ^3.8.0-91.0.dev
@@ -16,8 +16,6 @@ dependencies:
   flutter_tts: ^4.2.2
   fluttertoast: ^8.2.12
   google_generative_ai: ^0.4.6
-  lottie: ^3.3.1
-  material_symbols_icons: ^4.2811.0
   path_provider: ^2.1.5
   receive_sharing_intent: ^1.8.1
   share_plus: ^10.1.4
@@ -32,8 +30,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/ejemplo.json
-    - assets/loading.gif
     - assets/guide/step1.jpg
     - assets/guide/step2.jpg
     - assets/guide/step3.jpg

@@ -22,7 +22,6 @@ class nameInputPart extends StatefulWidget {
 }
 
 class _nameInputPartState extends State<nameInputPart> {
-  final TextEditingController _nameController = TextEditingController();
   bool _showHistory = false;
 
   @override

@@ -1034,22 +1034,4 @@ class _FindByNameState extends State<FindByName> with TickerProviderStateMixin {
       ),
     );
   }
-
-  Widget _buildFeatureChip(String text, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.3)),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.secondary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
 }

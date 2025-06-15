@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
 enum LottieAnimationType { loading, notfound }
 
@@ -12,16 +11,53 @@ class LottieAnimationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Center(
-      child: Lottie.network(
-        switch (type) {
-          LottieAnimationType.loading =>
-            'https://lottie.host/f463c51a-904f-41ba-a024-d8d4010c3578/E5J7aashlb.json',
-          LottieAnimationType.notfound =>
-            'https://lottie.host/f470d155-5981-4643-8eef-e7de4aa64a18/ytkxdRJlcH.json',
-        }, // Ajusta el modo de ajuste
-        width: 250,
-        height: 250,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          switch (type) {
+            LottieAnimationType.loading => Column(
+              children: [
+                CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                  strokeWidth: 3,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Generando recetas...',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            LottieAnimationType.notfound => Column(
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 80,
+                  color: theme.colorScheme.outline,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No se encontraron recetas',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Intenta con otros ingredientes',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+          },
+        ],
       ),
     );
   }
