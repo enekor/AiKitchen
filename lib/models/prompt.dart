@@ -63,13 +63,26 @@ para las recetas tengo unos parametros que me ha indicado el usuario, pero recue
     String tipoReceta,
   ) =>
       '$basePrompt numero de recetas: $numRecetas, idioma de las recetas: $idioma, tipo de cocina especifica: $tipoReceta, tono de los pasos de la receta: $tono, nombre de la receta que quiere el usuario: $nombreReceta';
+  static String shoppingListPrompt({
+    required String tipoReceta,
+    required String personas,
+    String presupuesto = '',
+  }) => '''
+Necesito que me generes una lista de la compra mensual. Responde únicamente con un JSON en este formato:
 
-  static String shoppingListPrompt(String userInfo, String tipoAlimentacion) =>
-      '''
-Estas dentro de una aplicacion de generacion de recetas y listas de la compra, y el usuario ha decidido que quiere ir a comprar y quiere una lista de las cosas que puede llegar a necesitar al mes. 
-Para ello, te ha provisto de estas especificaciones: $userInfo.
-El tipo de alimentacion del usuario es: $tipoAlimentacion.
-Para darme los datos vas a darme solo la lista de la compra, nada mas, y para ello, vas a darme uno tras otro seguido de una coma, es decir, por ejemplo, "patatas, lechuga, tomate", y si quieres puedes poner cantidades o peso a considerar.
-En caso de no poder generar la lista, me das el por qué de esta forma: "error: la causa"
+{
+  "lista": [
+    "ingrediente 1",
+    "ingrediente 2",
+    "ingrediente 3"
+  ]
+}
+
+Información sobre mi hogar:
+- Número de personas: $personas
+${presupuesto.isNotEmpty ? '- Presupuesto mensual: $presupuesto' : ''}
+- Tipo de cocina preferida: $tipoReceta
+
+Genera una lista completa y equilibrada de ingredientes básicos y productos esenciales para un mes, teniendo en cuenta el número de personas y las preferencias indicadas.
 ''';
 }

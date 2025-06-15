@@ -1,14 +1,17 @@
 class CartItem {
   String name;
-  bool isIn;
+  bool isPurchased;
 
-  CartItem({required this.name, required this.isIn});
+  CartItem({required this.name, this.isPurchased = false});
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
-    return CartItem(name: json['name'], isIn: json['isIn']);
+    return CartItem(
+      name: json['name'],
+      isPurchased: json['isPurchased'] ?? false,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    return {'name': name, 'isIn': isIn};
+    return {'name': name, 'isPurchased': isPurchased};
   }
 }

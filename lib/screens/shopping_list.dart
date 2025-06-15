@@ -1,13 +1,10 @@
+import 'dart:convert';
 import 'package:aikitchen/models/cart_item.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
-import 'package:aikitchen/widgets/floating_actions.dart';
-import 'package:aikitchen/widgets/neumorphic_card.dart';
-import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
 
 class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
@@ -18,12 +15,8 @@ class ShoppingList extends StatefulWidget {
 
 class _ShoppingListState extends State<ShoppingList> {
   List<CartItem> _shoppingList = [];
-  List<String> _generatedShoppingList = [];
-  bool _showAvailable = true;
-  bool _adding = false;
-  bool _showAIShoppingList = false;
-  bool _showAIShoppingListLoading = false;
-  final _newIngredient = TextEditingController();
+  bool _isGenerating = false;
+  final TextEditingController _itemController = TextEditingController();
 
   @override
   void initState() {
@@ -38,42 +31,92 @@ class _ShoppingListState extends State<ShoppingList> {
 
   Future<void> _updateShoppingList() async {
     await JsonDocumentsService().setCartItems(_shoppingList);
-    setState(() {});
   }
 
-  void _addNewIngredient(String name) {
+  void _addItem(String name) {
+    if (name.trim().isEmpty) return;
+
     setState(() {
-      _shoppingList.add(CartItem(name: name, isIn: _showAvailable));
-      _newIngredient.clear();
+      _shoppingList.add(CartItem(name: name.trim()));
+    });
+    _updateShoppingList();
+    _itemController.clear();
+  }
+
+  void _togglePurchased(int index) {
+    setState(() {
+      _shoppingList[index].isPurchased = !_shoppingList[index].isPurchased;
     });
     _updateShoppingList();
   }
 
-  void _generateShoppingList(String userInfo) async {
+  void _removeItem(int index) {
     setState(() {
-      _showAIShoppingListLoading = true;
+      _shoppingList.removeAt(index);
+    });
+    _updateShoppingList();
+  }
+
+  void _clearCompleted() {
+    setState(() {
+      _shoppingList.removeWhere((item) => item.isPurchased);
+    });
+    _updateShoppingList();
+  }
+
+  void _showAIGeneratorModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildAIGeneratorModal(),
+    );
+  }
+
+  String _cleanJsonResponse(String response) {
+    // Remove markdown code blocks if present
+    response = response.replaceAll(RegExp(r'```json\s*'), '');
+    response = response.replaceAll(RegExp(r'\s*```'), '');
+    response = response.trim();
+    return response;
+  }
+
+  Future<void> _generateShoppingListWithAI(Map<String, String> formData) async {
+    setState(() {
+      _isGenerating = true;
     });
 
-    String prompt = Prompt.shoppingListPrompt(
-      userInfo,
-      AppSingleton().tipoReceta,
-    );
-
-    String response = await AppSingleton().generateContent(prompt, context);
-
-    if (response.isEmpty || response.contains('error')) {
-      setState(() {
-        _showAIShoppingListLoading = false;
-      });
-      Toaster.showError(
-        "Error al generar la lista de la compra: ${response.split(":")[1]}",
+    try {
+      final prompt = Prompt.shoppingListPrompt(
+        tipoReceta: AppSingleton().tipoReceta,
+        personas: formData['personas'] ?? '2',
+        presupuesto: formData['presupuesto'] ?? '',
       );
-      return;
-    } else {
-      _generatedShoppingList = response.split(',');
 
+      final response = await AppSingleton().generateContent(prompt, context);
+
+      final cleanedResponse = _cleanJsonResponse(response);
+      final jsonData = jsonDecode(cleanedResponse);
+
+      if (jsonData['lista'] != null && jsonData['lista'] is List) {
+        final items =
+            (jsonData['lista'] as List)
+                .map((item) => CartItem(name: item.toString()))
+                .toList();
+
+        setState(() {
+          _shoppingList.addAll(items);
+        });
+
+        await _updateShoppingList();
+        Navigator.pop(context);
+        Toaster.showSuccess('Lista generada con ${items.length} artículos');
+      }
+    } catch (e) {
+      Toaster.showError('Error al generar la lista: $e');
+    } finally {
       setState(() {
-        _showAIShoppingListLoading = false;
+        _isGenerating = false;
       });
     }
   }
@@ -81,37 +124,26 @@ class _ShoppingListState extends State<ShoppingList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final groupedShoppingList = groupBy(
-      _shoppingList,
-      (item) => item.isIn ? "Tengo" : "Falta",
-    );
+    final pendingItems =
+        _shoppingList.where((item) => !item.isPurchased).toList();
+    final completedItems =
+        _shoppingList.where((item) => item.isPurchased).toList();
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.secondary.withOpacity(0.1),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.colorScheme.secondary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.shopping_cart,
-                color: theme.colorScheme.secondary,
-                size: 20,
-              ),
+            Icon(
+              Icons.shopping_cart,
+              color: theme.colorScheme.primary,
+              size: 24,
             ),
             const SizedBox(width: 12),
             Text(
               'Lista de la compra',
               style: TextStyle(
-                color: theme.colorScheme.secondary,
+                color: theme.colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -119,254 +151,432 @@ class _ShoppingListState extends State<ShoppingList> {
         ),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        automaticallyImplyLeading: false,
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => _loadShoppingList(),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              ModularFloatingActions(
-                actions: [
-                  NeumorphicActionButton(
-                    icon: Icons.kitchen,
-                    isHighlighted: _showAvailable == true,
-                    onPressed: () {
-                      setState(() {
-                        _showAvailable = true;
-                        _showAIShoppingList = false;
-                      });
-                    },
-                  ),
-                  NeumorphicActionButton(
-                    icon: Icons.shopping_basket_outlined,
-                    onPressed: () {
-                      setState(() {
-                        _showAvailable = false;
-                        _showAIShoppingList = false;
-                      });
-                    },
-                    isHighlighted: _showAvailable == false,
-                  ),
-                  NeumorphicActionButton(
-                    icon: Icons.add_shopping_cart,
-                    onPressed:
-                        () => setState(() {
-                          _adding = !_adding;
-                        }),
-                  ),
-                  NeumorphicActionButton(
-                    icon: Icons.auto_awesome,
-                    onPressed:
-                        () => setState(() {
-                          _showAIShoppingList = true;
-                        }),
-                  ),
-                ],
-              ),
-              if (_adding)
-                BasicTextInput(
-                  onSearch: _addNewIngredient,
-                  hint: "Patatas",
-                  checkIcon: Icons.add_rounded,
-                  padding: EdgeInsets.all(2),
-                  isInnerShadow: true,
-                ),
-              const SizedBox(height: 16),
-              if (_showAIShoppingList)
-                _generateAIShoppingList()
-              else
-                _buildShoppingListSection(
-                  title:
-                      _showAvailable
-                          ? "En mi despensa (${groupedShoppingList["Tengo"]?.length ?? 0})"
-                          : "Faltan (${groupedShoppingList["Falta"]?.length ?? 0})",
-                  shoppingList:
-                      _showAvailable
-                          ? groupedShoppingList["Tengo"] ?? []
-                          : groupedShoppingList["Falta"] ?? [],
-                  color:
-                      _showAvailable
-                          ? theme.colorScheme.primary.withOpacity(0.2)
-                          : theme.colorScheme.secondary.withOpacity(0.2),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildShoppingListSection({
-    required String title,
-    required List<CartItem> shoppingList,
-    required Color? color,
-  }) {
-    final theme = Theme.of(context);
-
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+        actions: [
+          if (completedItems.isNotEmpty)
+            IconButton(
+              onPressed: _clearCompleted,
+              icon: const Icon(Icons.clear_all),
+              tooltip: 'Limpiar completados',
             ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: NeumorphicCard(
-              withInnerShadow: true,
-              child:
-                  shoppingList.isEmpty
-                      ? Center(
-                        child: Text(
-                          "No hay ingredientes",
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                      )
-                      : ListView.builder(
-                        itemCount: shoppingList.length,
-                        itemBuilder: (context, index) {
-                          final item = shoppingList[index];
-                          return _buildIngredientCard(item, index);
-                        },
-                      ),
-            ),
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildIngredientCard(CartItem item, int originalIndex) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: theme.colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
-              offset: const Offset(-3, -3),
-              blurRadius: 5,
-            ),
-            BoxShadow(
-              color: theme.colorScheme.onSurface.withOpacity(0.2),
-              offset: const Offset(3, 3),
-              blurRadius: 5,
-            ),
-          ],
-        ),
-        child: ListTile(
-          title: Text(
-            item.name,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
+      body: Column(
+        children: [
+          // Campo para añadir elementos
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _itemController,
+                    decoration: InputDecoration(
+                      hintText: 'Añadir artículo...',
+                      prefixIcon: Icon(
+                        Icons.add_shopping_cart,
+                        color: theme.colorScheme.primary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.outline.withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    onSubmitted: _addItem,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                FloatingActionButton.small(
+                  onPressed: () => _addItem(_itemController.text),
+                  backgroundColor: theme.colorScheme.primary,
+                  child: const Icon(Icons.add, color: Colors.white),
+                  heroTag: 'add-shopping-item',
+                ),
+              ],
             ),
           ),
-          trailing: IconButton(
-            icon: item.isIn ? const Icon(Icons.close) : const Icon(Icons.check),
-            onPressed: () async {
-              setState(() {
-                item.isIn = !item.isIn;
-              });
-              await _updateShoppingList();
-            },
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _generateAIShoppingList() {
-    String userInfo = '';
-    return Expanded(
-      child: NeumorphicCard(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        withInnerShadow: false,
-        child: Center(
-          child:
-              _showAIShoppingListLoading
-                  ? Center(
+          // Estadísticas
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Column(
                       children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
                         Text(
-                          "Generando lista de la compra...",
-                          style: Theme.of(context).textTheme.bodyLarge,
+                          '${pendingItems.length}',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Pendientes',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                       ],
                     ),
-                  )
-                  : _generatedShoppingList.isNotEmpty
-                  ? Stack(
-                    children: [
-                      ListView.builder(
-                        itemCount: _generatedShoppingList.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8.0,
-                              horizontal: 12,
-                            ),
-                            child: Text(
-                              _generatedShoppingList[index],
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          );
-                        },
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: IconButton(
-                          icon: const Icon(Icons.replay_circle_filled_rounded),
-                          onPressed: () {
-                            setState(() {
-                              _generatedShoppingList = [];
-                              userInfo = '';
-                            });
-                            Toaster.showWarning(
-                              "Reiniciando lista de la compra...",
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  )
-                  : Column(
-                    children: [
-                      Expanded(
-                        child: BasicMultilineTextInput(
-                          isInnerShadow: true,
-                          hint:
-                              '''¡Hola! ¿Podrías indicar que puedes necesitar para el mes? Tambien puedes incluir el presupuesto mensual que tienes disponible, cuantas personas sois en casa, si hay algun amigo peludo... Lo que sea, trabajo mejor cuanta mas información me das. 'Ejemplo: "Somos 4 personas en casa, tengo un presupuesto de 1000 euros al mes. Para hacerte la lista de la compra tendre en cuenta el tipo de recetas que generas en la aplicación, puedes cambiar esto en ajustes o decirme expresamente que no quieres usar el tipo de recetas que está especificado''',
-                          onChanged: (info) => userInfo = info,
-                          maxLines: null,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: () => _generateShoppingList(userInfo),
-                        icon: const Icon(Icons.checklist_sharp),
-                        label: const Text("Generar lista de la compra"),
-                      ),
-                    ],
                   ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '${completedItems.length}',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: theme.colorScheme.secondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Completados',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Lista de artículos
+          Expanded(
+            child:
+                _shoppingList.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 80,
+                            color: theme.colorScheme.outline,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Lista vacía',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Añade artículos o genera una lista con IA',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                    : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _shoppingList.length,
+                      itemBuilder: (context, index) {
+                        final item = _shoppingList[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color:
+                                item.isPurchased
+                                    ? theme.colorScheme.secondary.withOpacity(
+                                      0.1,
+                                    )
+                                    : theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color:
+                                  item.isPurchased
+                                      ? theme.colorScheme.secondary.withOpacity(
+                                        0.3,
+                                      )
+                                      : theme.colorScheme.outline.withOpacity(
+                                        0.3,
+                                      ),
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: Checkbox(
+                              value: item.isPurchased,
+                              onChanged: (_) => _togglePurchased(index),
+                            ),
+                            title: Text(
+                              item.name,
+                              style: TextStyle(
+                                decoration:
+                                    item.isPurchased
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                color:
+                                    item.isPurchased
+                                        ? theme.colorScheme.outline
+                                        : theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              onPressed: () => _removeItem(index),
+                              icon: Icon(
+                                Icons.delete_outline,
+                                color: theme.colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAIGeneratorModal,
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.auto_awesome),
+        label: const Text('Generar con IA'),
+        heroTag: 'generate-shopping-list',
+      ),
+    );
+  }
+
+  Widget _buildAIGeneratorModal() {
+    final theme = Theme.of(context);
+    final personasController = TextEditingController();
+    final presupuestoIniController = TextEditingController();
+    final presupuestoFinController = TextEditingController();
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Container(
+            width: 50,
+            height: 5,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.outline.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(2.5),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  color: theme.colorScheme.primary,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Generar lista con IA',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(),
+
+          // Form
+          Expanded(
+            child:
+                _isGenerating
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Generando lista de la compra...',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    )
+                    : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Cuéntanos sobre tu hogar',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Número de personas
+                          TextField(
+                            controller: personasController,
+                            decoration: InputDecoration(
+                              labelText: 'Número de personas',
+                              hintText: 'Ej: 4',
+                              prefixIcon: const Icon(Icons.people),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Presupuesto
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: presupuestoIniController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Presupuesto min.',
+                                    hintText: '200',
+                                    prefixIcon: const Icon(Icons.euro),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
+                                child: Text(
+                                  '-',
+                                  style: theme.textTheme.headlineSmall,
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: presupuestoFinController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Presupuesto max.',
+                                    hintText: '300',
+                                    prefixIcon: const Icon(Icons.euro),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Info sobre tipo de recetas
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: theme.colorScheme.primary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Se tendrá en cuenta el tipo de cocina configurado: ${AppSingleton().tipoReceta}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+          ),
+
+          // Generate button
+          if (!_isGenerating)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final formData = {
+                      'personas': personasController.text,
+                      'presupuesto':
+                          '${presupuestoIniController.text} - ${presupuestoFinController.text}',
+                    };
+                    _generateShoppingListWithAI(formData);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.auto_awesome),
+                  label: const Text(
+                    'Generar lista de la compra',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

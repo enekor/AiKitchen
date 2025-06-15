@@ -78,6 +78,25 @@ class _FindByIngredientsState extends State<FindByIngredients>
     Toaster.showWarning('Lista de ingredientes limpiada');
   }
 
+  String _cleanJsonResponse(String response) {
+    // Remover bloques de código markdown ```json y ```
+    String cleaned = response;
+
+    // Remover ```json al inicio
+    cleaned = cleaned.replaceAll(RegExp(r'^```json\s*', multiLine: true), '');
+
+    // Remover ``` al final
+    cleaned = cleaned.replaceAll(RegExp(r'\s*```$', multiLine: true), '');
+
+    // Remover cualquier ``` en el medio que pueda quedar
+    cleaned = cleaned.replaceAll('```', '');
+
+    // Limpiar espacios en blanco al inicio y final
+    cleaned = cleaned.trim();
+
+    return cleaned;
+  }
+
   int _totalTries = 0;
   Future<void> _generateResponse() async {
     if (ingredientes.isEmpty) {
@@ -101,10 +120,10 @@ class _FindByIngredientsState extends State<FindByIngredients>
         ),
         context,
       );
-
       if (response.isNotEmpty && !response.contains('error')) {
+        final cleanedResponse = _cleanJsonResponse(response);
         setState(() {
-          recetas = Recipe.fromJsonList(response);
+          recetas = Recipe.fromJsonList(cleanedResponse);
           _searching = false;
         });
         Toaster.showSuccess('¡${recetas!.length} recetas encontradas!');
@@ -227,57 +246,109 @@ class _FindByIngredientsState extends State<FindByIngredients>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Row(
+                      //   children: [
+                      //     Container(
+                      //       padding: const EdgeInsets.all(16),
+                      //       decoration: BoxDecoration(
+                      //         gradient: LinearGradient(
+                      //           begin: Alignment.topLeft,
+                      //           end: Alignment.bottomRight,
+                      //           colors: [
+                      //             theme.colorScheme.primary,
+                      //             theme.colorScheme.secondary,
+                      //           ],
+                      //         ),
+                      //         borderRadius: BorderRadius.circular(16),
+                      //         boxShadow: [
+                      //           BoxShadow(
+                      //             color: theme.colorScheme.primary.withOpacity(
+                      //               0.3,
+                      //             ),
+                      //             blurRadius: 8,
+                      //             offset: const Offset(0, 4),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //       child: const Icon(
+                      //         Icons.restaurant_menu,
+                      //         color: Colors.white,
+                      //         size: 24,
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 16),
+                      //     Expanded(
+                      //       child: Column(
+                      //         crossAxisAlignment: CrossAxisAlignment.start,
+                      //         children: [
+                      //           Text(
+                      //             'Ingredientes Mágicos',
+                      //             style: theme.textTheme.headlineSmall
+                      //                 ?.copyWith(
+                      //                   fontWeight: FontWeight.bold,
+                      //                   color: theme.colorScheme.primary,
+                      //                 ),
+                      //           ),
+                      //           Text(
+                      //             '${ingredientes.length} ingredientes seleccionados',
+                      //             style: theme.textTheme.bodyMedium?.copyWith(
+                      //               color: theme.colorScheme.onSurface
+                      //                   .withOpacity(0.7),
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+
+                      //   ],
+                      // ),
+
+                      // const SizedBox(height: 24),
+
+                      // Campo de entrada moderno
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  theme.colorScheme.primary,
-                                  theme.colorScheme.secondary,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: theme.colorScheme.primary.withOpacity(
-                                    0.3,
-                                  ),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
+                          Expanded(
+                            child: TextField(
+                              controller: _ingredientController,
+                              decoration: InputDecoration(
+                                hintText:
+                                    'Ej: tomate, cebolla, pollo, queso...',
+                                hintStyle: TextStyle(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.5),
                                 ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.restaurant_menu,
-                              color: Colors.white,
-                              size: 24,
+                                prefixIcon: Icon(
+                                  Icons.add_shopping_cart_outlined,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                              ),
+                              onSubmitted: (_) => _addIngredient(),
+                              onChanged: (value) => setState(() {}),
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Ingredientes Mágicos',
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.primary,
-                                      ),
-                                ),
-                                Text(
-                                  '${ingredientes.length} ingredientes seleccionados',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.7),
+                          Container(
+                            margin: const EdgeInsets.all(8),
+                            child: Material(
+                              color: theme.colorScheme.primary,
+                              borderRadius: BorderRadius.circular(12),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: _addIngredient,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                    size: 20,
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                           if (ingredientes.isNotEmpty)
@@ -294,66 +365,6 @@ class _FindByIngredientsState extends State<FindByIngredients>
                               ),
                             ),
                         ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Campo de entrada moderno
-                      Container(
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: theme.colorScheme.outline.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _ingredientController,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      'Ej: tomate, cebolla, pollo, queso...',
-                                  hintStyle: TextStyle(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.5),
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.add_shopping_cart_outlined,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                ),
-                                onSubmitted: (_) => _addIngredient(),
-                                onChanged: (value) => setState(() {}),
-                              ),
-                            ),
-                            Container(
-                              margin: const EdgeInsets.all(8),
-                              child: Material(
-                                color: theme.colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(12),
-                                  onTap: _addIngredient,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    child: const Icon(
-                                      Icons.add,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
 
                       // Lista de ingredientes con chips modernos
@@ -500,9 +511,6 @@ class _FindByIngredientsState extends State<FindByIngredients>
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                Colors.purple,
-                                Colors.blue,
-                                Colors.cyan,
                                 Colors.green,
                                 Colors.yellow,
                                 Colors.orange,
@@ -826,14 +834,6 @@ class _FindByIngredientsState extends State<FindByIngredients>
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildFeatureChip('🔥 IA Avanzada', theme),
-                const SizedBox(width: 12),
-                _buildFeatureChip('⚡ Resultados Rápidos', theme),
-              ],
-            ),
           ],
         ),
       ),
@@ -943,24 +943,6 @@ class _FindByIngredientsState extends State<FindByIngredients>
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureChip(String text, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );

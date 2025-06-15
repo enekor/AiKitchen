@@ -123,7 +123,7 @@ class JsonDocumentsService {
     List<CartItem> myCartItems = await getCartItems();
     for (String item in cartItems) {
       if (!myCartItems.any((cartItem) => cartItem.name == item)) {
-        myCartItems.add(CartItem(name: item, isIn: false));
+        myCartItems.add(CartItem(name: item));
       }
     }
     await setCartItems(myCartItems);

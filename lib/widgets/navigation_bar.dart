@@ -2,7 +2,6 @@ import 'package:aikitchen/widgets/neumorphic_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 class NeumorphicNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -50,31 +49,11 @@ class NeumorphicNavigationBar extends StatelessWidget {
                           : Colors.transparent,
                 ),
                 child: Icon(
-                  currentIndex == 0
-                      ? Icons.restaurant_menu
-                      : Icons.restaurant_menu_outlined,
+                  currentIndex == 0 ? Icons.kitchen : Icons.kitchen_outlined,
                 ),
               ),
-              label: 'Recetas IA',
+              label: 'Ingredientes',
             ),
-            // BottomNavigationBarItem(
-            //   icon: Container(
-            //     padding: const EdgeInsets.all(8),
-            //     decoration: BoxDecoration(
-            //       shape: BoxShape.circle,
-            //       color:
-            //           currentIndex == 1
-            //               ? Theme.of(
-            //                 context,
-            //               ).colorScheme.primary.withOpacity(0.2)
-            //               : Colors.transparent,
-            //     ),
-            //     child: Icon(
-            //       currentIndex == 1 ? Icons.kitchen : Icons.kitchen_outlined,
-            //     ),
-            //   ),
-            //   label: 'DB',
-            // ),
             BottomNavigationBarItem(
               icon: Container(
                 padding: const EdgeInsets.all(8),
@@ -89,50 +68,31 @@ class NeumorphicNavigationBar extends StatelessWidget {
                 ),
                 child: Icon(
                   currentIndex == 1
-                      ? Icons.add_circle
-                      : Icons.add_circle_outline,
+                      ? Icons.menu_book
+                      : Icons.menu_book_outlined,
                 ),
               ),
-              label: 'Crear receta',
+              label: 'Por Nombre',
             ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      currentIndex == 2
-                          ? Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.2)
-                          : Colors.transparent,
+            if (!isWeb)
+              BottomNavigationBarItem(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        currentIndex == 2
+                            ? Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.2)
+                            : Colors.transparent,
+                  ),
+                  child: Icon(
+                    currentIndex == 2 ? Icons.favorite : Icons.favorite_border,
+                  ),
                 ),
-                child: Icon(
-                  currentIndex == 2
-                      ? Icons.shopping_cart
-                      : Icons.shopping_cart_outlined,
-                ),
+                label: 'Favoritos',
               ),
-              label: 'Lista de la compra',
-            ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      currentIndex == 3
-                          ? Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.2)
-                          : Colors.transparent,
-                ),
-                child: Icon(
-                  currentIndex == 3 ? Icons.settings : Icons.settings_outlined,
-                ),
-              ),
-              label: 'Ajustes',
-            ),
           ],
         ),
       ),

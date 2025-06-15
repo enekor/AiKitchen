@@ -15,6 +15,7 @@ class RecipeScreen extends StatefulWidget {
 class _RecipeScreenState extends State<RecipeScreen> {
   int _currentPage = 0;
   final PageController _pageController = PageController();
+  bool _showSummary = false;
 
   @override
   void dispose() {
@@ -57,39 +58,61 @@ class _RecipeScreenState extends State<RecipeScreen> {
       body: Column(
         children: [
           // Recipe info header
-          CookingCard(
-            margin: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.recipe.descripcion,
-                  style: theme.textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildInfoItem(
-                      Icons.local_fire_department,
-                      '${widget.recipe.calorias.toInt()} cal',
-                      theme.colorScheme.tertiary,
-                    ),
-                    _buildInfoItem(
-                      Icons.timer,
-                      widget.recipe.tiempoEstimado,
-                      theme.colorScheme.secondary,
-                    ),
-                    _buildInfoItem(
-                      Icons.restaurant,
-                      '${widget.recipe.raciones} porciones',
-                      theme.colorScheme.primary,
-                    ),
-                  ],
-                ),
-              ],
+          if (_showSummary)
+            CookingCard(
+              onTap:
+                  () => setState(() {
+                    _showSummary = !_showSummary;
+                  }),
+              margin: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.recipe.descripcion,
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildInfoItem(
+                        Icons.local_fire_department,
+                        '${widget.recipe.calorias.toInt()} cal',
+                        theme.colorScheme.tertiary,
+                      ),
+                      _buildInfoItem(
+                        Icons.timer,
+                        widget.recipe.tiempoEstimado,
+                        theme.colorScheme.secondary,
+                      ),
+                      _buildInfoItem(
+                        Icons.restaurant,
+                        '${widget.recipe.raciones} porciones',
+                        theme.colorScheme.primary,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
+          if (!_showSummary)
+            CookingCard(
+              onTap:
+                  () => setState(() {
+                    _showSummary = !_showSummary;
+                  }),
+              margin: const EdgeInsets.all(16),
+              child: Center(
+                child: Text(
+                  'Mostrar resumen',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
 
           // Navigation tabs
           CookingCard(

@@ -94,7 +94,10 @@ class _IngredientsPartState extends State<IngredientsPart> {
   void _addCartIngredients() async {
     var ingredients = await JsonDocumentsService().getCartItems();
     List<String> ingredientsList =
-        ingredients.where((ing) => ing.isIn).map((e) => e.name).toList();
+        ingredients
+            .where((ing) => !ing.isPurchased)
+            .map((e) => e.name)
+            .toList();
     for (String ingredient in ingredientsList) {
       widget.onNewIngredient(ingredient);
     }

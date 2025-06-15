@@ -88,6 +88,14 @@ class _FindByNameState extends State<FindByName> with TickerProviderStateMixin {
   }
 
   int _totalTries = 0;
+  String _cleanJsonResponse(String response) {
+    // Remove markdown code blocks if present
+    response = response.replaceAll(RegExp(r'```json\s*'), '');
+    response = response.replaceAll(RegExp(r'\s*```'), '');
+    response = response.trim();
+    return response;
+  }
+
   Future<void> _searchByName(String name) async {
     if (name.trim().isEmpty) {
       Toaster.showWarning('Escribe el nombre de una receta');
@@ -126,9 +134,11 @@ class _FindByNameState extends State<FindByName> with TickerProviderStateMixin {
         context,
       );
 
-      if (response.isNotEmpty && !response.contains('error')) {
+      final cleanedResponse = _cleanJsonResponse(response);
+
+      if (cleanedResponse.isNotEmpty && !cleanedResponse.contains('error')) {
         setState(() {
-          _recetas = Recipe.fromJsonList(response);
+          _recetas = Recipe.fromJsonList(cleanedResponse);
           _searching = false;
         });
         Toaster.showSuccess('¡${_recetas!.length} recetas encontradas!');
@@ -217,418 +227,426 @@ class _FindByNameState extends State<FindByName> with TickerProviderStateMixin {
                   child: Opacity(opacity: _fadeAnimation.value, child: child),
                 );
               },
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.colorScheme.secondary.withOpacity(0.05),
-                      theme.colorScheme.tertiary.withOpacity(0.05),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.secondary.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: CookingCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  theme.colorScheme.secondary,
-                                  theme.colorScheme.tertiary,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: theme.colorScheme.secondary
-                                      .withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.search,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Buscar por Nombre',
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.secondary,
-                                      ),
-                                ),
-                                Text(
-                                  'Encuentra recetas específicas',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.7),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (_historial.isNotEmpty)
-                            Container(
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.secondary.withOpacity(
-                                  0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: IconButton(
-                                onPressed: _toggleHistory,
-                                icon: AnimatedRotation(
-                                  turns: _showHistory ? 0.5 : 0,
-                                  duration: const Duration(milliseconds: 300),
-                                  child: const Icon(Icons.history),
-                                ),
-                                color: theme.colorScheme.secondary,
-                                tooltip: 'Historial',
-                              ),
-                            ),
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          theme.colorScheme.secondary.withOpacity(0.05),
+                          theme.colorScheme.tertiary.withOpacity(0.05),
                         ],
                       ),
-
-                      const SizedBox(height: 24),
-
-                      // Campo de búsqueda moderno
-                      Container(
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: theme.colorScheme.outline.withOpacity(0.3),
-                          ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.secondary.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _nameController,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      'Ej: Paella valenciana, Lasaña, Tiramisu...',
-                                  hintStyle: TextStyle(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.5),
+                      ],
+                    ),
+                    child: CookingCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _nameController,
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Ej: Paella valenciana, Lasaña, Tiramisu...',
+                                    hintStyle: TextStyle(
+                                      color: theme.colorScheme.onSurface
+                                          .withOpacity(0.5),
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.restaurant_menu,
+                                      color: theme.colorScheme.secondary,
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
                                   ),
-                                  prefixIcon: Icon(
-                                    Icons.restaurant_menu,
+                                  onSubmitted: _searchByName,
+                                  onChanged: (value) => setState(() {}),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Botón de historial
+                              if (_historial.isNotEmpty)
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.secondary
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: _toggleHistory,
+                                    icon: AnimatedRotation(
+                                      turns: _showHistory ? 0.5 : 0,
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      child: const Icon(Icons.history),
+                                    ),
                                     color: theme.colorScheme.secondary,
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
+                                    tooltip: 'Historial',
                                   ),
                                 ),
-                                onSubmitted: _searchByName,
-                                onChanged: (value) => setState(() {}),
+                            ],
+                          ),
+
+                          // Historial desplegable
+                          AnimatedBuilder(
+                            animation: _historyAnimationController,
+                            builder: (context, child) {
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                height:
+                                    _showHistory && _historial.isNotEmpty
+                                        ? 200
+                                        : 0,
+                                child:
+                                    _showHistory && _historial.isNotEmpty
+                                        ? Transform.translate(
+                                          offset: Offset(
+                                            0,
+                                            _historySlideAnimation.value,
+                                          ),
+                                          child: Container(
+                                            margin: const EdgeInsets.only(
+                                              top: 16,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: theme
+                                                  .colorScheme
+                                                  .surfaceContainerHighest
+                                                  .withOpacity(0.5),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: theme.colorScheme.outline
+                                                    .withOpacity(0.2),
+                                              ),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    16,
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.history,
+                                                        size: 16,
+                                                        color:
+                                                            theme
+                                                                .colorScheme
+                                                                .secondary,
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        'Búsquedas recientes',
+                                                        style: theme
+                                                            .textTheme
+                                                            .titleSmall
+                                                            ?.copyWith(
+                                                              color:
+                                                                  theme
+                                                                      .colorScheme
+                                                                      .secondary,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: ListView.builder(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                        ),
+                                                    itemCount:
+                                                        _historial.length > 5
+                                                            ? 5
+                                                            : _historial.length,
+                                                    itemBuilder: (
+                                                      context,
+                                                      index,
+                                                    ) {
+                                                      final item =
+                                                          _historial[index];
+                                                      return Container(
+                                                        margin:
+                                                            const EdgeInsets.symmetric(
+                                                              vertical: 2,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                12,
+                                                              ),
+                                                        ),
+                                                        child: ListTile(
+                                                          dense: true,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  12,
+                                                                ),
+                                                          ),
+                                                          leading: Container(
+                                                            padding:
+                                                                const EdgeInsets.all(
+                                                                  6,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color: theme
+                                                                  .colorScheme
+                                                                  .secondary
+                                                                  .withOpacity(
+                                                                    0.1,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    8,
+                                                                  ),
+                                                            ),
+                                                            child: Icon(
+                                                              Icons.access_time,
+                                                              size: 14,
+                                                              color:
+                                                                  theme
+                                                                      .colorScheme
+                                                                      .secondary,
+                                                            ),
+                                                          ),
+                                                          title: Text(
+                                                            item,
+                                                            style: theme
+                                                                .textTheme
+                                                                .bodyMedium
+                                                                ?.copyWith(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                          ),
+                                                          trailing: Icon(
+                                                            Icons.north_west,
+                                                            size: 16,
+                                                            color: theme
+                                                                .colorScheme
+                                                                .onSurface
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                ),
+                                                          ),
+                                                          onTap: () {
+                                                            _nameController
+                                                                .text = item;
+                                                            _searchByName(item);
+                                                          },
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                        : null,
+                              );
+                            },
+                          ),
+
+                          // Chips de sugerencias
+                          if (!_showHistory &&
+                              _nameController.text.isEmpty) ...[
+                            const SizedBox(height: 20),
+                            Text(
+                              'Sugerencias populares:',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.secondary,
                               ),
                             ),
-                            Container(
-                              margin: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
+                            const SizedBox(height: 12),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+
+                              child: Row(
+                                spacing: 8,
+                                children:
+                                    [
+                                          'Paella Valenciana',
+                                          'Lasaña Boloñesa',
+                                          'Tacos Mexicanos',
+                                          'Sushi Rolls',
+                                          'Pizza Margherita',
+                                        ]
+                                        .map(
+                                          (suggestion) => _buildSuggestionChip(
+                                            suggestion,
+                                            theme,
+                                          ),
+                                        )
+                                        .toList(),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient:
+                            _nameController.text.trim().isNotEmpty
+                                ? const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.purple,
-                                    Colors.blue,
-                                    Colors.cyan,
                                     Colors.green,
                                     Colors.yellow,
                                     Colors.orange,
                                     Colors.red,
                                   ],
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
+                                )
+                                : null,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow:
+                            _nameController.text.trim().isNotEmpty
+                                ? [
                                   BoxShadow(
                                     color: Colors.purple.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
                                   ),
-                                ],
+                                ]
+                                : null,
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(17),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(17),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(17),
+                            onTap:
+                                _searching ||
+                                        _nameController.text.trim().isEmpty
+                                    ? null
+                                    : () => _searchByName(_nameController.text),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
                               ),
-                              child: Container(
-                                padding: const EdgeInsets.all(
-                                  2,
-                                ), // Border thickness
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.surface,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(10),
-                                      onTap:
-                                          _searching
-                                              ? null
-                                              : () => _searchByName(
-                                                _nameController.text,
-                                              ),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        child:
-                                            _searching
-                                                ? SizedBox(
-                                                  width: 20,
-                                                  height: 20,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                          Color
-                                                        >(
-                                                          theme
-                                                              .colorScheme
-                                                              .secondary,
-                                                        ),
+                              child:
+                                  _searching
+                                      ? Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    theme.colorScheme.secondary,
                                                   ),
-                                                )
-                                                : Icon(
-                                                  Icons.search,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Buscando recetas...',
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
                                                   color:
                                                       theme
                                                           .colorScheme
                                                           .secondary,
-                                                  size: 20,
+                                                  fontWeight: FontWeight.w600,
                                                 ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Historial desplegable
-                      AnimatedBuilder(
-                        animation: _historyAnimationController,
-                        builder: (context, child) {
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            height:
-                                _showHistory && _historial.isNotEmpty ? 200 : 0,
-                            child:
-                                _showHistory && _historial.isNotEmpty
-                                    ? Transform.translate(
-                                      offset: Offset(
-                                        0,
-                                        _historySlideAnimation.value,
-                                      ),
-                                      child: Container(
-                                        margin: const EdgeInsets.only(top: 16),
-                                        decoration: BoxDecoration(
-                                          color: theme
-                                              .colorScheme
-                                              .surfaceContainerHighest
-                                              .withOpacity(0.5),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
                                           ),
-                                          border: Border.all(
-                                            color: theme.colorScheme.outline
-                                                .withOpacity(0.2),
+                                        ],
+                                      )
+                                      : Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.search,
+                                            color:
+                                                _nameController.text
+                                                        .trim()
+                                                        .isNotEmpty
+                                                    ? theme
+                                                        .colorScheme
+                                                        .secondary
+                                                    : theme
+                                                        .colorScheme
+                                                        .onSurface
+                                                        .withOpacity(0.5),
+                                            size: 24,
                                           ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.history,
-                                                    size: 16,
-                                                    color:
-                                                        theme
-                                                            .colorScheme
-                                                            .secondary,
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    'Búsquedas recientes',
-                                                    style: theme
-                                                        .textTheme
-                                                        .titleSmall
-                                                        ?.copyWith(
-                                                          color:
-                                                              theme
-                                                                  .colorScheme
-                                                                  .secondary,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: ListView.builder(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                    ),
-                                                itemCount:
-                                                    _historial.length > 5
-                                                        ? 5
-                                                        : _historial.length,
-                                                itemBuilder: (context, index) {
-                                                  final item =
-                                                      _historial[index];
-                                                  return Container(
-                                                    margin:
-                                                        const EdgeInsets.symmetric(
-                                                          vertical: 2,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            12,
-                                                          ),
-                                                    ),
-                                                    child: ListTile(
-                                                      dense: true,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              12,
-                                                            ),
-                                                      ),
-                                                      leading: Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              6,
-                                                            ),
-                                                        decoration: BoxDecoration(
-                                                          color: theme
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            _nameController.text.trim().isEmpty
+                                                ? 'Escribe un nombre primero'
+                                                : '¡Buscar recetas!',
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
+                                                  color:
+                                                      _nameController.text
+                                                              .trim()
+                                                              .isNotEmpty
+                                                          ? theme
                                                               .colorScheme
                                                               .secondary
-                                                              .withOpacity(0.1),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                8,
-                                                              ),
-                                                        ),
-                                                        child: Icon(
-                                                          Icons.access_time,
-                                                          size: 14,
-                                                          color:
-                                                              theme
-                                                                  .colorScheme
-                                                                  .secondary,
-                                                        ),
-                                                      ),
-                                                      title: Text(
-                                                        item,
-                                                        style: theme
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                            ),
-                                                      ),
-                                                      trailing: Icon(
-                                                        Icons.north_west,
-                                                        size: 16,
-                                                        color: theme
-                                                            .colorScheme
-                                                            .onSurface
-                                                            .withOpacity(0.5),
-                                                      ),
-                                                      onTap: () {
-                                                        _nameController.text =
-                                                            item;
-                                                        _searchByName(item);
-                                                      },
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                                          : theme
+                                                              .colorScheme
+                                                              .onSurface
+                                                              .withOpacity(0.5),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ],
                                       ),
-                                    )
-                                    : null,
-                          );
-                        },
+                            ),
+                          ),
+                        ),
                       ),
-
-                      // Chips de sugerencias
-                      if (!_showHistory && _nameController.text.isEmpty) ...[
-                        const SizedBox(height: 20),
-                        Text(
-                          'Sugerencias populares:',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.secondary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-
-                          child: Row(
-                            spacing: 8,
-                            children:
-                                [
-                                      'Paella Valenciana',
-                                      'Lasaña Boloñesa',
-                                      'Tacos Mexicanos',
-                                      'Sushi Rolls',
-                                      'Pizza Margherita',
-                                    ]
-                                    .map(
-                                      (suggestion) => _buildSuggestionChip(
-                                        suggestion,
-                                        theme,
-                                      ),
-                                    )
-                                    .toList(),
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
