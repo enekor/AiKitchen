@@ -921,15 +921,6 @@ class _FindByNameState extends State<FindByName> with TickerProviderStateMixin {
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildFeatureChip('🔍 Búsqueda Inteligente', theme),
-                const SizedBox(width: 12),
-                _buildFeatureChip('⚡ Resultados Rápidos', theme),
-              ],
-            ),
           ],
         ),
       ),

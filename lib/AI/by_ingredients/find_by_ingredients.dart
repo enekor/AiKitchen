@@ -246,66 +246,6 @@ class _FindByIngredientsState extends State<FindByIngredients>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Row(
-                      //   children: [
-                      //     Container(
-                      //       padding: const EdgeInsets.all(16),
-                      //       decoration: BoxDecoration(
-                      //         gradient: LinearGradient(
-                      //           begin: Alignment.topLeft,
-                      //           end: Alignment.bottomRight,
-                      //           colors: [
-                      //             theme.colorScheme.primary,
-                      //             theme.colorScheme.secondary,
-                      //           ],
-                      //         ),
-                      //         borderRadius: BorderRadius.circular(16),
-                      //         boxShadow: [
-                      //           BoxShadow(
-                      //             color: theme.colorScheme.primary.withOpacity(
-                      //               0.3,
-                      //             ),
-                      //             blurRadius: 8,
-                      //             offset: const Offset(0, 4),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //       child: const Icon(
-                      //         Icons.restaurant_menu,
-                      //         color: Colors.white,
-                      //         size: 24,
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 16),
-                      //     Expanded(
-                      //       child: Column(
-                      //         crossAxisAlignment: CrossAxisAlignment.start,
-                      //         children: [
-                      //           Text(
-                      //             'Ingredientes Mágicos',
-                      //             style: theme.textTheme.headlineSmall
-                      //                 ?.copyWith(
-                      //                   fontWeight: FontWeight.bold,
-                      //                   color: theme.colorScheme.primary,
-                      //                 ),
-                      //           ),
-                      //           Text(
-                      //             '${ingredientes.length} ingredientes seleccionados',
-                      //             style: theme.textTheme.bodyMedium?.copyWith(
-                      //               color: theme.colorScheme.onSurface
-                      //                   .withOpacity(0.7),
-                      //             ),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ),
-
-                      //   ],
-                      // ),
-
-                      // const SizedBox(height: 24),
-
-                      // Campo de entrada moderno
                       Row(
                         children: [
                           Expanded(
@@ -833,7 +773,6 @@ class _FindByIngredientsState extends State<FindByIngredients>
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
