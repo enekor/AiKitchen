@@ -95,63 +95,63 @@ class _FavouritesState extends State<Favourites> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      children: [
-        // Cooking-themed header
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: theme.colorScheme.primary.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Icon(
-                  Icons.favorite,
-                  color: theme.colorScheme.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Recetas favoritas',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const Spacer(),
-              if (_recetasFavoritas.isNotEmpty)
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: Column(
+        children: [
+          // Cooking-themed header
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${_recetasFavoritas.length}',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withOpacity(0.3),
+                      width: 1,
                     ),
                   ),
+                  child: Icon(
+                    Icons.favorite,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
                 ),
-            ],
+                const SizedBox(width: 12),
+                Text(
+                  'Recetas favoritas',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Spacer(),
+                if (_recetasFavoritas.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${_recetasFavoritas.length}',
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _load,
+          Expanded(
             child: SizedBox(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
@@ -230,8 +230,8 @@ class _FavouritesState extends State<Favourites> {
                       ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -250,6 +250,7 @@ class _RecipesListState extends State<RecipesList> {
             bottom: 16,
             right: 16,
             child: FloatingActionButton(
+              elevation: 8,
               onPressed: () {
                 widget.onShareRecipe!(_selectedRecipes);
                 setState(() {
