@@ -21,7 +21,8 @@ class _HomeState extends State<Home> {
   final List<Widget> _pages = [
     const FindByIngredients(),
     const FindByName(),
-    if (!kIsWeb) const Favourites(),
+    // if (!kIsWeb) 
+      const Favourites(),
   ];
 
   void _navigateToSettings() {

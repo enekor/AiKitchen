@@ -1,6 +1,7 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/widgets/ingredient_modal.dart';
 import 'package:aikitchen/widgets/neumorphic_card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide BoxShadow;
 
 class RecipePreview extends StatefulWidget {
@@ -247,9 +248,9 @@ class _RecipesListState extends State<RecipesList> {
         ),
         if (_selectedRecipes.isNotEmpty)
           Positioned(
-            bottom: 16,
+            bottom: 16 * 5,
             right: 16,
-            child: FloatingActionButton(
+            child: FloatingActionButton.small(
               elevation: 8,
               onPressed: () {
                 widget.onShareRecipe!(_selectedRecipes);
@@ -257,7 +258,7 @@ class _RecipesListState extends State<RecipesList> {
                   _selectedRecipes.clear();
                 });
               },
-              child: const Icon(Icons.share),
+              child: const Icon(kIsWeb ? Icons.download : Icons.share),
             ),
           ),
       ],

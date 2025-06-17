@@ -32,7 +32,7 @@ class _UsingAiState extends State<UsingAi> with TickerProviderStateMixin {
       color: Color(0xFFFFB74D), // Amarillo dorado
       description: 'Buscar recetas por nombre',
     ),
-    if (!kIsWeb)
+    // if (!kIsWeb)
       TabInfo(
         icon: Icons.favorite_border,
         activeIcon: Icons.favorite,

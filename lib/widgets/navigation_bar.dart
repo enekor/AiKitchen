@@ -74,7 +74,7 @@ class NeumorphicNavigationBar extends StatelessWidget {
               ),
               label: 'Por Nombre',
             ),
-            if (!isWeb)
+            // if (!isWeb)
               BottomNavigationBarItem(
                 icon: Container(
                   padding: const EdgeInsets.all(8),

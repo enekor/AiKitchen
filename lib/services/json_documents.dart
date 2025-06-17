@@ -13,7 +13,6 @@ class JsonDocumentsService {
 
   Future<List<Recipe>> getFavRecipes() async {
     try {
-      final documentPath = await getApplicationDocumentsDirectory();
       if (kIsWeb) {
         final prefs = await SharedPreferences.getInstance();
         final favRecipesString = prefs.getString('fav_recipes');
@@ -23,6 +22,7 @@ class JsonDocumentsService {
           return [];
         }
       } else {
+        final documentPath = await getApplicationDocumentsDirectory();
         final filePath = '${documentPath.path}$favFilePath';
         final file = File(filePath);
         if (await file.exists()) {
@@ -41,12 +41,12 @@ class JsonDocumentsService {
 
   Future<void> setFavRecipes(List<Recipe> recipes) async {
     try {
-      final documentPath = await getApplicationDocumentsDirectory();
       if (kIsWeb) {
         final prefs = await SharedPreferences.getInstance();
         final favRecipesString = jsonEncode(recipes);
         await prefs.setString('fav_recipes', favRecipesString);
       } else {
+        final documentPath = await getApplicationDocumentsDirectory();
         final filePath = '${documentPath.path}$favFilePath';
         final file = File(filePath);
         String favRecipes = jsonEncode(recipes);
