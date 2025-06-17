@@ -797,65 +797,68 @@ class _FindByNameState extends State<FindByName> with TickerProviderStateMixin {
       return SliverFillRemaining(
         hasScrollBody: false,
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.error.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: LottieAnimationWidget(
-                  type: LottieAnimationType.notfound,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                '¡Ups! No encontré esa receta',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.error,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Intenta con un nombre diferente\no verifica la ortografía',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: TextButton.icon(
-                  onPressed: () {
-                    final sugerencias = [
-                      'Paella',
-                      'Lasaña',
-                      'Pizza',
-                      'Sushi',
-                      'Tacos',
-                    ];
-                    final random = (sugerencias..shuffle()).first;
-                    _nameController.text = random;
-                    _searchByName(random);
-                  },
-                  icon: Icon(
-                    Icons.lightbulb_outline,
-                    color: theme.colorScheme.secondary,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.error.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  label: Text(
-                    'Probar una sugerencia',
-                    style: TextStyle(color: theme.colorScheme.secondary),
+                  child: LottieAnimationWidget(
+                    type: LottieAnimationType.notfound,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Text(
+                  '¡Ups! No encontré esa receta',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Intenta con un nombre diferente\no verifica la ortografía',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TextButton.icon(
+                    onPressed: () {
+                      final sugerencias = [
+                        'Paella',
+                        'Lasaña',
+                        'Pizza',
+                        'Sushi',
+                        'Tacos',
+                      ];
+                      final random = (sugerencias..shuffle()).first;
+                      _nameController.text = random;
+                      _searchByName(random);
+                    },
+                    icon: Icon(
+                      Icons.lightbulb_outline,
+                      color: theme.colorScheme.secondary,
+                    ),
+                    label: Text(
+                      'Probar una sugerencia',
+                      style: TextStyle(color: theme.colorScheme.secondary),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );

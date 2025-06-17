@@ -139,27 +139,6 @@ class IngredientsList extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            // Checkmark icon
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.tertiary.withOpacity(
-                                  0.1,
-                                ),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: theme.colorScheme.tertiary.withOpacity(
-                                    0.3,
-                                  ),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.check,
-                                color: theme.colorScheme.tertiary,
-                                size: 16,
-                              ),
-                            ),
                           ],
                         ),
                       );
