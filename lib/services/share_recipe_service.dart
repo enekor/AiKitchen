@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:html' as html;
 
 class ShareRecipeService {
   Future<void> shareRecipe(List<Recipe> recipe) async {
@@ -13,7 +11,7 @@ class ShareRecipeService {
 
       if (kIsWeb) {
         // Implementación para web
-        await _shareRecipeOnWeb(recipe);
+        return;
       } else {
         // Implementación para móvil/desktop usando share_plus
         await _shareRecipeOnMobile(recipe);
@@ -40,43 +38,25 @@ class ShareRecipeService {
     );
   }
 
-  Future<void> _shareRecipeOnWeb(List<Recipe> recipe) async {
-    // Convert the Recipe object to JSON
-    final recipeJson = jsonEncode(recipe);
+  // Future<void> _shareRecipeOnWeb(List<Recipe> recipe) async {
+  //   // Convert the Recipe object to JSON
+  //   final recipeJson = jsonEncode(recipe);
 
-    // Crear el archivo como blob y descargarlo
-    final bytes = utf8.encode(recipeJson);
-    final blob = html.Blob([bytes], 'application/json');
-    final url = html.Url.createObjectUrlFromBlob(blob);
+  //   // Crear el archivo como blob y descargarlo
+  //   final bytes = utf8.encode(recipeJson);
+  //   final blob = web.Blob(
+  //     [bytes.toJS].toJS,
+  //     web.BlobPropertyBag(type: 'application/json'),
+  //   );
+  //   final url = web.URL.createObjectURL(blob);
 
-    // Verificar si el navegador soporta Web Share API
-    if (_supportsWebShare()) {
-      try {
-        // Intentar usar Web Share API nativa del navegador
-        await html.window.navigator.share({
-          'title': 'Recetas de AiKitchen',
-          'text': 'Mira estas recetas que tengo en AiKitchen',
-          'files': [
-            // Nota: File sharing via Web Share API tiene soporte limitado
-          ],
-        });
-        return;
-      } catch (e) {
-        debugPrint('Web Share API failed, falling back to download: $e');
-      }
-    }
+  //   // Descargar el archivo directamente (más simple y confiable)
+  //   web.HTMLAnchorElement()
+  //     ..href = url
+  //     ..download = 'recetas.aikr'
+  //     ..click();
 
-    // Fallback: Descargar el archivo
-    final anchor =
-        html.AnchorElement(href: url)
-          ..setAttribute('download', 'recetas.aikr')
-          ..click();
-
-    // Limpiar la URL del objeto
-    html.Url.revokeObjectUrl(url);
-  }
-
-  static bool _supportsWebShare() {
-    return html.window.navigator.share != null;
-  }
+  //   // Limpiar la URL del objeto
+  //   web.URL.revokeObjectURL(url);
+  // }
 }

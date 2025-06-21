@@ -129,6 +129,17 @@ class _FavouritesState extends State<Favourites> {
                   ),
                 ),
                 const Spacer(),
+                // Refresh button
+                IconButton(
+                  onPressed: _load,
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Actualizar favoritos',
+                  style: IconButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                    foregroundColor: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 if (_recetasFavoritas.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(

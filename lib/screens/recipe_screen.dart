@@ -1,7 +1,10 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/cooking_card.dart';
 import 'package:aikitchen/widgets/ingredients_list.dart';
 import 'package:aikitchen/widgets/steps_list.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 
 class RecipeScreen extends StatefulWidget {
@@ -16,6 +19,41 @@ class _RecipeScreenState extends State<RecipeScreen> {
   int _currentPage = 0;
   final PageController _pageController = PageController();
   bool _showSummary = false;
+  bool _isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorite();
+  }
+
+  void _checkIfFavorite() {
+    _isFavorite = AppSingleton().recetasFavoritas.any(
+      (recipe) =>
+          recipe.nombre == widget.recipe.nombre &&
+          recipe.descripcion == widget.recipe.descripcion,
+    );
+  }
+
+  void _toggleFavorite() async {
+    if (_isFavorite) {
+      AppSingleton().recetasFavoritas.removeWhere(
+        (recipe) =>
+            recipe.nombre == widget.recipe.nombre &&
+            recipe.descripcion == widget.recipe.descripcion,
+      );
+      Toaster.showWarning('Eliminado de favoritos');
+    } else {
+      AppSingleton().recetasFavoritas.add(widget.recipe);
+      Toaster.showSuccess('¡Añadido a favoritos!');
+    }
+
+    await JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
+
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+  }
 
   @override
   void dispose() {
@@ -33,6 +71,15 @@ class _RecipeScreenState extends State<RecipeScreen> {
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         actions: [
+          // Favorite button
+          IconButton(
+            onPressed: _toggleFavorite,
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : null,
+            ),
+            tooltip: _isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos',
+          ),
           // Recipe info chips in app bar
           Padding(
             padding: const EdgeInsets.only(right: 16.0),

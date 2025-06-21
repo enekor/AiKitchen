@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 enum LottieAnimationType { loading, notfound }
 
@@ -20,9 +21,13 @@ class LottieAnimationWidget extends StatelessWidget {
           switch (type) {
             LottieAnimationType.loading => Column(
               children: [
-                CircularProgressIndicator(
-                  color: theme.colorScheme.primary,
-                  strokeWidth: 3,
+                SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: Lottie.asset(
+                    'assets/buscando.json',
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(

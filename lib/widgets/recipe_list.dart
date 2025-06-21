@@ -129,7 +129,7 @@ class _RecipePreviewState extends State<RecipePreview> {
                           });
                         },
                       ),
-                    if (widget.onShareRecipe != null)
+                    if (widget.onShareRecipe != null && !kIsWeb)
                       IconButton(
                         icon: widget.shareIcon,
                         onPressed: () {
@@ -246,7 +246,7 @@ class _RecipesListState extends State<RecipesList> {
             ],
           ),
         ),
-        if (_selectedRecipes.isNotEmpty)
+        if (_selectedRecipes.isNotEmpty && !kIsWeb)
           Positioned(
             bottom: 16 * 5,
             right: 16,
