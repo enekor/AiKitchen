@@ -75,8 +75,8 @@ class _MyAppState extends State<MyApp> {
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: CookingTheme.lightTheme,
-          darkTheme: CookingTheme.darkTheme,
+          theme: CookingTheme.lightTheme(lightDynamic),
+          darkTheme: CookingTheme.darkTheme(darkDynamic),
           home: FutureBuilder<bool?>(
             future: SharedPreferencesService.getBoolValue(
               SharedPreferencesKeys.termsAccepted,

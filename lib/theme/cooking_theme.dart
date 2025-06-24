@@ -18,14 +18,14 @@ class CookingTheme {
   static const Color cream = Color(0xFFFAF7F2); // Crema
   static const Color brown = Color(0xFF8D6E63); // Marrón
   static const Color darkBrown = Color(0xFF5D4037); // Marrón oscuro
-
-  static ThemeData get lightTheme {
+  static ThemeData lightTheme([ColorScheme? dynamicColorScheme]) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
 
-      // Esquema de colores
-      colorScheme: const ColorScheme.light(
+      // Esquema de colores híbrido: dinámicos + temáticos
+      colorScheme: ColorScheme.light(
+        // Colores temáticos fijos para la identidad de la app
         primary: primaryYellow,
         onPrimary: Colors.black87,
         primaryContainer: lightYellow,
@@ -40,15 +40,29 @@ class CookingTheme {
         onTertiary: Colors.white,
         tertiaryContainer: lightRed,
         onTertiaryContainer: Colors.black87,
-        surface: cream,
-        onSurface: Colors.black87,
-        surfaceContainerHighest: lightYellow,
-        onSurfaceVariant: Colors.black87,
+
+        // Usar colores dinámicos para surfaces y backgrounds
+        surface: dynamicColorScheme?.surface ?? cream,
+        onSurface: dynamicColorScheme?.onSurface ?? Colors.black87,
+        surfaceContainerHighest:
+            dynamicColorScheme?.surfaceContainerHighest ?? lightYellow,
+        onSurfaceVariant:
+            dynamicColorScheme?.onSurfaceVariant ?? Colors.black87,
+        surfaceContainer: dynamicColorScheme?.surfaceContainer ?? cream,
+        surfaceContainerHigh:
+            dynamicColorScheme?.surfaceContainerHigh ?? lightYellow,
+        surfaceContainerLow: dynamicColorScheme?.surfaceContainerLow ?? cream,
+        surfaceTint: dynamicColorScheme?.surfaceTint ?? primaryYellow,
+
+        // Usar colores dinámicos para elementos neutros
+        outline: dynamicColorScheme?.outline ?? brown,
+        outlineVariant:
+            dynamicColorScheme?.outlineVariant ?? brown.withOpacity(0.5),
+        inverseSurface: dynamicColorScheme?.inverseSurface ?? Colors.black87,
+        onInverseSurface: dynamicColorScheme?.onInverseSurface ?? Colors.white,
 
         error: darkRed,
         onError: Colors.white,
-
-        outline: brown,
         shadow: Colors.black26,
       ),
 
@@ -199,36 +213,55 @@ class CookingTheme {
     );
   }
 
-  static ThemeData get darkTheme {
+  static ThemeData darkTheme([ColorScheme? dynamicColorScheme]) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
 
-      // Esquema de colores oscuro
-      colorScheme: const ColorScheme.dark(
+      // Esquema de colores oscuro híbrido: dinámicos + temáticos
+      colorScheme: ColorScheme.dark(
+        // Colores temáticos fijos para la identidad de la app
         primary: darkYellow,
         onPrimary: Colors.black,
-        primaryContainer: Color(0xFF4A3800),
+        primaryContainer: const Color(0xFF4A3800),
         onPrimaryContainer: darkYellow,
 
         secondary: darkGreen,
         onSecondary: Colors.white,
-        secondaryContainer: Color(0xFF1B4A1E),
+        secondaryContainer: const Color(0xFF1B4A1E),
         onSecondaryContainer: lightGreen,
 
         tertiary: darkRed,
         onTertiary: Colors.white,
-        tertiaryContainer: Color(0xFF4A1C1C),
+        tertiaryContainer: const Color(0xFF4A1C1C),
         onTertiaryContainer: lightRed,
-        surface: Color(0xFF1C1B1F),
-        onSurface: Colors.white,
-        surfaceContainerHighest: Color(0xFF2A2A2A),
-        onSurfaceVariant: Colors.white70,
+
+        // Usar colores dinámicos para surfaces y backgrounds
+        surface: dynamicColorScheme?.surface ?? const Color(0xFF1C1B1F),
+        onSurface: dynamicColorScheme?.onSurface ?? Colors.white,
+        surfaceContainerHighest:
+            dynamicColorScheme?.surfaceContainerHighest ??
+            const Color(0xFF2A2A2A),
+        onSurfaceVariant:
+            dynamicColorScheme?.onSurfaceVariant ?? Colors.white70,
+        surfaceContainer:
+            dynamicColorScheme?.surfaceContainer ?? const Color(0xFF1C1B1F),
+        surfaceContainerHigh:
+            dynamicColorScheme?.surfaceContainerHigh ?? const Color(0xFF2A2A2A),
+        surfaceContainerLow:
+            dynamicColorScheme?.surfaceContainerLow ?? const Color(0xFF1C1B1F),
+        surfaceTint: dynamicColorScheme?.surfaceTint ?? darkYellow,
+
+        // Usar colores dinámicos para elementos neutros
+        outline: dynamicColorScheme?.outline ?? const Color(0xFF938F99),
+        outlineVariant:
+            dynamicColorScheme?.outlineVariant ??
+            const Color(0xFF938F99).withOpacity(0.5),
+        inverseSurface: dynamicColorScheme?.inverseSurface ?? Colors.white,
+        onInverseSurface: dynamicColorScheme?.onInverseSurface ?? Colors.black,
 
         error: lightRed,
         onError: Colors.black,
-
-        outline: Color(0xFF938F99),
         shadow: Colors.black54,
       ),
 
