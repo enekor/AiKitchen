@@ -38,7 +38,7 @@ enum Personality {
 
   static Personality fromDisplayName(String displayName) {
     return values.firstWhere(
-      (e) => e.displayName == displayName.toLowerCase(),
+      (e) => e.displayName.toLowerCase() == displayName.toLowerCase(),
       orElse: () => Personality.neutral, // valor por defecto
     );
   }
@@ -64,7 +64,7 @@ enum Idioma {
 
   static Idioma fromDisplayName(String displayName) {
     return values.firstWhere(
-      (e) => e.displayName == displayName.toLowerCase(),
+      (e) => e.displayName.toLowerCase() == displayName.toLowerCase(),
       orElse: () => Idioma.espanhol,
     );
   }
@@ -95,7 +95,7 @@ enum TipoReceta {
 
   static TipoReceta fromDisplayName(String displayName) {
     return values.firstWhere(
-      (e) => e.displayName == displayName.toLowerCase(),
+      (e) => e.displayName.toLowerCase() == displayName.toLowerCase(),
       orElse: () => TipoReceta.omnivora,
     );
   }
@@ -127,8 +127,7 @@ class _SettingsState extends State<Settings> {
 
   String compareEnumValues(String value, List<String> options) {
     for (String option in options) {
-      if (option.toLowerCase().replaceAll("ñ", "nh").replaceAll(' ', '_') ==
-          value.toLowerCase()) {
+      if (option.toLowerCase() == value.toLowerCase()) {
         return option;
       }
     }

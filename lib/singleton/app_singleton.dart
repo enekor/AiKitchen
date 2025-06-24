@@ -61,6 +61,11 @@ class AppSingleton {
           SharedPreferencesKeys.idioma,
         ) ??
         'español';
+    _tipoReceta =
+        await SharedPreferencesService.getStringValue(
+          SharedPreferencesKeys.tipoReceta,
+        ) ??
+        'omnivora';
     _apiKey = await SharedPreferencesService.getStringValue(
       SharedPreferencesKeys.geminiApiKey,
     );
