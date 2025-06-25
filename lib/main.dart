@@ -28,24 +28,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-/// Función de debug para probar los widgets automáticamente
-Future<void> testWidgetDebug() async {
-  print('=== EJECUTANDO TEST AUTOMATICO DE WIDGETS ===');
-
-  try {
-    // Esperar un poco para que todo se inicialice
-    await Future.delayed(Duration(seconds: 2));
-
-    // Ejecutar el test de debug
-    await WidgetService.addDebugTestData();
-
-    print('=== TEST COMPLETADO ===');
-  } catch (e, stackTrace) {
-    print('ERROR EN TEST: $e');
-    print('STACKTRACE: $stackTrace');
-  }
-}
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 

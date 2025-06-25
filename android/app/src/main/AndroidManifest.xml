@@ -38,17 +38,6 @@
         </activity>
         
         <!-- Widget Providers -->
-        <receiver android:name=".ShoppingListWidgetProvider"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="CLEAR_COMPLETED" />
-                <action android:name="TOGGLE_ITEM" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/shopping_list_widget_info" />
-        </receiver>
-
         <receiver android:name=".FavoritesWidgetProvider"
             android:exported="true">
             <intent-filter>
@@ -60,10 +49,6 @@
         </receiver>
 
         <!-- Widget Services -->
-        <service android:name=".ShoppingListRemoteViewsService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
-
         <service android:name=".FavoritesRemoteViewsService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
