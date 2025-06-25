@@ -242,7 +242,7 @@ class _RecipesListState extends State<RecipesList> {
                           : const Icon(Icons.share),
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 70),
             ],
           ),
         ),
