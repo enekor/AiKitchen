@@ -16,6 +16,7 @@ dependencies:
   flutter_tts: ^4.2.2
   fluttertoast: ^8.2.12
   google_generative_ai: ^0.4.6
+  home_widget: ^0.8.0
   lottie: ^3.1.2
   path_provider: ^2.1.5
   receive_sharing_intent: ^1.8.1

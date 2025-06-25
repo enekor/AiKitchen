@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores principales de la app -->
+    <color name="primary_color">#FFB74D</color>
+    <color name="secondary_color">#66BB6A</color>
+    <color name="tertiary_color">#E57373</color>
+    
+    <!-- Colores de texto -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    
+    <!-- Colores de fondo -->
+    <color name="background_primary">#FFFFFF</color>
+    <color name="background_secondary">#F5F5F5</color>
+    
+    <!-- Colores neutros -->
+    <color name="cream">#FAF7F2</color>
+    <color name="brown">#8D6E63</color>
+    <color name="light_yellow">#FFF8DC</color>
+    <color name="light_green">#C8E6C9</color>
+    <color name="light_red">#FFCDD2</color>
+</resources>

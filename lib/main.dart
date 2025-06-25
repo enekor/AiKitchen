@@ -5,6 +5,7 @@ import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
+import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/terminos_y_condiciones.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,32 @@ import 'singleton/app_singleton.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppSingleton().initializeWithStoredKey();
+
+  // Inicializar widgets de Android
+  if (Platform.isAndroid) {
+    WidgetService.registerCallbacks();
+    await WidgetService.initializeWidgets();
+  }
+
   runApp(const MyApp());
+}
+
+/// Función de debug para probar los widgets automáticamente
+Future<void> testWidgetDebug() async {
+  print('=== EJECUTANDO TEST AUTOMATICO DE WIDGETS ===');
+
+  try {
+    // Esperar un poco para que todo se inicialice
+    await Future.delayed(Duration(seconds: 2));
+
+    // Ejecutar el test de debug
+    await WidgetService.addDebugTestData();
+
+    print('=== TEST COMPLETADO ===');
+  } catch (e, stackTrace) {
+    print('ERROR EN TEST: $e');
+    print('STACKTRACE: $stackTrace');
+  }
 }
 
 class MyApp extends StatefulWidget {

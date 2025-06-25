@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/cooking_card.dart';
 import 'package:aikitchen/widgets/ingredients_list.dart';
@@ -49,6 +51,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
     }
 
     await JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
+
+    // Actualizar widget de Android
+    if (Platform.isAndroid) {
+      await WidgetService.updateFavoritesWidget();
+    }
 
     setState(() {
       _isFavorite = !_isFavorite;

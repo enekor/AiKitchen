@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:aikitchen/models/cart_item.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +49,10 @@ class _ShoppingListState extends State<ShoppingList> {
 
   Future<void> _updateShoppingList() async {
     await JsonDocumentsService().setCartItems(_shoppingList);
+    // Actualizar widget de Android
+    if (Platform.isAndroid) {
+      await WidgetService.updateShoppingListWidget();
+    }
   }
 
   void _addItem(String name) {
