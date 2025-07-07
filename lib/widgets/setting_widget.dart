@@ -136,31 +136,83 @@ class _TextSettingState extends State<TextSetting> {
   }
 }
 
-class ListSetting extends StatefulWidget {
-  final String initialValue;
+class MultiListSetting extends StatefulWidget {
+  final List<String> initialValues;
   final String text;
   final List<String> options;
-  final ValueChanged<String> onChange;
+  final ValueChanged<List<String>> onChange;
 
-  const ListSetting({
+  const MultiListSetting({
     super.key,
-    required this.initialValue,
+    required this.initialValues,
     required this.text,
     required this.options,
     required this.onChange,
   });
 
   @override
-  _ListSettingState createState() => _ListSettingState();
+  _MultiListSettingState createState() => _MultiListSettingState();
 }
 
-class _ListSettingState extends State<ListSetting> {
-  late String currentValue;
+class _MultiListSettingState extends State<MultiListSetting> {
+  late List<String> selectedValues;
 
   @override
   void initState() {
     super.initState();
-    currentValue = widget.initialValue;
+    selectedValues = List<String>.from(widget.initialValues);
+  }
+
+  void _showMultiSelectDialog() async {
+    final List<String> tempSelected = List<String>.from(selectedValues);
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text(widget.text),
+              content: SingleChildScrollView(
+                child: Column(
+                  children:
+                      widget.options.map((option) {
+                        return CheckboxListTile(
+                          value: tempSelected.contains(option),
+                          title: Text(option),
+                          onChanged: (checked) {
+                            setStateDialog(() {
+                              if (checked == true) {
+                                tempSelected.add(option);
+                              } else {
+                                tempSelected.remove(option);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, selectedValues),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, tempSelected),
+                  child: const Text('Aceptar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (result != null) {
+      setState(() {
+        selectedValues = result;
+      });
+      widget.onChange(selectedValues);
+    }
   }
 
   @override
@@ -171,23 +223,26 @@ class _ListSettingState extends State<ListSetting> {
         Expanded(flex: 6, child: Text(widget.text)),
         Expanded(
           flex: 4,
-          child: DropdownButton<String>(
-            value: currentValue,
-            items:
-                widget.options.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-            onChanged: (String? value) {
-              if (value != null) {
-                setState(() {
-                  currentValue = value;
-                });
-                widget.onChange(value);
-              }
-            },
+          child: InkWell(
+            onTap: _showMultiSelectDialog,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                selectedValues.isEmpty
+                    ? 'Selecciona...'
+                    : selectedValues.join(', '),
+                style: TextStyle(
+                  color:
+                      selectedValues.isEmpty
+                          ? Colors.grey
+                          : Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
           ),
         ),
       ],

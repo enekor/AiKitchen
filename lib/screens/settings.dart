@@ -217,41 +217,54 @@ class _SettingsState extends State<Settings> {
                             onChange: _useTTS,
                           ),
                           const SizedBox(height: 24),
-                          ListSetting(
-                            initialValue: compareEnumValues(
-                              AppSingleton().personality,
-                              Personality.displayNames,
-                            ),
+                          MultiListSetting(
+                            initialValues:
+                                compareEnumValues(
+                                  AppSingleton().personality,
+                                  Personality.displayNames,
+                                ).split(",").toSet().toList(),
                             text: '¿Qué tono de texto prefieres?',
                             options: Personality.displayNames,
-                            onChange: (String value) {
-                              final personality = Personality.fromDisplayName(
-                                value,
-                              );
+                            onChange: (List<String> values) {
+                              final personalities =
+                                  values
+                                      .map(
+                                        (value) =>
+                                            Personality.fromDisplayName(value),
+                                      )
+                                      .toList();
                               setState(() {
-                                AppSingleton().setPersonality =
-                                    personality.name;
+                                AppSingleton().setPersonality = personalities
+                                    .map((p) => p.name)
+                                    .toList()
+                                    .join(",");
                               });
                               SharedPreferencesService.setStringValue(
                                 SharedPreferencesKeys.tonoTextos,
-                                personality.name,
+                                personalities
+                                    .map((p) => p.name)
+                                    .toList()
+                                    .join(","),
                               );
                               Toaster.showToast(
-                                'El tono de texto se ha cambiado a ${personality.displayName}',
+                                'El tono de texto se ha cambiado a ${personalities.map((p) => p.displayName).join(", ")}',
                               );
                             },
                           ),
 
                           const SizedBox(height: 24),
-                          ListSetting(
-                            initialValue: compareEnumValues(
-                              AppSingleton().idioma,
-                              Idioma.displayNames,
-                            ),
+                          MultiListSetting(
+                            initialValues:
+                                compareEnumValues(
+                                  AppSingleton().idioma,
+                                  Idioma.displayNames,
+                                ).split(",").toSet().toList(),
                             text: '¿En qué idioma quieres las recetas?',
                             options: Idioma.displayNames,
-                            onChange: (String value) {
-                              final idioma = Idioma.fromDisplayName(value);
+                            onChange: (List<String> values) {
+                              final idioma = Idioma.fromDisplayName(
+                                values.first,
+                              );
                               setState(() {
                                 AppSingleton().setIdioma = idioma.name;
                               });
@@ -266,16 +279,17 @@ class _SettingsState extends State<Settings> {
                           ),
 
                           const SizedBox(height: 24),
-                          ListSetting(
-                            initialValue: compareEnumValues(
-                              AppSingleton().tipoReceta,
-                              TipoReceta.displayNames,
-                            ),
+                          MultiListSetting(
+                            initialValues:
+                                compareEnumValues(
+                                  AppSingleton().tipoReceta,
+                                  TipoReceta.displayNames,
+                                ).split(",").toSet().toList(),
                             text: '¿Qué tipos de recetas harás?',
                             options: TipoReceta.displayNames,
-                            onChange: (String value) {
+                            onChange: (List<String> value) {
                               final tipoReceta = TipoReceta.fromDisplayName(
-                                value,
+                                value.toSet().join(","),
                               );
                               setState(() {
                                 AppSingleton().setTipoReceta = tipoReceta.name;
