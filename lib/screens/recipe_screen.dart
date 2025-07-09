@@ -107,11 +107,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
         showingRecipe.raciones; // Si se cancela, mantener el valor original
 
     if (newNumPlates != showingRecipe.raciones) {
-      final idioma =
-          await SharedPreferencesService.getStringValue(
-            SharedPreferencesKeys.idioma,
-          ) ??
-          'español';
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
       String prompt = Prompt.UpdateRecipePrompt(
         JsonEncoder().convert(showingRecipe.toJson()),
         newNumPlates,
@@ -121,7 +121,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
         prompt,
         context,
       );
-
+      if (mounted) Navigator.of(context).pop(); // Cierra el loading
       setState(() {
         showingRecipe = Recipe.fromJson(
           jsonDecode(
@@ -558,10 +558,16 @@ class _RecipeScreenState extends State<RecipeScreen> {
   }
 
   Future<void> _editRecipeWithPrompt(String prompt) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
     String updatedRecipeJson = await AppSingleton().generateContent(
       prompt,
       context,
     );
+    if (mounted) Navigator.of(context).pop(); // Cierra el loading
     setState(() {
       showingRecipe = Recipe.fromJson(
         jsonDecode(
