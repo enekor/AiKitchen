@@ -89,4 +89,22 @@ Genera una lista completa y equilibrada de ingredientes básicos y productos ese
 
   static String UpdateRecipePrompt(String recipeJson, int numPlates) =>
       ''' Necesito que me actualices la receta que te voy a dar, cambiando el numero de raciones a $numPlates. Responde únicamente con el json de la receta actualizada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+
+  static String UpdateRecipePromptExpress(String recipeJson) =>
+      '''Necesito que me des una versión exprés (más rápida de preparar) de la siguiente receta. Responde únicamente with el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+
+  static String UpdateRecipePromptSaludable(String recipeJson) =>
+      '''Necesito que me des una versión más saludable de la siguiente receta (menos calorías, menos grasas, etc). Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+
+  static String UpdateRecipePromptDieta(String recipeJson, String dieta) =>
+      '''Necesito que adaptes la siguiente receta para que sea apta para una dieta "$dieta". Responde únicamente with el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+
+  static String UpdateRecipePromptDificultad(
+    String recipeJson,
+    String dificultad,
+  ) =>
+      '''Necesito que adaptes la siguiente receta para que tenga un nivel de dificultad "$dificultad". Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+
+  static String UpdateRecipePromptTono(String recipeJson, String tono) =>
+      '''Necesito que adaptes la explicación de la receta al siguiente tono: "$tono". No te preocupes, no me voy a ofender si el tono es negativo. Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
 }

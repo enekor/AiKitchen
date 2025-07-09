@@ -4,6 +4,7 @@ import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/cooking_card.dart';
@@ -11,6 +12,7 @@ import 'package:aikitchen/widgets/ingredients_list.dart';
 import 'package:aikitchen/widgets/steps_list.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
+import 'package:aikitchen/screens/settings.dart' show TipoReceta;
 
 class RecipeScreen extends StatefulWidget {
   const RecipeScreen({super.key, required this.recipe});
@@ -105,6 +107,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
         showingRecipe.raciones; // Si se cancela, mantener el valor original
 
     if (newNumPlates != showingRecipe.raciones) {
+      final idioma =
+          await SharedPreferencesService.getStringValue(
+            SharedPreferencesKeys.idioma,
+          ) ??
+          'español';
       String prompt = Prompt.UpdateRecipePrompt(
         JsonEncoder().convert(showingRecipe.toJson()),
         newNumPlates,
@@ -158,6 +165,412 @@ class _RecipeScreenState extends State<RecipeScreen> {
     });
   }
 
+  void _showEditOptions() async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.restaurant),
+                title: const Text('Cambiar número de raciones'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  _onEditNumberOfPlates();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.flash_on),
+                title: const Text('Versión exprés (más rápida)'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _editRecipeWithPrompt(
+                    Prompt.UpdateRecipePromptExpress(
+                      JsonEncoder().convert(showingRecipe.toJson()),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.health_and_safety),
+                title: const Text('Versión más saludable'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _editRecipeWithPrompt(
+                    Prompt.UpdateRecipePromptSaludable(
+                      JsonEncoder().convert(showingRecipe.toJson()),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.eco),
+                title: const Text('Adaptar a dieta...'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final dietas = TipoReceta.displayNames;
+                  int selectedDieta = 0;
+                  final selected = await showDialog<String>(
+                    context: context,
+                    builder: (context) {
+                      int selectedIndex = selectedDieta;
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: SizedBox(
+                          height: 260,
+                          width: 180,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Selecciona la dieta',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return ListWheelScrollView.useDelegate(
+                                      itemExtent: 40,
+                                      physics: const FixedExtentScrollPhysics(),
+                                      onSelectedItemChanged:
+                                          (index) => setState(
+                                            () => selectedIndex = index,
+                                          ),
+                                      childDelegate:
+                                          ListWheelChildBuilderDelegate(
+                                            builder: (context, index) {
+                                              if (index < 0 ||
+                                                  index >= dietas.length)
+                                                return null;
+                                              return Center(
+                                                child: Text(
+                                                  dietas[index],
+                                                  style: TextStyle(
+                                                    fontSize: 22,
+                                                    fontWeight:
+                                                        selectedIndex == index
+                                                            ? FontWeight.bold
+                                                            : FontWeight.normal,
+                                                    color:
+                                                        selectedIndex == index
+                                                            ? Theme.of(context)
+                                                                .colorScheme
+                                                                .primary
+                                                            : null,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            childCount: dietas.length,
+                                          ),
+                                      controller: FixedExtentScrollController(
+                                        initialItem: selectedIndex,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed:
+                                        () => Navigator.pop(
+                                          context,
+                                          dietas[selectedIndex],
+                                        ),
+                                    child: const Text('Aceptar'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                  if (selected != null && selected.isNotEmpty) {
+                    await _editRecipeWithPrompt(
+                      Prompt.UpdateRecipePromptDieta(
+                        JsonEncoder().convert(showingRecipe.toJson()),
+                        selected,
+                      ),
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.school),
+                title: const Text('Cambiar dificultad...'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final niveles = [
+                    'Principiante',
+                    'Intermedio',
+                    'Avanzado',
+                    'Experto',
+                  ];
+                  int selectedNivel = 0;
+                  final selected = await showDialog<String>(
+                    context: context,
+                    builder: (context) {
+                      int selectedIndex = selectedNivel;
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: SizedBox(
+                          height: 260,
+                          width: 180,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Selecciona el nivel de dificultad',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return ListWheelScrollView.useDelegate(
+                                      itemExtent: 40,
+                                      physics: const FixedExtentScrollPhysics(),
+                                      onSelectedItemChanged:
+                                          (index) => setState(
+                                            () => selectedIndex = index,
+                                          ),
+                                      childDelegate:
+                                          ListWheelChildBuilderDelegate(
+                                            builder: (context, index) {
+                                              if (index < 0 ||
+                                                  index >= niveles.length)
+                                                return null;
+                                              return Center(
+                                                child: Text(
+                                                  niveles[index],
+                                                  style: TextStyle(
+                                                    fontSize: 22,
+                                                    fontWeight:
+                                                        selectedIndex == index
+                                                            ? FontWeight.bold
+                                                            : FontWeight.normal,
+                                                    color:
+                                                        selectedIndex == index
+                                                            ? Theme.of(context)
+                                                                .colorScheme
+                                                                .primary
+                                                            : null,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            childCount: niveles.length,
+                                          ),
+                                      controller: FixedExtentScrollController(
+                                        initialItem: selectedIndex,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed:
+                                        () => Navigator.pop(
+                                          context,
+                                          niveles[selectedIndex],
+                                        ),
+                                    child: const Text('Aceptar'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                  if (selected != null && selected.isNotEmpty) {
+                    await _editRecipeWithPrompt(
+                      Prompt.UpdateRecipePromptDificultad(
+                        JsonEncoder().convert(showingRecipe.toJson()),
+                        selected,
+                      ),
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.mood),
+                title: const Text('Cambiar tono de explicación...'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final tonos = [
+                    'Amistoso',
+                    'Profesional',
+                    'Casual',
+                    'Divertido',
+                    'Educativo',
+                    'Hiriente',
+                    'Bromista',
+                    'Sarcástico',
+                    'Entusiasta',
+                    'Neutral',
+                  ];
+                  int selectedTono = 0;
+                  final selected = await showDialog<String>(
+                    context: context,
+                    builder: (context) {
+                      int selectedIndex = selectedTono;
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: SizedBox(
+                          height: 260,
+                          width: 180,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Selecciona el tono',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return ListWheelScrollView.useDelegate(
+                                      itemExtent: 40,
+                                      physics: const FixedExtentScrollPhysics(),
+                                      onSelectedItemChanged:
+                                          (index) => setState(
+                                            () => selectedIndex = index,
+                                          ),
+                                      childDelegate:
+                                          ListWheelChildBuilderDelegate(
+                                            builder: (context, index) {
+                                              if (index < 0 ||
+                                                  index >= tonos.length)
+                                                return null;
+                                              return Center(
+                                                child: Text(
+                                                  tonos[index],
+                                                  style: TextStyle(
+                                                    fontSize: 22,
+                                                    fontWeight:
+                                                        selectedIndex == index
+                                                            ? FontWeight.bold
+                                                            : FontWeight.normal,
+                                                    color:
+                                                        selectedIndex == index
+                                                            ? Theme.of(context)
+                                                                .colorScheme
+                                                                .primary
+                                                            : null,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            childCount: tonos.length,
+                                          ),
+                                      controller: FixedExtentScrollController(
+                                        initialItem: selectedIndex,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed:
+                                        () => Navigator.pop(
+                                          context,
+                                          tonos[selectedIndex],
+                                        ),
+                                    child: const Text('Aceptar'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                  if (selected != null && selected.isNotEmpty) {
+                    await _editRecipeWithPrompt(
+                      Prompt.UpdateRecipePromptTono(
+                        JsonEncoder().convert(showingRecipe.toJson()),
+                        selected,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _editRecipeWithPrompt(String prompt) async {
+    String updatedRecipeJson = await AppSingleton().generateContent(
+      prompt,
+      context,
+    );
+    setState(() {
+      showingRecipe = Recipe.fromJson(
+        jsonDecode(
+          updatedRecipeJson.replaceAll('```json', '').replaceAll('```', ''),
+        ),
+      );
+    });
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -183,29 +596,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
             ),
             tooltip: _isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos',
           ),
+
           // Recipe info chips in app bar
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RecipeInfoChip(
-                  icon: Icons.timer,
-                  label: showingRecipe.tiempoEstimado,
-                  color: theme.colorScheme.secondary,
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _onEditNumberOfPlates,
-                  child: RecipeInfoChip(
-                    icon: Icons.restaurant,
-                    label: '${showingRecipe.raciones}',
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
       body: Column(
@@ -229,20 +621,32 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildInfoItem(
-                        Icons.local_fire_department,
-                        '${showingRecipe.calorias.toInt()} cal',
-                        theme.colorScheme.tertiary,
+                      Expanded(
+                        flex: 3,
+                        child: _buildInfoItem(
+                          Icons.local_fire_department,
+                          '${showingRecipe.calorias.toInt()} cal',
+                          theme.colorScheme.tertiary,
+                        ),
                       ),
-                      _buildInfoItem(
-                        Icons.timer,
-                        showingRecipe.tiempoEstimado,
-                        theme.colorScheme.secondary,
+                      Expanded(
+                        flex: 3,
+                        child: _buildInfoItem(
+                          Icons.timer,
+                          showingRecipe.tiempoEstimado,
+                          theme.colorScheme.secondary,
+                        ),
                       ),
-                      _buildInfoItem(
-                        Icons.restaurant,
-                        '${showingRecipe.raciones} porciones',
-                        theme.colorScheme.primary,
+                      Expanded(
+                        flex: 3,
+                        child: GestureDetector(
+                          onTap: _onEditNumberOfPlates,
+                          child: _buildInfoItem(
+                            Icons.restaurant,
+                            '${showingRecipe.raciones}',
+                            theme.colorScheme.primary,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -411,6 +815,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showEditOptions,
+        child: const Icon(Icons.auto_awesome),
+        tooltip: 'Editar receta',
       ),
     );
   }
