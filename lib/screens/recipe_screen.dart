@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/services/gemini_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
@@ -22,11 +25,104 @@ class _RecipeScreenState extends State<RecipeScreen> {
   final PageController _pageController = PageController();
   bool _showSummary = false;
   bool _isFavorite = false;
+  late Recipe showingRecipe;
 
   @override
   void initState() {
     super.initState();
     _checkIfFavorite();
+    showingRecipe = widget.recipe;
+  }
+
+  void _onEditNumberOfPlates() async {
+    int? newNumPlates = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        int selectedRaciones = widget.recipe.raciones;
+        return AlertDialog(
+          title: const Text('Selecciona el número de raciones'),
+          content: SizedBox(
+            height: 150,
+            width: 80,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return ListWheelScrollView.useDelegate(
+                  itemExtent: 40,
+                  physics: const FixedExtentScrollPhysics(),
+                  onSelectedItemChanged: (index) {
+                    setState(() {
+                      selectedRaciones = index + 1;
+                    });
+                  },
+                  childDelegate: ListWheelChildBuilderDelegate(
+                    builder: (context, index) {
+                      return Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight:
+                                selectedRaciones == index + 1
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                            color:
+                                selectedRaciones == index + 1
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: 200,
+                  ),
+                  controller: FixedExtentScrollController(
+                    initialItem: widget.recipe.raciones - 1,
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  // Guarda el valor seleccionado en una variable de estado
+                  Navigator.pop(context, selectedRaciones);
+                });
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    newNumPlates ??=
+        showingRecipe.raciones; // Si se cancela, mantener el valor original
+
+    if (newNumPlates != showingRecipe.raciones) {
+      String prompt = Prompt.UpdateRecipePrompt(
+        JsonEncoder().convert(showingRecipe.toJson()),
+        newNumPlates,
+      );
+
+      String updatedRecipeJson = await AppSingleton().generateContent(
+        prompt,
+        context,
+      );
+
+      setState(() {
+        showingRecipe = Recipe.fromJson(
+          jsonDecode(
+            updatedRecipeJson.replaceAll('```json', '').replaceAll('```', ''),
+          ),
+        );
+      });
+    }
   }
 
   void _checkIfFavorite() {
@@ -41,12 +137,12 @@ class _RecipeScreenState extends State<RecipeScreen> {
     if (_isFavorite) {
       AppSingleton().recetasFavoritas.removeWhere(
         (recipe) =>
-            recipe.nombre == widget.recipe.nombre &&
-            recipe.descripcion == widget.recipe.descripcion,
+            recipe.nombre == showingRecipe.nombre &&
+            recipe.descripcion == showingRecipe.descripcion,
       );
       Toaster.showWarning('Eliminado de favoritos');
     } else {
-      AppSingleton().recetasFavoritas.add(widget.recipe);
+      AppSingleton().recetasFavoritas.add(showingRecipe);
       Toaster.showSuccess('¡Añadido a favoritos!');
     }
 
@@ -74,7 +170,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.recipe.nombre),
+        title: Text(showingRecipe.nombre),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         actions: [
@@ -95,14 +191,17 @@ class _RecipeScreenState extends State<RecipeScreen> {
               children: [
                 RecipeInfoChip(
                   icon: Icons.timer,
-                  label: widget.recipe.tiempoEstimado,
+                  label: showingRecipe.tiempoEstimado,
                   color: theme.colorScheme.secondary,
                 ),
                 const SizedBox(width: 8),
-                RecipeInfoChip(
-                  icon: Icons.restaurant,
-                  label: '${widget.recipe.raciones}',
-                  color: theme.colorScheme.primary,
+                GestureDetector(
+                  onTap: _onEditNumberOfPlates,
+                  child: RecipeInfoChip(
+                    icon: Icons.restaurant,
+                    label: '${showingRecipe.raciones}',
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
               ],
             ),
@@ -123,7 +222,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.recipe.descripcion,
+                    showingRecipe.descripcion,
                     style: theme.textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 16),
@@ -132,17 +231,17 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     children: [
                       _buildInfoItem(
                         Icons.local_fire_department,
-                        '${widget.recipe.calorias.toInt()} cal',
+                        '${showingRecipe.calorias.toInt()} cal',
                         theme.colorScheme.tertiary,
                       ),
                       _buildInfoItem(
                         Icons.timer,
-                        widget.recipe.tiempoEstimado,
+                        showingRecipe.tiempoEstimado,
                         theme.colorScheme.secondary,
                       ),
                       _buildInfoItem(
                         Icons.restaurant,
-                        '${widget.recipe.raciones} porciones',
+                        '${showingRecipe.raciones} porciones',
                         theme.colorScheme.primary,
                       ),
                     ],
@@ -305,9 +404,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
               onPageChanged: (page) => setState(() => _currentPage = page),
               children: [
                 // Página 1: StepsList
-                StepsList(steps: widget.recipe.preparacion),
+                StepsList(steps: showingRecipe.preparacion),
                 // Página 2: IngredientsList
-                IngredientsList(ingredients: widget.recipe.ingredientes),
+                IngredientsList(ingredients: showingRecipe.ingredientes),
               ],
             ),
           ),

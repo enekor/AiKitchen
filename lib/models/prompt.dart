@@ -63,6 +63,7 @@ para las recetas tengo unos parametros que me ha indicado el usuario, pero recue
     String tipoReceta,
   ) =>
       '$basePrompt numero de recetas: $numRecetas, idioma de las recetas: $idioma, tipo de cocina especifica: $tipoReceta, tono de los pasos de la receta: $tono, nombre de la receta que quiere el usuario: $nombreReceta';
+
   static String shoppingListPrompt({
     required String tipoReceta,
     required String personas,
@@ -85,4 +86,7 @@ ${presupuesto.isNotEmpty ? '- Presupuesto mensual: $presupuesto' : ''}
 
 Genera una lista completa y equilibrada de ingredientes básicos y productos esenciales para un mes, teniendo en cuenta el número de personas y las preferencias indicadas.
 ''';
+
+  static String UpdateRecipePrompt(String recipeJson, int numPlates) =>
+      ''' Necesito que me actualices la receta que te voy a dar, cambiando el numero de raciones a $numPlates. Responde únicamente con el json de la receta actualizada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
 }
