@@ -30,9 +30,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data
-                   android:mimeType="*/*"
-                   android:scheme="content" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
                 <data android:pathPattern=".*\\.aikr" />
             </intent-filter>
         </activity>
