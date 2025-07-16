@@ -53,7 +53,7 @@ para las recetas tengo unos parametros que me ha indicado el usuario, pero recue
     String idioma,
     String tipoReceta,
   ) =>
-      '$basePrompt numero de recetas: $numRecetas, idioma de las recetas: $idioma, tipo de cocina especifica: $tipoReceta, tono de los pasos de la receta: $tono, ingredientes: ${ingredientes.join(', ')}';
+      '$basePrompt numero de recetas: $numRecetas, idioma de las recetas: $idioma, tipo de cocina especifica: $tipoReceta, tono de los pasos de la receta: $tono, ingredientes: ${ingredientes.isEmpty ? 'cualquiera para recetas sencillas' : ingredientes.join(', ')}';
 
   static String recipePromptByName(
     String nombreReceta,

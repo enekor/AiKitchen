@@ -1,7 +1,6 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients.dart';
 import 'package:aikitchen/AI/by_name/find_by_name.dart';
 import 'package:aikitchen/AI/favourites/favourites.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class UsingAi extends StatefulWidget {
@@ -33,13 +32,13 @@ class _UsingAiState extends State<UsingAi> with TickerProviderStateMixin {
       description: 'Buscar recetas por nombre',
     ),
     // if (!kIsWeb)
-      TabInfo(
-        icon: Icons.favorite_border,
-        activeIcon: Icons.favorite,
-        label: 'Favoritos',
-        color: Color(0xFFE57373), // Rojo tomate
-        description: 'Tus recetas favoritas',
-      ),
+    TabInfo(
+      icon: Icons.favorite_border,
+      activeIcon: Icons.favorite,
+      label: 'Favoritos',
+      color: Color(0xFFE57373), // Rojo tomate
+      description: 'Tus recetas favoritas',
+    ),
   ];
 
   @override

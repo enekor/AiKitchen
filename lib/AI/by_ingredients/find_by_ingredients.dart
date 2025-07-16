@@ -98,8 +98,8 @@ class _FindByIngredientsState extends State<FindByIngredients>
   }
 
   int _totalTries = 0;
-  Future<void> _generateResponse() async {
-    if (ingredientes.isEmpty) {
+  Future<void> _generateResponse({bool sugerir = false}) async {
+    if (ingredientes.isEmpty && !sugerir) {
       Toaster.showWarning('Añade al menos un ingrediente');
       return;
     }
@@ -159,6 +159,11 @@ class _FindByIngredientsState extends State<FindByIngredients>
             ),
       );
     }
+  }
+
+  void _sugerirRecetasSinIngredientes() async {
+    Toaster.showToast('Generando recetas de sugerencia...');
+    await _generateResponse(sugerir: true);
   }
 
   void shareRecipe(List<Recipe> receta) async {
@@ -522,33 +527,18 @@ class _FindByIngredientsState extends State<FindByIngredients>
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
-                                        Icons.auto_awesome,
-                                        color:
-                                            ingredientes.isNotEmpty
-                                                ? theme.colorScheme.primary
-                                                : theme.colorScheme.onSurface
-                                                    .withOpacity(0.5),
-                                        size: 24,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        ingredientes.isEmpty
-                                            ? 'Añade ingredientes primero'
-                                            : '¡Crear recetas mágicas!',
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                              color:
-                                                  ingredientes.isNotEmpty
-                                                      ? theme
-                                                          .colorScheme
-                                                          .primary
-                                                      : theme
-                                                          .colorScheme
-                                                          .onSurface
-                                                          .withOpacity(0.5),
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed:
+                                              _sugerirRecetasSinIngredientes,
+                                          label: Text(
+                                            "Sugerir recetas sin ingredientes",
+                                          ),
+                                          icon: Icon(
+                                            Icons.auto_awesome_rounded,
+                                            color: theme.colorScheme.onPrimary,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
