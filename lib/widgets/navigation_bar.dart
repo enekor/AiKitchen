@@ -41,58 +41,49 @@ class NeumorphicNavigationBar extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color:
-                      currentIndex == 0
-                          ? Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.2)
-                          : Colors.transparent,
+                  color: currentIndex == 0
+                      ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                      : Colors.transparent,
                 ),
                 child: Icon(
-                  currentIndex == 0 ? Icons.kitchen : Icons.kitchen_outlined,
-                ),
-              ),
-              label: 'Ingredientes',
-            ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      currentIndex == 1
-                          ? Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.2)
-                          : Colors.transparent,
-                ),
-                child: Icon(
-                  currentIndex == 1
+                  currentIndex == 0
                       ? Icons.menu_book
                       : Icons.menu_book_outlined,
                 ),
               ),
               label: 'Por Nombre',
             ),
-            // if (!isWeb)
-              BottomNavigationBarItem(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        currentIndex == 2
-                            ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.2)
-                            : Colors.transparent,
-                  ),
-                  child: Icon(
-                    currentIndex == 2 ? Icons.favorite : Icons.favorite_border,
-                  ),
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: currentIndex == 1
+                      ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                      : Colors.transparent,
                 ),
-                label: 'Favoritos',
+                child: Icon(
+                  currentIndex == 1 ? Icons.kitchen : Icons.kitchen_outlined,
+                ),
               ),
+              label: 'Ingredientes',
+            ),
+            // if (!isWeb)
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: currentIndex == 2
+                      ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                      : Colors.transparent,
+                ),
+                child: Icon(
+                  currentIndex == 2 ? Icons.favorite : Icons.favorite_border,
+                ),
+              ),
+              label: 'Favoritos',
+            ),
           ],
         ),
       ),

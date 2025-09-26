@@ -19,10 +19,10 @@ class _HomeState extends State<Home> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    const FindByIngredients(),
     const FindByName(),
-    // if (!kIsWeb) 
-      const Favourites(),
+    const FindByIngredients(),
+    // if (!kIsWeb)
+    const Favourites(),
   ];
 
   void _navigateToSettings() {
@@ -93,9 +93,9 @@ class _HomeState extends State<Home> {
   String _getAppBarTitle() {
     switch (_currentIndex) {
       case 0:
-        return 'Buscar por Ingredientes';
-      case 1:
         return 'Buscar por Nombre';
+      case 1:
+        return 'Buscar por Ingredientes';
       case 2:
         return 'Favoritos';
       default:

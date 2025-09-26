@@ -68,7 +68,8 @@ para las recetas tengo unos parametros que me ha indicado el usuario, pero recue
     required String tipoReceta,
     required String personas,
     String presupuesto = '',
-  }) => '''
+  }) =>
+      '''
 Necesito que me generes una lista de la compra mensual. Responde únicamente con un JSON en este formato:
 
 {
@@ -98,6 +99,9 @@ Genera una lista completa y equilibrada de ingredientes básicos y productos ese
 
   static String UpdateRecipePromptDieta(String recipeJson, String dieta) =>
       '''Necesito que adaptes la siguiente receta para que sea apta para una dieta "$dieta". Responde únicamente with el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+
+  static String UpdateRecipePromptUnidades(String recipeJson) =>
+      '''Necesito que conviertas las medidas de los ingredientes de la receta a cucharas, tazas, etc, lo que venga mejor para la cantidad. En caso de que la medida sea más práctica en su unidad original (como por ejemplo "1 huevo" o "1 pizca de sal"), déjala como está. Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
 
   static String UpdateRecipePromptDificultad(
     String recipeJson,

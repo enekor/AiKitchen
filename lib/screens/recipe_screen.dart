@@ -63,14 +63,12 @@ class _RecipeScreenState extends State<RecipeScreen> {
                           '${index + 1}',
                           style: TextStyle(
                             fontSize: 24,
-                            fontWeight:
-                                selectedRaciones == index + 1
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                            color:
-                                selectedRaciones == index + 1
-                                    ? Theme.of(context).colorScheme.primary
-                                    : null,
+                            fontWeight: selectedRaciones == index + 1
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: selectedRaciones == index + 1
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
                           ),
                         ),
                       );
@@ -243,10 +241,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                     return ListWheelScrollView.useDelegate(
                                       itemExtent: 40,
                                       physics: const FixedExtentScrollPhysics(),
-                                      onSelectedItemChanged:
-                                          (index) => setState(
-                                            () => selectedIndex = index,
-                                          ),
+                                      onSelectedItemChanged: (index) =>
+                                          setState(() => selectedIndex = index),
                                       childDelegate:
                                           ListWheelChildBuilderDelegate(
                                             builder: (context, index) {
@@ -260,14 +256,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                                     fontSize: 22,
                                                     fontWeight:
                                                         selectedIndex == index
-                                                            ? FontWeight.bold
-                                                            : FontWeight.normal,
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
                                                     color:
                                                         selectedIndex == index
-                                                            ? Theme.of(context)
-                                                                .colorScheme
-                                                                .primary
-                                                            : null,
+                                                        ? Theme.of(
+                                                            context,
+                                                          ).colorScheme.primary
+                                                        : null,
                                                   ),
                                                 ),
                                               );
@@ -290,11 +286,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                     child: const Text('Cancelar'),
                                   ),
                                   ElevatedButton(
-                                    onPressed:
-                                        () => Navigator.pop(
-                                          context,
-                                          dietas[selectedIndex],
-                                        ),
+                                    onPressed: () => Navigator.pop(
+                                      context,
+                                      dietas[selectedIndex],
+                                    ),
                                     child: const Text('Aceptar'),
                                   ),
                                 ],
@@ -357,10 +352,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                     return ListWheelScrollView.useDelegate(
                                       itemExtent: 40,
                                       physics: const FixedExtentScrollPhysics(),
-                                      onSelectedItemChanged:
-                                          (index) => setState(
-                                            () => selectedIndex = index,
-                                          ),
+                                      onSelectedItemChanged: (index) =>
+                                          setState(() => selectedIndex = index),
                                       childDelegate:
                                           ListWheelChildBuilderDelegate(
                                             builder: (context, index) {
@@ -374,14 +367,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                                     fontSize: 22,
                                                     fontWeight:
                                                         selectedIndex == index
-                                                            ? FontWeight.bold
-                                                            : FontWeight.normal,
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
                                                     color:
                                                         selectedIndex == index
-                                                            ? Theme.of(context)
-                                                                .colorScheme
-                                                                .primary
-                                                            : null,
+                                                        ? Theme.of(
+                                                            context,
+                                                          ).colorScheme.primary
+                                                        : null,
                                                   ),
                                                 ),
                                               );
@@ -404,11 +397,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                     child: const Text('Cancelar'),
                                   ),
                                   ElevatedButton(
-                                    onPressed:
-                                        () => Navigator.pop(
-                                          context,
-                                          niveles[selectedIndex],
-                                        ),
+                                    onPressed: () => Navigator.pop(
+                                      context,
+                                      niveles[selectedIndex],
+                                    ),
                                     child: const Text('Aceptar'),
                                   ),
                                 ],
@@ -428,6 +420,18 @@ class _RecipeScreenState extends State<RecipeScreen> {
                       ),
                     );
                   }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.straighten),
+                title: const Text('Cambiar unidades de medida...'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _editRecipeWithPrompt(
+                    Prompt.UpdateRecipePromptUnidades(
+                      JsonEncoder().convert(showingRecipe.toJson()),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -477,10 +481,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                     return ListWheelScrollView.useDelegate(
                                       itemExtent: 40,
                                       physics: const FixedExtentScrollPhysics(),
-                                      onSelectedItemChanged:
-                                          (index) => setState(
-                                            () => selectedIndex = index,
-                                          ),
+                                      onSelectedItemChanged: (index) =>
+                                          setState(() => selectedIndex = index),
                                       childDelegate:
                                           ListWheelChildBuilderDelegate(
                                             builder: (context, index) {
@@ -494,14 +496,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                                     fontSize: 22,
                                                     fontWeight:
                                                         selectedIndex == index
-                                                            ? FontWeight.bold
-                                                            : FontWeight.normal,
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
                                                     color:
                                                         selectedIndex == index
-                                                            ? Theme.of(context)
-                                                                .colorScheme
-                                                                .primary
-                                                            : null,
+                                                        ? Theme.of(
+                                                            context,
+                                                          ).colorScheme.primary
+                                                        : null,
                                                   ),
                                                 ),
                                               );
@@ -524,11 +526,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                     child: const Text('Cancelar'),
                                   ),
                                   ElevatedButton(
-                                    onPressed:
-                                        () => Navigator.pop(
-                                          context,
-                                          tonos[selectedIndex],
-                                        ),
+                                    onPressed: () => Navigator.pop(
+                                      context,
+                                      tonos[selectedIndex],
+                                    ),
                                     child: const Text('Aceptar'),
                                   ),
                                 ],
@@ -611,10 +612,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
           // Recipe info header
           if (_showSummary)
             CookingCard(
-              onTap:
-                  () => setState(() {
-                    _showSummary = !_showSummary;
-                  }),
+              onTap: () => setState(() {
+                _showSummary = !_showSummary;
+              }),
               margin: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -661,10 +661,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
             ),
           if (!_showSummary)
             CookingCard(
-              onTap:
-                  () => setState(() {
-                    _showSummary = !_showSummary;
-                  }),
+              onTap: () => setState(() {
+                _showSummary = !_showSummary;
+              }),
               margin: const EdgeInsets.all(16),
               child: Center(
                 child: Text(
@@ -695,46 +694,39 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color:
-                            _currentPage == 0
-                                ? theme.colorScheme.primary.withOpacity(0.1)
-                                : Colors.transparent,
+                        color: _currentPage == 0
+                            ? theme.colorScheme.primary.withOpacity(0.1)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border:
-                            _currentPage == 0
-                                ? Border.all(
-                                  color: theme.colorScheme.primary.withOpacity(
-                                    0.3,
-                                  ),
-                                )
-                                : null,
+                        border: _currentPage == 0
+                            ? Border.all(
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.3,
+                                ),
+                              )
+                            : null,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.format_list_numbered,
-                            color:
-                                _currentPage == 0
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurface.withOpacity(
-                                      0.6,
-                                    ),
+                            color: _currentPage == 0
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurface.withOpacity(0.6),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Preparación',
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color:
-                                  _currentPage == 0
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.onSurface.withOpacity(
-                                        0.6,
-                                      ),
-                              fontWeight:
-                                  _currentPage == 0
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
+                              color: _currentPage == 0
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurface.withOpacity(
+                                      0.6,
+                                    ),
+                              fontWeight: _currentPage == 0
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -756,46 +748,39 @@ class _RecipeScreenState extends State<RecipeScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color:
-                            _currentPage == 1
-                                ? theme.colorScheme.primary.withOpacity(0.1)
-                                : Colors.transparent,
+                        color: _currentPage == 1
+                            ? theme.colorScheme.primary.withOpacity(0.1)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border:
-                            _currentPage == 1
-                                ? Border.all(
-                                  color: theme.colorScheme.primary.withOpacity(
-                                    0.3,
-                                  ),
-                                )
-                                : null,
+                        border: _currentPage == 1
+                            ? Border.all(
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.3,
+                                ),
+                              )
+                            : null,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.shopping_basket,
-                            color:
-                                _currentPage == 1
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurface.withOpacity(
-                                      0.6,
-                                    ),
+                            color: _currentPage == 1
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurface.withOpacity(0.6),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Ingredientes',
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color:
-                                  _currentPage == 1
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.onSurface.withOpacity(
-                                        0.6,
-                                      ),
-                              fontWeight:
-                                  _currentPage == 1
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
+                              color: _currentPage == 1
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurface.withOpacity(
+                                      0.6,
+                                    ),
+                              fontWeight: _currentPage == 1
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
                         ],
