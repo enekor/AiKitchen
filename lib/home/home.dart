@@ -52,25 +52,24 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: false,
+        centerTitle: true,
         title: Text(
           _getAppBarTitle(),
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w500,
           ),
         ),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.shopping_cart_outlined),
+          onPressed: _navigateToShoppingList,
+          tooltip: 'Lista de la compra',
+        ),
         actions: [
           IconButton(
-            onPressed: _navigateToShoppingList,
-            icon: const Icon(Icons.shopping_cart_outlined),
-            tooltip: 'Lista de la compra',
-          ),
-          IconButton(
+            icon: const Icon(Icons.settings_outlined, size: 22),
             onPressed: _navigateToSettings,
-            icon: const Icon(Icons.settings_outlined),
             tooltip: 'Ajustes',
           ),
         ],

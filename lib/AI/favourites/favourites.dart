@@ -1,12 +1,9 @@
-import 'dart:io';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
-import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
-import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
-import 'package:aikitchen/widgets/recipe_list.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 
 class Favourites extends StatefulWidget {
@@ -17,70 +14,24 @@ class Favourites extends StatefulWidget {
 }
 
 class _FavouritesState extends State<Favourites> {
-  List<Recipe> _recetasFavoritas = [];
-
-  Future<void> _load() async {
-    AppSingleton().recetasFavoritas.clear();
-    AppSingleton().recetasFavoritas =
-        await JsonDocumentsService().getFavRecipes();
-    _recetasFavoritas = AppSingleton().recetasFavoritas;
-    setState(() {});
-  }
-
   @override
   void initState() {
-    _load();
     super.initState();
+    _loadFavorites();
   }
 
-  void removeFavRecipe(Recipe receta) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmación'),
-          content: const Text(
-            '¿Estás seguro de que deseas eliminar esta receta de favoritos?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                AppSingleton().recetasFavoritas.removeWhere(
-                  (recipe) =>
-                      recipe.nombre == receta.nombre &&
-                      recipe.descripcion == receta.descripcion &&
-                      recipe.tiempoEstimado == receta.tiempoEstimado,
-                );
-                await JsonDocumentsService().setFavRecipes(
-                  AppSingleton().recetasFavoritas,
-                );
-
-                // Actualizar widget de Android
-                if (Platform.isAndroid) {
-                  await WidgetService.updateFavoritesWidget();
-                }
-
-                setState(() {
-                  _recetasFavoritas = AppSingleton().recetasFavoritas;
-                });
-
-                Navigator.of(context).pop();
-              },
-              child: const Text('Eliminar'),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> _loadFavorites() async {
+    final recipes = await JsonDocumentsService().getFavRecipes();
+    setState(() {
+      AppSingleton().recetasFavoritas = recipes;
+    });
   }
 
-  void openRecipe(Recipe receta) {
+  void _shareRecipe(Recipe receta) async {
+    await ShareRecipeService().shareRecipe([receta]);
+  }
+
+  void _onClickRecipe(Recipe receta) {
     Navigator.pushNamed(
       context,
       '/recipe',
@@ -88,169 +39,163 @@ class _FavouritesState extends State<Favourites> {
     );
   }
 
-  void onEditRecipe(Recipe recipe) {
-    Navigator.push(
+  void _onEditRecipe(Recipe recipe) {
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(builder: (context) => CreateRecipe(recipe: recipe)),
+      '/recipe/edit',
+      arguments: RecipeScreenArguments(recipe: recipe),
     );
   }
 
-  void shareRecipe(List<Recipe> receta) async {
-    await ShareRecipeService().shareRecipe(receta);
+  void _removeFavorite(Recipe recipe) {
+    setState(() {
+      AppSingleton().recetasFavoritas.remove(recipe);
+    });
+    JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
+    Toaster.showSuccess('Receta eliminada de favoritos');
+  }
+
+  Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.favorite_outline,
+            size: 64,
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No tienes recetas favoritas',
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Las recetas que marques como favoritas aparecerán aquí',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecipeList() {
+    final theme = Theme.of(context);
+    final recipes = AppSingleton().recetasFavoritas;
+
+    if (recipes.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      itemCount: recipes.length,
+      itemBuilder: (context, index) {
+        final recipe = recipes[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            title: Text(
+              recipe.nombre,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            subtitle: Text(
+              recipe.descripcion,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+            ),
+            onTap: () => _onClickRecipe(recipe),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () => _onEditRecipe(recipe),
+                  tooltip: 'Editar receta',
+                ),
+                IconButton(
+                  icon: Icon(Icons.favorite, color: theme.colorScheme.primary),
+                  onPressed: () => _removeFavorite(recipe),
+                  tooltip: 'Eliminar de favoritos',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.share_outlined),
+                  onPressed: () => _shareRecipe(recipe),
+                  tooltip: 'Compartir receta',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _refreshFavorites() {
+    _loadFavorites();
+    Toaster.showSuccess('Lista actualizada');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final recipeCount = AppSingleton().recetasFavoritas.length;
 
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: Column(
-        children: [
-          // Cooking-themed header
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.favorite,
-                    color: theme.colorScheme.primary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Recetas favoritas',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Spacer(),
-                // Refresh button
-                IconButton(
-                  onPressed: _load,
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Actualizar favoritos',
-                  style: IconButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                    foregroundColor: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (_recetasFavoritas.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${_recetasFavoritas.length}',
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-              ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Text(
+              'Recetas Favoritas',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-              child:
-                  _recetasFavoritas.isNotEmpty
-                      ? RecipesList(
-                        onEdit: onEditRecipe,
-                        recipes: _recetasFavoritas,
-                        onClickRecipe: openRecipe,
-                        onFavRecipe: removeFavRecipe,
-                        isFav: true,
-                        onShareRecipe: shareRecipe,
-                        favIcon: Icon(
-                          Icons.recycling_rounded,
-                          color: theme.colorScheme.error,
-                        ),
-                      )
-                      : Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.1,
-                                ),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: theme.colorScheme.primary.withOpacity(
-                                    0.3,
-                                  ),
-                                  width: 2,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.favorite_border,
-                                color: theme.colorScheme.primary,
-                                size: 40,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Sin recetas favoritas',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Añade tus recetas favoritas tocando el corazón',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.7,
-                                ),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: _load,
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Recargar'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: theme.colorScheme.primary,
-                                foregroundColor: theme.colorScheme.onPrimary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                recipeCount.toString(),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshFavorites,
+            tooltip: 'Actualizar lista',
           ),
         ],
       ),
+      body: _buildRecipeList(),
     );
   }
 }

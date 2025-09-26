@@ -37,7 +37,7 @@ class SharedPreferencesService {
     return ret ?? [];
   }
 
-  static void setStringListValue(
+  static Future<void> setStringListValue(
     SharedPreferencesKeys key,
     List<String> value,
   ) async {

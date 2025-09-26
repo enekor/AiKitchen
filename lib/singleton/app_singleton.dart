@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
+import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/warning_modal.dart';
@@ -75,6 +76,8 @@ class AppSingleton {
     );
 
     _geminiService = GeminiService();
+
+    recetasFavoritas = await JsonDocumentsService().getFavRecipes();
   }
 
   Future<void> setApiKey(String apiKey) async {
