@@ -4,6 +4,7 @@ import 'package:aikitchen/AI/favourites/favourites.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/screens/settings.dart';
 import 'package:aikitchen/screens/shopping_list.dart';
+import 'package:aikitchen/screens/weekly_menu.dart';
 import 'package:aikitchen/widgets/navigation_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +22,8 @@ class _HomeState extends State<Home> {
   final List<Widget> _pages = [
     const FindByName(),
     const FindByIngredients(),
-    // if (!kIsWeb)
-    const Favourites(),
+    if (!kIsWeb) const Favourites(),
+    if (!kIsWeb) const WeeklyMenu(),
   ];
 
   void _navigateToSettings() {
@@ -97,6 +98,8 @@ class _HomeState extends State<Home> {
         return 'Buscar por Ingredientes';
       case 2:
         return 'Favoritos';
+      case 3:
+        return 'Menú Semanal';
       default:
         return 'AI Kitchen';
     }

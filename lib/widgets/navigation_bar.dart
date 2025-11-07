@@ -68,22 +68,40 @@ class NeumorphicNavigationBar extends StatelessWidget {
               ),
               label: 'Ingredientes',
             ),
-            // if (!isWeb)
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: currentIndex == 2
-                      ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-                      : Colors.transparent,
+            if (!isWeb)
+              BottomNavigationBarItem(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: currentIndex == 2
+                        ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                        : Colors.transparent,
+                  ),
+                  child: Icon(
+                    currentIndex == 2 ? Icons.favorite : Icons.favorite_border,
+                  ),
                 ),
-                child: Icon(
-                  currentIndex == 2 ? Icons.favorite : Icons.favorite_border,
-                ),
+                label: 'Favoritos',
               ),
-              label: 'Favoritos',
-            ),
+            if (!isWeb)
+              BottomNavigationBarItem(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: currentIndex == 3
+                        ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                        : Colors.transparent,
+                  ),
+                  child: Icon(
+                    currentIndex == 3
+                        ? Icons.calendar_month
+                        : Icons.calendar_month_outlined,
+                  ),
+                ),
+                label: 'Menú Semanal',
+              ),
           ],
         ),
       ),

@@ -111,4 +111,28 @@ Genera una lista completa y equilibrada de ingredientes básicos y productos ese
 
   static String UpdateRecipePromptTono(String recipeJson, String tono) =>
       '''Necesito que adaptes la explicación de la receta al siguiente tono: "$tono". No te preocupes, no me voy a ofender si el tono es negativo. Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+
+  static String weeklyMenuPrompt(
+    String tipoReceta,
+    String tono,
+    String idioma,
+  ) =>
+      '''
+$basePrompt
+Necesito que me generes un menú semanal completo con 3 comidas por día (desayuno, comida y cena) para los 7 días de la semana. En total son 21 recetas.
+
+Parámetros:
+- Idioma de las recetas: $idioma
+- Tipo de cocina específica: $tipoReceta
+- Tono de los pasos de la receta: $tono
+
+Importante:
+- Las recetas deben ser variadas y equilibradas
+- Incluir diferentes tipos de alimentos
+- Tener en cuenta el balance nutricional
+- Las recetas deben ser prácticas y realizables
+- Asegúrate de que el conjunto de recetas forme un menú coherente y saludable
+
+El formato debe ser el mismo JSON que el base, generando una lista con las 21 recetas.
+''';
 }
