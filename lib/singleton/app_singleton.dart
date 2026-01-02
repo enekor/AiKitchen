@@ -3,12 +3,15 @@ import 'dart:io';
 
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
+import 'package:aikitchen/services/groq_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/warning_modal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:properties/properties.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:url_launcher/url_launcher.dart';
@@ -22,7 +25,10 @@ class AppSingleton {
   String _idioma = 'español';
   String _personality = 'neutral';
   List<Recipe> recetasFavoritas = [];
+  
   GeminiService? _geminiService;
+  GroqService? _groqService;
+  
   String _tipoReceta = 'omnívora';
   bool _useTTS = false;
 
@@ -67,15 +73,36 @@ class AppSingleton {
           SharedPreferencesKeys.tipoReceta,
         ) ??
         'omnivora';
-    _apiKey = await SharedPreferencesService.getStringValue(
-      SharedPreferencesKeys.geminiApiKey,
-    );
+
+    // Primero intentamos cargar la API Key del archivo de configuración (config.properties en assets)
+    try {
+      // Hay que cargarlos mediante rootBundle y luego usar Properties.fromString
+      final propertiesContent = await rootBundle.loadString('config.properties');
+      Properties p = Properties.fromString(propertiesContent);
+
+      _apiKey = p.get('GROQ_API_KEY');
+
+      if (_apiKey != null && (_apiKey!.isEmpty || _apiKey == 'tu_api_key_aqui')) {
+        _apiKey = null;
+      }
+    } catch (e) {
+      debugPrint('Error cargando config.properties: $e');
+      _apiKey = null;
+    }
+
+    // Si no se encontró en config.properties, miramos en SharedPreferences (ajustes manuales)
+    if (_apiKey == null) {
+      _apiKey = await SharedPreferencesService.getStringValue(
+        SharedPreferencesKeys.geminiApiKey,
+      );
+    }
 
     _useTTS = await SharedPreferencesService.getBoolValue(
       SharedPreferencesKeys.useTTS,
     );
 
     _geminiService = GeminiService();
+    _groqService = GroqService();
 
     recetasFavoritas = await JsonDocumentsService().getFavRecipes();
   }
@@ -101,7 +128,6 @@ class AppSingleton {
 
   Future<String> generateContent(String prompt, BuildContext context) async {
     if (_apiKey == null || _apiKey == "" || _apiKey!.isEmpty) {
-      TextEditingController newApiKey = TextEditingController();
       await WarningModal.ShowWarningDialog(
         title: 'Api key no configurada',
         texto:
@@ -116,7 +142,7 @@ class AppSingleton {
 
       throw NoApiKeyException();
     } else {
-      return await _geminiService!.generateContent(prompt, _apiKey!);
+      return await _groqService!.generateContent(prompt, _apiKey!, context: context);
     }
   }
 

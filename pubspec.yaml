@@ -23,6 +23,8 @@ dependencies:
   share_plus: ^12.0.0
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.5
+  http: ^1.2.0
+  properties: ^2.1.1
 
 dev_dependencies:
   flutter_lints: ^6.0.0
@@ -39,3 +41,4 @@ flutter:
     - assets/guide/step4.jpg
     - assets/guide/step5.jpg
     - assets/guide/step6.jpg
+    - config.properties
