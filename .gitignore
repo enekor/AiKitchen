@@ -122,3 +122,4 @@ Thumbs.db
 android/keystore.properties
 android/app/build.gradle.kts
 android/app/build.gradle.kts
+/config.properties
