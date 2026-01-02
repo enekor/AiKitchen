@@ -1,3 +1,4 @@
+import 'package:aikitchen/screens/logs_screen.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:aikitchen/widgets/api_key_generator.dart';
@@ -305,6 +306,24 @@ class _SettingsState extends State<Settings> {
                           ),
                         ],
                       ),
+                    const SizedBox(height: 20),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const LogsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.terminal_rounded),
+                      label: const Text('Ver Logs del sistema'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

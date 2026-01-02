@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
+import 'package:aikitchen/services/log_file_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
@@ -23,6 +24,7 @@ void main() async {
   if (Platform.isAndroid) {
     WidgetService.registerCallbacks();
     await WidgetService.initializeWidgets();
+    LogFileService().initialize();
   }
 
   runApp(const MyApp());
@@ -106,13 +108,11 @@ class _MyAppState extends State<MyApp> {
 
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              _sharedFiles.isNotEmpty
-                                  ? PreviewSharedFiles(
-                                    recipeUri: _sharedFiles.first.path,
-                                  )
-                                  : Home(),
+                      builder: (context) => _sharedFiles.isNotEmpty
+                          ? PreviewSharedFiles(
+                              recipeUri: _sharedFiles.first.path,
+                            )
+                          : Home(),
                     ),
                   );
                 },

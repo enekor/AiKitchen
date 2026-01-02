@@ -60,10 +60,9 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
       isExpanded: widget.isPopup ? true : _isGeminiCardExpanded,
       text:
           'Gemini api key ${AppSingleton().apiKey != null ? 'aplicada' : 'no aplicada'}',
-      icon:
-          AppSingleton().apiKey == null
-              ? const Icon(Icons.api_rounded)
-              : const Icon(Icons.check_circle_rounded, color: Colors.green),
+      icon: AppSingleton().apiKey == null
+          ? const Icon(Icons.api_rounded)
+          : const Icon(Icons.check_circle_rounded, color: Colors.green),
       onTap: () {
         setState(() {
           _isGeminiCardExpanded = !_isGeminiCardExpanded;
@@ -97,62 +96,53 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
             items: [
               _buildCarouselItem(
                 'assets/guide/step1.jpg',
-                '1. Ve a Google AI Studio inicia sesión y seleciona "Crear clave de api',
+                '1. Ve a Google AI Studio inicia sesión y seleciona "Crear clave de API',
               ),
               _buildCarouselItem(
                 'assets/guide/step2.jpg',
-                '2. Dale al boton de copiar para copiar la API Key, si te da una pantalla diferente ve al siguiente paso, si no, ve al paso 3',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step2b.jpg',
-                '2.1. Si te sale la pantalla como esta dale a la X para cerrar la ventana y vuelve a la pantalla anterior',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step2c.jpg',
-                '2.2. Haz scroll hacia abajo hasta que veas una tabla',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step2d.jpg',
-                '2.3. Selecciona el texto azul y verás el recuadro del paso 2 para poder seguirlo',
+                '2. Selecciona "Crear proyecto" si no tienes uno ya existente',
               ),
               _buildCarouselItem(
                 'assets/guide/step3.jpg',
-                '3. Pega la API Key en la barra de texto de la app',
+                '3. Ponle un nombre a tu proyecto y dale a crear proyecto',
               ),
               _buildCarouselItem(
                 'assets/guide/step4.jpg',
-                '4. Dale al boton de guardar',
+                '4. Una vez creado el proyecto, ponle un nombre cualquiera a la clave, y selecciona "Crear clave"',
               ),
-              _buildCarouselItem('assets/guide/step5.jpg', ''),
+              _buildCarouselItem(
+                'assets/guide/step5.jpg',
+                '5. Selecciona la clave que acabas de crear clicando en el texto marcado en la imagen',
+              ),
+              _buildCarouselItem(
+                'assets/guide/step6.jpg',
+                '6. Copia la API Key usando el botón remarcado en la imagen y pégala en el campo de abajo',
+              ),
             ],
           ),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children:
-              [0, 1, 2, 3, 4, 5, 6].map((index) {
-                return Container(
-                  width: 10.0,
-                  height: 10.0,
-                  margin: EdgeInsets.symmetric(horizontal: 4.0),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        _currentIndex == index
-                            ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withAlpha(45)
-                            : Colors.grey.shade300,
-                  ),
-                );
-              }).toList(),
+          children: [0, 1, 2, 3, 4, 5, 6].map((index) {
+            return Container(
+              width: 10.0,
+              height: 10.0,
+              margin: EdgeInsets.symmetric(horizontal: 4.0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _currentIndex == index
+                    ? Theme.of(context).colorScheme.primary.withAlpha(45)
+                    : Colors.grey.shade300,
+              ),
+            );
+          }).toList(),
         ),
         const SizedBox(height: 16),
         const SizedBox(height: 16),
         Center(
           child: ElevatedButton.icon(
-            onPressed:
-                () => _launchUrl('https://makersuite.google.com/app/apikey'),
+            onPressed: () =>
+                _launchUrl('https://makersuite.google.com/app/apikey'),
             icon: const Icon(Icons.open_in_new),
             label: const Text('Obtener API Key'),
           ),
