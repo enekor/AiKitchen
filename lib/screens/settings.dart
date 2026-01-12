@@ -184,7 +184,8 @@ class _SettingsState extends State<Settings> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 15,
                   children: [
-                    ApiKeyGenerator(),
+                    //gemini
+                    //ApiKeyGenerator(),
                     if (!widget.isNotApiKeySetted)
                       AnimatedCard(
                         isExpanded: _isSettingsCardExpanded,
