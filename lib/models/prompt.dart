@@ -135,4 +135,41 @@ Importante:
 
 El formato debe ser el mismo JSON que el base, generando una lista con las 21 recetas.
 ''';
+
+  static String formatExternalWeeklyMenuPrompt(
+    String externalContent,
+    String tipoReceta,
+    String tono,
+    String idioma,
+  ) {
+    return '''
+$externalContent
+
+Responde ÚNICAMENTE en este formato JSON (lista de 21 recetas):
+[
+    {
+        "nombre": "nombre de la receta",
+        "descripcion": "descripcion de la receta",
+        "tiempo_estimado": "x min/h",
+        "calorias": 123 (el numero de calorias aproximadas),
+        "raciones": 2 (el numero de raciones/comensales),
+        "ingredientes":[
+            "ingrediente 1",
+            "ingrediente 2",
+            "ingrediente 3"
+        ],
+        "preparacion":[
+            "paso 1",
+            "paso 2",
+            "paso 3"
+        ]
+    }
+]
+
+Parámetros adicionales:
+- Idioma de las recetas: $idioma
+- Tipo de cocina específica: $tipoReceta
+- Tono de los pasos de la receta: $tono
+''';
+  }
 }
