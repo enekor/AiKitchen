@@ -198,10 +198,8 @@ class _DayCard extends StatelessWidget {
   String _getMealType(int index) {
     switch (index) {
       case 0:
-        return 'Desayuno';
-      case 1:
         return 'Comida';
-      case 2:
+      case 1:
         return 'Cena';
       default:
         return '';

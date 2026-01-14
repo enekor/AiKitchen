@@ -55,14 +55,10 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
     final logService = LogFileService();
 
     try {
-      // 1. Intentar descargar el prompt externo de GitHub
       String finalPrompt;
       try {
         await logService.appendLog('INFO WeeklyMenu: Descargando prompt externo...');
-        
-        // Añadimos un timestamp para evitar la caché de GitHub/HTTP
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        // IMPORTANTE: Hemos cambiado el hash del commit por 'main' para obtener siempre lo último
         final url = Uri.parse(
           'https://raw.githubusercontent.com/enekor/AiKitchen/main/prompt?t=$timestamp'
         );
@@ -89,7 +85,6 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         }
       } catch (e) {
         await logService.appendLog('WARNING WeeklyMenu: No se pudo cargar el prompt externo ($e). Usando prompt local.');
-        // Fallback al prompt local si falla la red
         finalPrompt = Prompt.weeklyMenuPrompt(
           AppSingleton().tipoReceta,
           AppSingleton().personality,
@@ -97,7 +92,6 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         );
       }
 
-      // 2. Llamada a la IA con el prompt construido
       final response = await AppSingleton().generateContent(
         finalPrompt,
         context,
@@ -109,13 +103,10 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
         final menuData = Recipe.fromJsonList(cleanedResponse);
 
-        // Distribuir las recetas por día (3 por día)
+        // Distribuir las recetas por día (2 por día: Comida y Cena)
         for (var i = 0; i < _diasSemana.length; i++) {
-          final startIndex = i * 3;
-          final endIndex = startIndex + 1; // Ajustado para distribuir correctamente si hay menos recetas
-          // (Nota: el i*3 asume que recibes 21 recetas exactas)
-          final dayStartIndex = i * 3;
-          final dayEndIndex = dayStartIndex + 3;
+          final dayStartIndex = i * 2;
+          final dayEndIndex = dayStartIndex + 2;
           
           if (dayStartIndex < menuData.length) {
             newMenu[_diasSemana[i]] = menuData.sublist(

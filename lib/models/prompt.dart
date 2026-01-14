@@ -119,7 +119,7 @@ Genera una lista completa y equilibrada de ingredientes básicos y productos ese
   ) =>
       '''
 $basePrompt
-Necesito que me generes un menú semanal completo con 3 comidas por día (desayuno, comida y cena) para los 7 días de la semana. En total son 21 recetas.
+Necesito que me generes un menú semanal completo con 2 comidas por día (comida y cena) para los 7 días de la semana. En total son 14 recetas.
 
 Parámetros:
 - Idioma de las recetas: $idioma
@@ -133,7 +133,7 @@ Importante:
 - Las recetas deben ser prácticas y realizables
 - Asegúrate de que el conjunto de recetas forme un menú coherente y saludable
 
-El formato debe ser el mismo JSON que el base, generando una lista con las 21 recetas.
+El formato debe ser el mismo JSON que el base, generando una lista con las 14 recetas.
 ''';
 
   static String formatExternalWeeklyMenuPrompt(
@@ -145,7 +145,7 @@ El formato debe ser el mismo JSON que el base, generando una lista con las 21 re
     return '''
 $externalContent
 
-Responde ÚNICAMENTE en este formato JSON (lista de 21 recetas):
+Responde ÚNICAMENTE en este formato JSON (lista de 14 recetas):
 [
     {
         "nombre": "nombre de la receta",
