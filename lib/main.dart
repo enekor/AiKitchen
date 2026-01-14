@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/screens/feature_selector.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/log_file_service.dart';
@@ -95,7 +96,7 @@ class _MyAppState extends State<MyApp> {
               if (snapshot.data == true) {
                 return _sharedFiles.isNotEmpty
                     ? PreviewSharedFiles(recipeUri: _sharedFiles.first.path)
-                    : Home();
+                    : const FeatureSelector(); // Cambiado de Home() a FeatureSelector()
               }
               return TerminosYCondicionesModal(
                 onAccept: () {
@@ -106,13 +107,13 @@ class _MyAppState extends State<MyApp> {
                     );
                   });
 
-                  Navigator.of(context).push(
+                  Navigator.of(context).pushReplacement( // Usamos pushReplacement para limpiar el stack
                     MaterialPageRoute(
                       builder: (context) => _sharedFiles.isNotEmpty
                           ? PreviewSharedFiles(
                               recipeUri: _sharedFiles.first.path,
                             )
-                          : Home(),
+                          : const FeatureSelector(),
                     ),
                   );
                 },
@@ -129,15 +130,9 @@ class _MyAppState extends State<MyApp> {
             },
           ),
           routes: {
-            '/home': (context) => const Home(),
+            '/home': (context) => const FeatureSelector(),
             '/api_key': (context) => Settings(),
             '/recipe': (context) {
-              final args =
-                  ModalRoute.of(context)!.settings.arguments
-                      as RecipeScreenArguments;
-              return RecipeScreen(recipe: args.recipe);
-            },
-            '/edit_recipe': (context) {
               final args =
                   ModalRoute.of(context)!.settings.arguments
                       as RecipeScreenArguments;
