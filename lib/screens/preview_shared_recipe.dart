@@ -59,8 +59,9 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
       floatingActionButton:
           _recipe != null && _recipe!.isNotEmpty
               ? FloatingActionButton.extended(
-                onPressed: () {
-                  JsonDocumentsService().updateFavRecipe(
+                onPressed: () async {
+                  // Cambiado de updateFavRecipe a addFavRecipe porque es una receta nueva en la BD local
+                  await JsonDocumentsService().addFavRecipe(
                     _recipe![_showingRecipe],
                   );
                   Toaster.showSuccess(
@@ -316,69 +317,31 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                             color: theme.colorScheme.tertiary,
                           ),
                         ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${recipe.preparacion.length} pasos',
-                            style: TextStyle(
-                              color: theme.colorScheme.tertiary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     ...(recipe.preparacion.asMap().entries.map(
                       (entry) => Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: theme.colorScheme.outline.withOpacity(0.2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${entry.key + 1}.',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.tertiary,
+                                fontSize: 18,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.tertiary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '${entry.key + 1}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                entry.value,
+                                style: const TextStyle(fontSize: 16),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(
-                                  entry.value,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     )),
@@ -396,14 +359,24 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
     required IconData icon,
     required String label,
     required String value,
-    Color? color,
+    required Color color,
   }) {
     return Column(
       children: [
-        Icon(icon, color: color),
+        Icon(icon, color: color, size: 24),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
