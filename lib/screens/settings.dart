@@ -1,7 +1,6 @@
 import 'package:aikitchen/screens/logs_screen.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
-import 'package:aikitchen/widgets/api_key_generator.dart';
 import 'package:aikitchen/widgets/setting_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +39,7 @@ enum Personality {
   static Personality fromDisplayName(String displayName) {
     return values.firstWhere(
       (e) => e.displayName.toLowerCase() == displayName.toLowerCase(),
-      orElse: () => Personality.neutral, // valor por defecto
+      orElse: () => Personality.neutral,
     );
   }
 }
@@ -103,27 +102,12 @@ enum TipoReceta {
 }
 
 class _SettingsState extends State<Settings> {
-  bool _isGeminiCardExpanded = false;
   bool _isSettingsCardExpanded = false;
-
-  Future<void> _launchUrl(String url) async {
-    if (!await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    )) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo abrir el enlace')),
-        );
-      }
-    }
-  }
 
   void _useTTS(bool value) {
     setState(() {
       AppSingleton().setUseTTS = value;
     });
-    SharedPreferencesService.setBoolValue(SharedPreferencesKeys.useTTS, value);
   }
 
   String compareEnumValues(String value, List<String> options) {
@@ -132,7 +116,7 @@ class _SettingsState extends State<Settings> {
         return option;
       }
     }
-    return options.first; // Default to the first option if no match found
+    return options.first;
   }
 
   @override
@@ -184,8 +168,6 @@ class _SettingsState extends State<Settings> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 15,
                   children: [
-                    //gemini
-                    //ApiKeyGenerator(),
                     if (!widget.isNotApiKeySetted)
                       AnimatedCard(
                         isExpanded: _isSettingsCardExpanded,
@@ -206,10 +188,6 @@ class _SettingsState extends State<Settings> {
                               setState(() {
                                 AppSingleton().setNumRecetas = value;
                               });
-                              SharedPreferencesService.setStringValue(
-                                SharedPreferencesKeys.numRecetas,
-                                value.toString(),
-                              );
                             },
                           ),
                           const SizedBox(height: 24),
@@ -241,13 +219,6 @@ class _SettingsState extends State<Settings> {
                                     .toList()
                                     .join(",");
                               });
-                              SharedPreferencesService.setStringValue(
-                                SharedPreferencesKeys.tonoTextos,
-                                personalities
-                                    .map((p) => p.name)
-                                    .toList()
-                                    .join(","),
-                              );
                               Toaster.showToast(
                                 'El tono de texto se ha cambiado a ${personalities.map((p) => p.displayName).join(", ")}',
                               );
@@ -270,10 +241,6 @@ class _SettingsState extends State<Settings> {
                               setState(() {
                                 AppSingleton().setIdioma = idioma.name;
                               });
-                              SharedPreferencesService.setStringValue(
-                                SharedPreferencesKeys.idioma,
-                                idioma.name,
-                              );
                               Toaster.showToast(
                                 'El idioma se ha cambiado a ${idioma.displayName}',
                               );
@@ -291,15 +258,11 @@ class _SettingsState extends State<Settings> {
                             options: TipoReceta.displayNames,
                             onChange: (List<String> value) {
                               final tipoReceta = TipoReceta.fromDisplayName(
-                                value.toSet().join(","),
+                                value.first,
                               );
                               setState(() {
                                 AppSingleton().setTipoReceta = tipoReceta.name;
                               });
-                              SharedPreferencesService.setStringValue(
-                                SharedPreferencesKeys.tipoReceta,
-                                tipoReceta.name,
-                              );
                               Toaster.showToast(
                                 'El tipo de receta se ha cambiado a ${tipoReceta.displayName}',
                               );

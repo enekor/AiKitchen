@@ -60,7 +60,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
           _recipe != null && _recipe!.isNotEmpty
               ? FloatingActionButton.extended(
                 onPressed: () {
-                  JsonDocumentsService().updateFavRecipes(
+                  JsonDocumentsService().updateFavRecipe(
                     _recipe![_showingRecipe],
                   );
                   Toaster.showSuccess(

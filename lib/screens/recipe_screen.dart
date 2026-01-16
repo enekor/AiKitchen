@@ -589,7 +589,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         title: Text(showingRecipe.nombre),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
@@ -606,7 +606,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
           // Recipe info chips in app bar
         ],
-      ),
+      ),*/
       body: Column(
         children: [
           // Recipe info header

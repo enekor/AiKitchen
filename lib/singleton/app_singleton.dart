@@ -45,11 +45,45 @@ class AppSingleton {
   String get idioma => _idioma;
   String get tipoReceta => _tipoReceta;
 
-  set setNumRecetas(int value) => _numRecetas = value;
-  set setUseTTS(bool setUseTTS) => _useTTS = setUseTTS;
-  set setTipoReceta(String value) => _tipoReceta = value;
-  set setIdioma(String value) => _idioma = value;
-  set setPersonality(String value) => _personality = value;
+  set setNumRecetas(int value) {
+    _numRecetas = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.numRecetas,
+      value.toString(),
+    );
+  }
+
+  set setUseTTS(bool value) {
+    _useTTS = value;
+    SharedPreferencesService.setBoolValue(
+      SharedPreferencesKeys.useTTS,
+      value,
+    );
+  }
+
+  set setTipoReceta(String value) {
+    _tipoReceta = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.tipoReceta,
+      value,
+    );
+  }
+
+  set setIdioma(String value) {
+    _idioma = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.idioma,
+      value,
+    );
+  }
+
+  set setPersonality(String value) {
+    _personality = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.tonoTextos,
+      value,
+    );
+  }
 
   Future<void> initializeWithStoredKey() async {
     _numRecetas = int.parse(
@@ -74,9 +108,8 @@ class AppSingleton {
         ) ??
         'omnivora';
 
-    // Primero intentamos cargar la API Key del archivo de configuración (config.properties en assets)
+    // Primero intentamos cargar la API Key del archivo de configuración
     try {
-      // Hay que cargarlos mediante rootBundle y luego usar Properties.fromString
       final propertiesContent = await rootBundle.loadString('config.properties');
       Properties p = Properties.fromString(propertiesContent);
 
@@ -90,7 +123,7 @@ class AppSingleton {
       _apiKey = null;
     }
 
-    // Si no se encontró en config.properties, miramos en SharedPreferences (ajustes manuales)
+    // Si no se encontró en config.properties, miramos en SQLite (via wrapper)
     if (_apiKey == null) {
       _apiKey = await SharedPreferencesService.getStringValue(
         SharedPreferencesKeys.geminiApiKey,
@@ -115,23 +148,12 @@ class AppSingleton {
     _apiKey = apiKey;
   }
 
-  Future<void> _launchUrl(String url, BuildContext context) async {
-    if (!await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    )) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo abrir el enlace')),
-      );
-    }
-  }
-
   Future<String> generateContent(String prompt, BuildContext context) async {
     if (_apiKey == null || _apiKey == "" || _apiKey!.isEmpty) {
       await WarningModal.ShowWarningDialog(
         title: 'Api key no configurada',
         texto:
-            'Para poder utilizar las funciones de IA de la aplicación necesita aplicar una api key en la seccion de ajustes. No se preocupe, viene bien explicado como obtener una.',
+            'Para poder utilizar las funciones de IA de la aplicación necesita aplicar una api key en la seccion de ajustes.',
         context: context,
         okText: 'Vamos allá',
         onAccept: () {
@@ -154,11 +176,6 @@ class AppSingleton {
         await file.writeAsString(jsonEncode(recipe.toJson()));
         final xFile = XFile(file.path);
         await Share.shareXFiles([xFile], text: 'Mira esta receta:');
-      } else {
-        await WarningModal.ShowWarningDialog(
-          texto: 'No se pudo acceder al almacenamiento externo',
-          context: context,
-        );
       }
     } catch (e) {
       Toaster.showError('Error al guardar o compartir la receta: $e');

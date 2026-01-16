@@ -2,14 +2,12 @@ import 'package:aikitchen/AI/by_ingredients/find_by_ingredients.dart';
 import 'package:aikitchen/AI/by_name/find_by_name.dart';
 import 'package:aikitchen/AI/favourites/favourites.dart';
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/screens/settings.dart';
 import 'package:aikitchen/screens/shopping_list.dart';
 import 'package:aikitchen/screens/weekly_menu.dart';
 import 'package:aikitchen/services/json_documents.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -33,7 +31,6 @@ class _FeatureSelectorState extends State<FeatureSelector> {
   Future<void> _loadTodayMenu() async {
     final menu = await JsonDocumentsService().loadWeeklyMenu();
     if (menu.isNotEmpty) {
-      // Obtener el día de la semana actual traducido
       final now = DateTime.now();
       final dayFormat = DateFormat('EEEE');
       final englishDay = dayFormat.format(now);
@@ -74,11 +71,9 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                   'AI Kitchen',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                 IconButton( icon:Icon(Icons.settings_outlined),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Settings()),
-                  ),
+                 IconButton( 
+                  icon: const Icon(Icons.settings_outlined),
+                  onPressed: () => _navigateTo(context, Settings()),
                 )
               ],
             ),
@@ -158,7 +153,7 @@ class _FeatureSelectorState extends State<FeatureSelector> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => _PageWrapper(child: page)),
-    ).then((_) => _loadTodayMenu()); // Recargar al volver por si cambió el menú
+    ).then((_) => _loadTodayMenu());
   }
 }
 
@@ -209,7 +204,7 @@ class _TodayMenuCard extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RecipeScreen(recipe: recipe),
+                      builder: (context) => _PageWrapper(child: RecipeScreen(recipe: recipe)),
                     ),
                   ),
                   child: Row(
@@ -269,13 +264,28 @@ class _PageWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
+      body: Column(
+        children: [
+          const SizedBox(height: 25),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    elevation: 1,
+                    shadowColor: Colors.black26,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(child: child),
+        ],
       ),
-      body: child,
     );
   }
 }

@@ -52,7 +52,7 @@ class _HomeState extends State<Home> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         centerTitle: true,
         title: Text(
           _getAppBarTitle(),
@@ -74,7 +74,7 @@ class _HomeState extends State<Home> {
             tooltip: 'Ajustes',
           ),
         ],
-      ),
+      ),*/
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: NeumorphicNavigationBar(
         currentIndex: _currentIndex,

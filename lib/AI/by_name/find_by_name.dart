@@ -139,11 +139,13 @@ class _FindByNameState extends State<FindByName> {
     if (AppSingleton().recetasFavoritas.contains(recipe)) {
       AppSingleton().recetasFavoritas.remove(recipe);
       Toaster.showWarning('Eliminado de favoritos');
+      JsonDocumentsService().removeFavRecipe(recipe.id!);
     } else {
       AppSingleton().recetasFavoritas.add(recipe);
       Toaster.showSuccess('¡Añadido a favoritos!');
+      JsonDocumentsService().addFavRecipe(recipe);
     }
-    JsonDocumentsService().updateFavRecipes(recipe);
+
   }
 
   Widget _buildSearchField() {

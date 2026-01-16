@@ -1,190 +1,84 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:aikitchen/models/cart_item.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aikitchen/models/recipe.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:aikitchen/services/sqlite_service.dart';
 
 class JsonDocumentsService {
-  String get favFilePath => '/fav_recipes.json';
-  String get shoppingListFilePath => '/shopping_list.json';
-  String get weeklyMenuFilePath => '/weekly_menu.json';
+  final _sqlite = SqliteService();
 
+  // --- Recetas Favoritas ---
   Future<List<Recipe>> getFavRecipes() async {
-    try {
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        final favRecipesString = prefs.getString('fav_recipes');
-        if (favRecipesString != null) {
-          return Recipe.fromJsonList(favRecipesString);
-        } else {
-          return [];
-        }
-      } else {
-        final documentPath = await getApplicationDocumentsDirectory();
-        final filePath = '${documentPath.path}$favFilePath';
-        final file = File(filePath);
-        if (await file.exists()) {
-          String favRecipes = await file.readAsString();
-          return Recipe.fromJsonList(favRecipes);
-        } else {
-          File(filePath).createSync();
-          return [];
-        }
-      }
-    } catch (e) {
-      print("Error reading favorite recipes: $e");
-      return [];
+    return await _sqlite.getFavRecipes();
+  }
+
+  Future<void> addFavRecipe(Recipe recipe) async {
+    await _sqlite.insertFavRecipe(recipe);
+  }
+
+  Future<void> removeFavRecipe(int id) async {
+    await _sqlite.deleteFavRecipe(id);
+  }
+
+  Future<void> updateFavRecipe(Recipe recipe) async {
+    if (recipe.id != null) {
+      await _sqlite.updateFavRecipe(recipe);
     }
   }
 
+  // Método de compatibilidad para cuando se quiere sincronizar una lista completa
   Future<void> setFavRecipes(List<Recipe> recipes) async {
-    try {
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        final favRecipesString = jsonEncode(recipes);
-        await prefs.setString('fav_recipes', favRecipesString);
-      } else {
-        final documentPath = await getApplicationDocumentsDirectory();
-        final filePath = '${documentPath.path}$favFilePath';
-        final file = File(filePath);
-        String favRecipes = jsonEncode(recipes);
-        await file.writeAsString(favRecipes);
-      }
-    } catch (e) {
-      print("Error writing favorite recipes: $e");
+    final currentFavs = await _sqlite.getFavRecipes();
+    // En lugar de borrar todo, podríamos sincronizar, pero si la intención es "reemplazar",
+    // borramos lo que no esté en la nueva lista o simplemente limpiamos y reinsertamos.
+    for (var fav in currentFavs) {
+      if (fav.id != null) await _sqlite.deleteFavRecipe(fav.id!);
+    }
+    for (var recipe in recipes) {
+      await _sqlite.insertFavRecipe(recipe);
     }
   }
 
-  Future<void> updateFavRecipes(Recipe recipe, {Recipe? outdatedRecipe}) async {
-    List<Recipe> myFavRecipes = await getFavRecipes();
-
-    if (outdatedRecipe != null) {
-      myFavRecipes.removeWhere((re) => re.nombre == outdatedRecipe.nombre);
-    }
-
-    if (!myFavRecipes.any((re) => re.nombre == recipe.nombre)) {
-      myFavRecipes.add(recipe);
-    }
-
-    await setFavRecipes(myFavRecipes);
-  }
-
+  // --- Lista de la Compra ---
   Future<List<CartItem>> getCartItems() async {
-    try {
-      final documentPath = await getApplicationDocumentsDirectory();
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        final cartItemsString = prefs.getString('shopping_list');
-        if (cartItemsString != null) {
-          List<dynamic> jsonList = jsonDecode(cartItemsString);
-          return jsonList.map((item) => CartItem.fromJson(item)).toList();
-        } else {
-          return [];
-        }
-      } else {
-        final filePath = '${documentPath.path}$shoppingListFilePath';
-        final file = File(filePath);
-        if (await file.exists()) {
-          String cartItemsString = await file.readAsString();
-          List<dynamic> jsonList = jsonDecode(cartItemsString);
-          return jsonList.map((item) => CartItem.fromJson(item)).toList();
-        } else {
-          File(filePath).createSync();
-          return [];
-        }
-      }
-    } catch (e) {
-      print("Error reading cart items: $e");
-      return [];
+    return await _sqlite.getCartItems();
+  }
+
+  Future<void> addCartItem(CartItem item) async {
+    await _sqlite.insertCartItem(item);
+  }
+
+  Future<void> updateCartItem(CartItem item) async {
+    if (item.id != null) {
+      await _sqlite.updateCartItem(item);
     }
   }
 
-  Future<void> setCartItems(List<CartItem> cartItems) async {
-    try {
-      final documentPath = await getApplicationDocumentsDirectory();
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        final cartItemsString = jsonEncode(cartItems);
-        await prefs.setString('shopping_list', cartItemsString);
-      } else {
-        final filePath = '${documentPath.path}$shoppingListFilePath';
-        final file = File(filePath);
-        String cartItemsString = jsonEncode(cartItems);
-        await file.writeAsString(cartItemsString);
+  Future<void> removeCartItem(int id) async {
+    await _sqlite.deleteCartItem(id);
+  }
+
+  // Método de compatibilidad para strings (como se usaba antes)
+  Future<void> addCartItemsFromNames(List<String> names) async {
+    final currentItems = await _sqlite.getCartItems();
+    for (String name in names) {
+      if (!currentItems.any((item) => item.name.toLowerCase() == name.toLowerCase())) {
+        await _sqlite.insertCartItem(CartItem(name: name));
       }
-    } catch (e) {
-      print("Error writing cart items: $e");
     }
   }
 
-  Future<void> updateCartItems(List<String> cartItems) async {
-    List<CartItem> myCartItems = await getCartItems();
-    for (String item in cartItems) {
-      if (!myCartItems.any((cartItem) => cartItem.name == item)) {
-        myCartItems.add(CartItem(name: item));
-      }
-    }
-    await setCartItems(myCartItems);
-  }
-
+  // --- Menú Semanal ---
   Future<Map<String, List<Recipe>>> loadWeeklyMenu() async {
-    try {
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        final menuString = prefs.getString('weekly_menu');
-        if (menuString != null) {
-          final Map<String, dynamic> jsonMap = jsonDecode(menuString);
-          return jsonMap.map((key, value) {
-            final List<dynamic> recipesList = value;
-            return MapEntry(
-              key,
-              recipesList.map((json) => Recipe.fromJson(json)).toList(),
-            );
-          });
-        }
-      } else {
-        final documentPath = await getApplicationDocumentsDirectory();
-        final filePath = '${documentPath.path}$weeklyMenuFilePath';
-        final file = File(filePath);
-        if (await file.exists()) {
-          final menuString = await file.readAsString();
-          final Map<String, dynamic> jsonMap = jsonDecode(menuString);
-          return jsonMap.map((key, value) {
-            final List<dynamic> recipesList = value;
-            return MapEntry(
-              key,
-              recipesList.map((json) => Recipe.fromJson(json)).toList(),
-            );
-          });
-        }
-      }
-      return {};
-    } catch (e) {
-      print("Error reading weekly menu: $e");
-      return {};
-    }
+    return await _sqlite.getWeeklyMenu();
   }
 
   Future<void> saveWeeklyMenu(Map<String, List<Recipe>> menu) async {
-    try {
-      final menuJson = menu.map((key, value) {
-        return MapEntry(key, value.map((recipe) => recipe.toJson()).toList());
-      });
-
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('weekly_menu', jsonEncode(menuJson));
-      } else {
-        final documentPath = await getApplicationDocumentsDirectory();
-        final filePath = '${documentPath.path}$weeklyMenuFilePath';
-        final file = File(filePath);
-        await file.writeAsString(jsonEncode(menuJson));
+    await _sqlite.clearMenu();
+    menu.forEach((dia, recetas) {
+      for (var i = 0; i < recetas.length; i++) {
+        // Asignamos tipo según el orden si no viene especificado
+        String tipoComida = i == 0 ? 'Comida' : 'Cena';
+        _sqlite.insertMenuRecipe(recetas[i], dia, tipoComida);
       }
-    } catch (e) {
-      print("Error writing weekly menu: $e");
-    }
+    });
   }
 }

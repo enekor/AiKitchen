@@ -5,6 +5,7 @@ import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/feature_selector.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
+import 'package:aikitchen/services/first_start_service.dart';
 import 'package:aikitchen/services/log_file_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/services/widget_service.dart';
@@ -20,6 +21,7 @@ import 'singleton/app_singleton.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppSingleton().initializeWithStoredKey();
+  FirstStartService().firstStart();
 
   // Inicializar widgets de Android
   if (Platform.isAndroid) {

@@ -164,37 +164,32 @@ class WidgetService {
   /// Alterna el estado de un item de la lista de compra
   static Future<void> _toggleShoppingItem(String itemName) async {
     final cartItems = await JsonDocumentsService().getCartItems();
-    final itemIndex = cartItems.indexWhere((item) => item.name == itemName);
+    final itemIndex = cartItems.firstWhere((item) => item.name == itemName);
 
-    if (itemIndex != -1) {
-      cartItems[itemIndex].isPurchased = !cartItems[itemIndex].isPurchased;
-      await JsonDocumentsService().setCartItems(cartItems);
+    itemIndex.isPurchased = !itemIndex.isPurchased;
+      await JsonDocumentsService().updateCartItem(itemIndex);
       await updateShoppingListWidget();
-    }
+
   }
 
   /// Añade un nuevo item a la lista de compra
   static Future<void> _addShoppingItem(String itemName) async {
     if (itemName.trim().isEmpty) return;
 
-    final cartItems = await JsonDocumentsService().getCartItems();
-
-    // Verificar que no exista ya
-    if (!cartItems.any(
-      (item) => item.name.toLowerCase() == itemName.toLowerCase(),
-    )) {
-      cartItems.add(CartItem(name: itemName.trim()));
-      await JsonDocumentsService().setCartItems(cartItems);
+      await JsonDocumentsService().addCartItem(CartItem(name: itemName.trim()));
       await updateShoppingListWidget();
-    }
   }
 
   /// Limpia los items completados de la lista de compra
   static Future<void> _clearCompletedItems() async {
-    final cartItems = await JsonDocumentsService().getCartItems();
-    final filteredItems = cartItems.where((item) => !item.isPurchased).toList();
+    List<CartItem> cartItems = await JsonDocumentsService().getCartItems();
+    cartItems = cartItems.where((item) => item.isPurchased).toList();
 
-    await JsonDocumentsService().setCartItems(filteredItems);
+    for (var item in cartItems) {
+      await JsonDocumentsService().removeCartItem(item.id!);
+    }
+
+
     await updateShoppingListWidget();
   }
 
@@ -224,36 +219,6 @@ class WidgetService {
     await updateShoppingListWidget();
     await updateFavoritesWidget();
     print('All widgets refreshed');
-  }
-
-  /// Añade datos de prueba para testing
-  static Future<void> addTestData() async {
-    print('Adding test data...');
-
-    // Añadir datos de prueba para la lista de compra
-    final cartItems = await JsonDocumentsService().getCartItems();
-    print('Current cart items: ${cartItems.length}');
-
-    if (cartItems.isEmpty) {
-      final testItems = [
-        CartItem(name: 'Leche', isPurchased: false),
-        CartItem(name: 'Pan', isPurchased: true),
-        CartItem(name: 'Huevos', isPurchased: false),
-      ];
-
-      await JsonDocumentsService().setCartItems(testItems);
-      print('Test items added to storage');
-
-      // Verificar que se guardaron correctamente
-      final verifyItems = await JsonDocumentsService().getCartItems();
-      print('Verification: ${verifyItems.length} items stored');
-      for (var item in verifyItems) {
-        print('  - ${item.name}: ${item.isPurchased}');
-      }
-    }
-
-    await updateShoppingListWidget();
-    print('Test data added and widgets updated');
   }
 
   /// Añade datos de prueba simples para debugging
@@ -350,40 +315,6 @@ class WidgetService {
     } catch (e, stackTrace) {
       print('DEBUG ERROR: $e');
       print('DEBUG STACKTRACE: $stackTrace');
-    }
-  }
-
-  /// Añade algunos items de prueba reales para testing
-  static Future<void> addRealTestData() async {
-    print('Adding real test data to shopping list...');
-
-    try {
-      // Obtener la lista actual
-      final currentItems = await JsonDocumentsService().getCartItems();
-
-      // Agregar items de prueba si la lista está vacía
-      if (currentItems.isEmpty) {
-        final testItems = [
-          CartItem(name: 'Leche', isPurchased: false),
-          CartItem(name: 'Pan integral', isPurchased: false),
-          CartItem(name: 'Huevos', isPurchased: true),
-          CartItem(name: 'Tomates', isPurchased: false),
-          CartItem(name: 'Queso', isPurchased: true),
-          CartItem(name: 'Yogur', isPurchased: false),
-        ];
-
-        // Guardar en el servicio de documentos
-        await JsonDocumentsService().setCartItems(testItems);
-        print('Test items added: ${testItems.length}');
-      } else {
-        print('Shopping list already has ${currentItems.length} items');
-      }
-
-      // Actualizar el widget
-      await updateShoppingListWidget();
-      print('Widget updated with real data');
-    } catch (e) {
-      print('Error adding real test data: $e');
     }
   }
 }

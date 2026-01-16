@@ -33,9 +33,8 @@ class _CreateRecipeState extends State<CreateRecipe> {
       tiempoEstimado: "${_estimatedTimeController.text}min",
     );
 
-    JsonDocumentsService().updateFavRecipes(
+    JsonDocumentsService().updateFavRecipe(
       recipe,
-      outdatedRecipe: widget.recipe,
     );
 
     Toaster.showSuccess('${_nameController.text} guardada con éxito');
@@ -145,11 +144,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         title: Text(widget.recipe == null ? 'Crear receta' : 'Editar receta'),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-      ),
+      ),*/
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

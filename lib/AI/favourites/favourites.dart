@@ -210,7 +210,7 @@ class _FavouritesState extends State<Favourites> {
     final recipeCount = AppSingleton().recetasFavoritas.length;
 
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         title: _isSelectionMode
             ? Text('${_selectedRecipes.length} seleccionadas')
             : Row(
@@ -266,7 +266,7 @@ class _FavouritesState extends State<Favourites> {
               tooltip: 'Actualizar lista',
             ),
         ],
-      ),
+      ),*/
       body: _buildRecipeList(),
       floatingActionButton: _isSelectionMode
           ? FloatingActionButton.extended(
