@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/widget_service.dart';
@@ -9,7 +7,7 @@ import 'package:aikitchen/widgets/ingredients_list.dart';
 import 'package:aikitchen/widgets/steps_list.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
-import 'package:aikitchen/screens/settings.dart' show TipoReceta;
+import 'package:google_fonts/google_fonts.dart';
 
 class RecipeScreen extends StatefulWidget {
   const RecipeScreen({super.key, required this.recipe});
@@ -58,107 +56,190 @@ class _RecipeScreenState extends State<RecipeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    showingRecipe.nombre,
-                    style: theme.textTheme.displaySmall?.copyWith(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.surface,
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverAppBar.large(
+              backgroundColor: theme.colorScheme.surface,
+              expandedHeight: 240,
+              collapsedHeight: kToolbarHeight + MediaQuery.of(context).padding.top,
+              pinned: true,
+              stretch: true,
+              leading: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton.filledTonal(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: IconButton.filledTonal(
+                    onPressed: _toggleFavorite,
+                    icon: Icon(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded),
+                    color: _isFavorite ? Colors.redAccent : null,
+                  ),
+                ),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: const [StretchMode.zoomBackground, StretchMode.fadeTitle],
+                titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                centerTitle: false,
+                title: Text(
+                  showingRecipe.nombre,
+                  style: GoogleFonts.robotoFlex(
+                    textStyle: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: theme.colorScheme.primary,
-                      letterSpacing: -1,
+                      letterSpacing: -1.2,
                     ),
                   ),
                 ),
-                IconButton.filledTonal(
-                  onPressed: _toggleFavorite,
-                  icon: Icon(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded),
-                  color: _isFavorite ? Colors.redAccent : null,
-                  style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              showingRecipe.descripcion,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-                height: 1.5,
               ),
             ),
-            const SizedBox(height: 32),
-            
-            _buildInfoRow(theme),
-            
-            const SizedBox(height: 40),
-            _sectionTitle(theme, 'Ingredientes', Icons.shopping_basket_rounded),
-            const SizedBox(height: 16),
-            IngredientsList(ingredients: showingRecipe.ingredientes),
-            
-            const SizedBox(height: 40),
-            _sectionTitle(theme, 'Preparación', Icons.auto_fix_high_rounded),
-            const SizedBox(height: 16),
-            StepsList(steps: showingRecipe.preparacion),
-            
-            const SizedBox(height: 80),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: _buildInfoBadges(theme),
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _StickyTabBarDelegate(
+                child: Container(
+                  color: theme.colorScheme.surface,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: TabBar(
+                      indicator: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      dividerColor: Colors.transparent,
+                      labelColor: theme.colorScheme.onPrimary,
+                      unselectedLabelColor: theme.colorScheme.primary,
+                      labelStyle: GoogleFonts.robotoFlex(fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 12),
+                      tabs: const [
+                        Tab(text: 'INGREDIENTES'),
+                        Tab(text: 'PREPARACIÓN'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
+          body: const TabBarView(
+            children: [
+              // Slide 1: Ingredientes
+              _ScrollableSlide(
+                child: _IngredientsSlideContent(),
+              ),
+              // Slide 2: Preparación
+              _ScrollableSlide(
+                child: _StepsSlideContent(),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(ThemeData theme) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _infoChip(theme, Icons.timer_rounded, showingRecipe.tiempoEstimado, theme.colorScheme.secondaryContainer),
-        _infoChip(theme, Icons.local_fire_department_rounded, '${showingRecipe.calorias.toInt()} cal', theme.colorScheme.tertiaryContainer),
-        _infoChip(theme, Icons.group_rounded, '${showingRecipe.raciones} raciones', theme.colorScheme.surfaceVariant),
-      ],
-    );
-  }
-
-  Widget _infoChip(ThemeData theme, IconData icon, String label, Color bgColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: bgColor.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(20),
-      ),
+  Widget _buildInfoBadges(ThemeData theme) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
-          const SizedBox(width: 8),
-          Text(label, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+          _expressiveBadge(theme, Icons.timer_rounded, showingRecipe.tiempoEstimado, theme.colorScheme.primaryContainer),
+          const SizedBox(width: 12),
+          _expressiveBadge(theme, Icons.local_fire_department_rounded, '${showingRecipe.calorias.toInt()} cal', theme.colorScheme.secondaryContainer),
+          const SizedBox(width: 12),
+          _expressiveBadge(theme, Icons.group_rounded, '${showingRecipe.raciones} pers.', theme.colorScheme.tertiaryContainer),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(ThemeData theme, String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, color: theme.colorScheme.primary, size: 24),
-        const SizedBox(width: 12),
-        Text(
-          title.toUpperCase(),
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2,
-            color: theme.colorScheme.primary,
-          ),
-        ),
-      ],
+  Widget _expressiveBadge(ThemeData theme, IconData icon, String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(text, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+        ],
+      ),
     );
+  }
+}
+
+class _ScrollableSlide extends StatelessWidget {
+  final Widget child;
+  const _ScrollableSlide({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 100),
+      child: child,
+    );
+  }
+}
+
+class _IngredientsSlideContent extends StatelessWidget {
+  const _IngredientsSlideContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<_RecipeScreenState>()!;
+    return IngredientsList(ingredients: state.showingRecipe.ingredientes);
+  }
+}
+
+class _StepsSlideContent extends StatelessWidget {
+  const _StepsSlideContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<_RecipeScreenState>()!;
+    return StepsList(steps: state.showingRecipe.preparacion);
+  }
+}
+
+class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  _StickyTabBarDelegate({required this.child});
+
+  @override
+  double get minExtent => 88;
+  @override
+  double get maxExtent => 88;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(_StickyTabBarDelegate oldDelegate) {
+    return false;
   }
 }
