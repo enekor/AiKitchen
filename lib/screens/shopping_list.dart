@@ -19,12 +19,9 @@ class _ShoppingListState extends State<ShoppingList> {
   bool _isGenerating = false;
   final TextEditingController _itemController = TextEditingController();
 
-  // Controllers for AI generation modal
   final TextEditingController _personasController = TextEditingController();
-  final TextEditingController _presupuestoIniController =
-      TextEditingController();
-  final TextEditingController _presupuestoFinController =
-      TextEditingController();
+  final TextEditingController _presupuestoIniController = TextEditingController();
+  final TextEditingController _presupuestoFinController = TextEditingController();
 
   @override
   void initState() {
@@ -85,8 +82,7 @@ class _ShoppingListState extends State<ShoppingList> {
   String _cleanJsonResponse(String response) {
     response = response.replaceAll(RegExp(r'```json\s*'), '');
     response = response.replaceAll(RegExp(r'\s*```'), '');
-    response = response.trim();
-    return response;
+    return response.trim();
   }
 
   Future<void> _generateShoppingListWithAI(Map<String, String> formData) async {
@@ -124,170 +120,110 @@ class _ShoppingListState extends State<ShoppingList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final pendingItems =
-        _shoppingList.where((item) => !item.isPurchased).toList();
-    final completedItems =
-        _shoppingList.where((item) => item.isPurchased).toList();
+    final pendingItems = _shoppingList.where((item) => !item.isPurchased).toList();
+    final completedItems = _shoppingList.where((item) => item.isPurchased).toList();
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      /*appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(
-              Icons.shopping_cart,
-              color: theme.colorScheme.primary,
-              size: 24,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Lista de la compra',
-              style: TextStyle(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
-        actions: [
-          if (completedItems.isNotEmpty)
-            IconButton(
-              onPressed: _clearCompleted,
-              icon: const Icon(Icons.clear_all),
-              tooltip: 'Limpiar completados',
-            ),
-        ],
-      ),*/
+      backgroundColor: Colors.transparent,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _itemController,
-                    decoration: InputDecoration(
-                      hintText: 'Añadir artículo...',
-                      prefixIcon: Icon(
-                        Icons.add_shopping_cart,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'La Compra',
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
                         color: theme.colorScheme.primary,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.3),
-                        ),
+                        letterSpacing: -1.5,
                       ),
                     ),
-                    onSubmitted: _addItem,
-                  ),
+                    if (completedItems.isNotEmpty)
+                      IconButton.filledTonal(
+                        onPressed: _clearCompleted,
+                        icon: const Icon(Icons.delete_sweep_rounded),
+                        tooltip: 'Limpiar completados',
+                      ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                FloatingActionButton.small(
-                  onPressed: () => _addItem(_itemController.text),
-                  backgroundColor: theme.colorScheme.primary,
-                  child: const Icon(Icons.add, color: Colors.white),
-                  heroTag: 'add-shopping-item',
+                const SizedBox(height: 8),
+                Text(
+                  'Organiza lo que necesitas para tus recetas',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
           ),
+          
+          const SizedBox(height: 24),
+          
+          // Stats Row
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          '${pendingItems.length}',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text('Pendientes', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary)),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          '${completedItems.length}',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: theme.colorScheme.secondary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text('Completados', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.secondary)),
-                      ],
-                    ),
-                  ),
-                ),
+                _buildStatCard(theme, '${pendingItems.length}', 'Pendientes', theme.colorScheme.primaryContainer, theme.colorScheme.onPrimaryContainer),
+                const SizedBox(width: 16),
+                _buildStatCard(theme, '${completedItems.length}', 'Listos', theme.colorScheme.secondaryContainer, theme.colorScheme.onSecondaryContainer),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 24),
+
+          // Add Item Field
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  Icon(Icons.add_shopping_cart_rounded, color: theme.colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _itemController,
+                      decoration: const InputDecoration(
+                        hintText: 'Añadir artículo...',
+                        border: InputBorder.none,
+                      ),
+                      onSubmitted: _addItem,
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    onPressed: () => _addItem(_itemController.text),
+                    icon: const Icon(Icons.add_rounded),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Items List
           Expanded(
             child: _shoppingList.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.shopping_cart_outlined, size: 80, color: theme.colorScheme.outline),
-                        const SizedBox(height: 16),
-                        Text('Lista vacía', style: theme.textTheme.headlineSmall?.copyWith(color: theme.colorScheme.outline)),
-                      ],
-                    ),
-                  )
+                ? _buildEmptyState(theme)
                 : ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     itemCount: _shoppingList.length,
                     itemBuilder: (context, index) {
                       final item = _shoppingList[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: item.isPurchased ? theme.colorScheme.secondary.withOpacity(0.1) : theme.colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: item.isPurchased ? theme.colorScheme.secondary.withOpacity(0.3) : theme.colorScheme.outline.withOpacity(0.3)),
-                        ),
-                        child: ListTile(
-                          leading: Checkbox(
-                            value: item.isPurchased,
-                            onChanged: (_) => _togglePurchased(index),
-                          ),
-                          title: Text(
-                            item.name,
-                            style: TextStyle(
-                              decoration: item.isPurchased ? TextDecoration.lineThrough : null,
-                              color: item.isPurchased ? theme.colorScheme.outline : theme.colorScheme.onSurface,
-                            ),
-                          ),
-                          trailing: IconButton(
-                            onPressed: () => _removeItem(index),
-                            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
-                          ),
-                        ),
-                      );
+                      return _buildShoppingItem(theme, item, index);
                     },
                   ),
           ),
@@ -296,10 +232,88 @@ class _ShoppingListState extends State<ShoppingList> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAIGeneratorModal,
         backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        icon: _isGenerating ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.auto_awesome),
-        label: Text(_isGenerating ? 'Generando...' : 'Generar con IA'),
-        heroTag: 'generate-shopping-list',
+        foregroundColor: theme.colorScheme.onPrimary,
+        elevation: 0,
+        icon: _isGenerating 
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Icon(Icons.auto_awesome_rounded),
+        label: Text(_isGenerating ? 'GENERANDO...' : 'GENERAR CON IA', style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(ThemeData theme, String count, String label, Color bgColor, Color textColor) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Column(
+          children: [
+            Text(count, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: textColor)),
+            Text(label, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor.withOpacity(0.8))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShoppingItem(ThemeData theme, CartItem item, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: item.isPurchased 
+            ? theme.colorScheme.surfaceVariant.withOpacity(0.2)
+            : theme.colorScheme.surfaceVariant.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: item.isPurchased ? Colors.transparent : theme.colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Checkbox(
+          value: item.isPurchased,
+          onChanged: (_) => _togglePurchased(index),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+        title: Text(
+          item.name,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: item.isPurchased ? FontWeight.normal : FontWeight.bold,
+            decoration: item.isPurchased ? TextDecoration.lineThrough : null,
+            color: item.isPurchased ? theme.colorScheme.onSurface.withOpacity(0.4) : theme.colorScheme.onSurface,
+          ),
+        ),
+        trailing: IconButton(
+          onPressed: () => _removeItem(index),
+          icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error.withOpacity(0.7)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.shopping_bag_rounded, size: 64, color: theme.colorScheme.primary),
+          ),
+          const SizedBox(height: 24),
+          Text('¡Lista vacía!', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Text('Añade artículos o usa la IA para generar una.', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+        ],
       ),
     );
   }
@@ -307,93 +321,94 @@ class _ShoppingListState extends State<ShoppingList> {
   Widget _buildAIGeneratorModal() {
     final theme = Theme.of(context);
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 5,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(color: theme.colorScheme.outline.withOpacity(0.5), borderRadius: BorderRadius.circular(2.5)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.auto_awesome, color: theme.colorScheme.primary, size: 28),
-                const SizedBox(width: 12),
-                Text('Generar lista con IA', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                const Spacer(),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
-              ],
-            ),
-          ),
-          const Divider(),
-          Expanded(
-            child: _isGenerating
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Cuéntanos sobre tu hogar', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _personasController,
-                          decoration: InputDecoration(labelText: 'Número de personas', prefixIcon: const Icon(Icons.people), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _presupuestoIniController,
-                                decoration: InputDecoration(labelText: 'P. min.', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: _presupuestoFinController,
-                                decoration: InputDecoration(labelText: 'P. max.', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        Text('Tipo de cocina: ${AppSingleton().tipoReceta}', style: theme.textTheme.bodySmall),
-                      ],
-                    ),
-                  ),
-          ),
-          if (!_isGenerating)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final formData = {
-                      'personas': _personasController.text,
-                      'presupuesto': '${_presupuestoIniController.text} - ${_presupuestoFinController.text}',
-                    };
-                    _generateShoppingListWithAI(formData);
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
-                  child: const Text('Generar lista'),
-                ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(color: theme.colorScheme.outline.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
               ),
             ),
-        ],
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Icon(Icons.auto_awesome_rounded, color: theme.colorScheme.primary),
+                const SizedBox(width: 12),
+                Text('Generar con IA', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+              ],
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _personasController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Número de personas',
+                filled: true,
+                fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                prefixIcon: const Icon(Icons.people_rounded),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _presupuestoIniController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'P. Mín (€)',
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextField(
+                    controller: _presupuestoFinController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'P. Máx (€)',
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  final formData = {
+                    'personas': _personasController.text,
+                    'presupuesto': '${_presupuestoIniController.text} - ${_presupuestoFinController.text}',
+                  };
+                  _generateShoppingListWithAI(formData);
+                  Navigator.pop(context);
+                },
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                child: const Text('GENERAR LISTA', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

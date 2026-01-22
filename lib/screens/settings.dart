@@ -1,10 +1,7 @@
 import 'package:aikitchen/screens/logs_screen.dart';
-import 'package:aikitchen/services/shared_preferences_service.dart';
-import 'package:aikitchen/widgets/animated_card.dart';
 import 'package:aikitchen/widgets/setting_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../singleton/app_singleton.dart';
 
 class Settings extends StatefulWidget {
@@ -16,25 +13,14 @@ class Settings extends StatefulWidget {
 }
 
 enum Personality {
-  amistoso,
-  profesional,
-  casual,
-  divertido,
-  educativo,
-  hiriente,
-  bromista,
-  sarcastico,
-  entusiasta,
-  neutral;
+  amistoso, profesional, casual, divertido, educativo, hiriente, bromista, sarcastico, entusiasta, neutral;
 
   String get displayName {
     String text = name.replaceAll('_', ' ').toLowerCase();
     return text[0].toUpperCase() + text.substring(1);
   }
 
-  static List<String> get displayNames {
-    return values.map((e) => e.displayName).toList();
-  }
+  static List<String> get displayNames => values.map((e) => e.displayName).toList();
 
   static Personality fromDisplayName(String displayName) {
     return values.firstWhere(
@@ -45,22 +31,14 @@ enum Personality {
 }
 
 enum Idioma {
-  espanhol,
-  gallego,
-  andaluz,
-  ingles,
-  frances,
-  aleman,
-  italiano;
+  espanhol, gallego, andaluz, ingles, frances, aleman, italiano;
 
   String get displayName {
     String text = name.replaceAll('nh', 'ñ').toLowerCase();
     return text[0].toUpperCase() + text.substring(1);
   }
 
-  static List<String> get displayNames {
-    return values.map((e) => e.displayName).toList();
-  }
+  static List<String> get displayNames => values.map((e) => e.displayName).toList();
 
   static Idioma fromDisplayName(String displayName) {
     return values.firstWhere(
@@ -71,27 +49,14 @@ enum Idioma {
 }
 
 enum TipoReceta {
-  vegana,
-  vegetariana,
-  carnivora,
-  pescetariana,
-  sin_gluten,
-  sin_lactosa,
-  omnivora,
-  sin_azucar,
-  sin_huevo,
-  sin_frutosSecos,
-  sin_cereales,
-  sin_legumbres;
+  vegana, vegetariana, carnivora, pescetariana, sin_gluten, sin_lactosa, omnivora, sin_azucar, sin_huevo, sin_frutosSecos, sin_cereales, sin_legumbres;
 
   String get displayName {
     String text = name.replaceAll('_', ' ').toLowerCase();
     return text[0].toUpperCase() + text.substring(1);
   }
 
-  static List<String> get displayNames {
-    return values.map((e) => e.displayName).toList();
-  }
+  static List<String> get displayNames => values.map((e) => e.displayName).toList();
 
   static TipoReceta fromDisplayName(String displayName) {
     return values.firstWhere(
@@ -102,8 +67,6 @@ enum TipoReceta {
 }
 
 class _SettingsState extends State<Settings> {
-  bool _isSettingsCardExpanded = false;
-
   void _useTTS(bool value) {
     setState(() {
       AppSingleton().setUseTTS = value;
@@ -112,9 +75,7 @@ class _SettingsState extends State<Settings> {
 
   String compareEnumValues(String value, List<String> options) {
     for (String option in options) {
-      if (option.toLowerCase() == value.toLowerCase()) {
-        return option;
-      }
+      if (option.toLowerCase() == value.toLowerCase()) return option;
     }
     return options.first;
   }
@@ -124,175 +85,113 @@ class _SettingsState extends State<Settings> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
+      backgroundColor: Colors.transparent, // Let the wrapper handle background if needed
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.colorScheme.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.settings,
-                color: theme.colorScheme.primary,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
             Text(
-              'Configuración',
-              style: TextStyle(
+              'Ajustes',
+              style: theme.textTheme.displayMedium?.copyWith(
+                fontWeight: FontWeight.w900,
                 color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
+                letterSpacing: -1.5,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Personaliza tu experiencia culinaria con IA',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(height: 32),
+            
+            _sectionHeader(theme, 'Preferencias de recetas'),
+            const SizedBox(height: 16),
+            ScrollbarSetting(
+              initialValue: AppSingleton().numRecetas,
+              maxValue: 5,
+              divisions: 4,
+              text: 'Número de recetas',
+              onChange: (int value) => setState(() => AppSingleton().setNumRecetas = value),
+            ),
+            const SizedBox(height: 16),
+            MultiListSetting(
+              initialValues: compareEnumValues(AppSingleton().tipoReceta, TipoReceta.displayNames).split(","),
+              text: 'Tipo de cocina',
+              options: TipoReceta.displayNames,
+              onChange: (List<String> values) {
+                final tipo = TipoReceta.fromDisplayName(values.first);
+                setState(() => AppSingleton().setTipoReceta = tipo.name);
+                Toaster.showToast('Tipo de cocina: ${tipo.displayName}');
+              },
+            ),
+            const SizedBox(height: 16),
+            MultiListSetting(
+              initialValues: compareEnumValues(AppSingleton().idioma, Idioma.displayNames).split(","),
+              text: 'Idioma de las recetas',
+              options: Idioma.displayNames,
+              onChange: (List<String> values) {
+                final idio = Idioma.fromDisplayName(values.first);
+                setState(() => AppSingleton().setIdioma = idio.name);
+                Toaster.showToast('Idioma: ${idio.displayName}');
+              },
+            ),
+            
+            const SizedBox(height: 32),
+            _sectionHeader(theme, 'Voz y Tono'),
+            const SizedBox(height: 16),
+            SwitchSetting(
+              initialValue: AppSingleton().useTTS,
+              text: 'Lectura por voz (TTS)',
+              onChange: _useTTS,
+            ),
+            const SizedBox(height: 16),
+            MultiListSetting(
+              initialValues: AppSingleton().personality.split(",").map((p) => Personality.values.firstWhere((e) => e.name == p).displayName).toList(),
+              text: 'Personalidad de la IA',
+              options: Personality.displayNames,
+              onChange: (List<String> values) {
+                final personalities = values.map((v) => Personality.fromDisplayName(v)).toList();
+                setState(() => AppSingleton().setPersonality = personalities.map((p) => p.name).join(","));
+                Toaster.showToast('Tono: ${personalities.map((p) => p.displayName).join(", ")}');
+              },
+            ),
+            
+            const SizedBox(height: 40),
+            _sectionHeader(theme, 'Sistema'),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const LogsScreen()));
+              },
+              icon: const Icon(Icons.terminal_rounded),
+              label: const Text('REGISTROS DEL SISTEMA (LOGS)', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 64),
+                backgroundColor: theme.colorScheme.surfaceVariant,
+                foregroundColor: theme.colorScheme.onSurfaceVariant,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              ),
+            ),
+            const SizedBox(height: 60),
           ],
         ),
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
       ),
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 15,
-                  children: [
-                    if (!widget.isNotApiKeySetted)
-                      AnimatedCard(
-                        isExpanded: _isSettingsCardExpanded,
-                        text: 'Ajustes de la app',
-                        icon: const Icon(Icons.settings_rounded),
-                        onTap: () {
-                          setState(() {
-                            _isSettingsCardExpanded = !_isSettingsCardExpanded;
-                          });
-                        },
-                        children: [
-                          ScrollbarSetting(
-                            initialValue: AppSingleton().numRecetas,
-                            maxValue: 5,
-                            divisions: 4,
-                            text: '¿Cantas recetas quieres ver?',
-                            onChange: (int value) {
-                              setState(() {
-                                AppSingleton().setNumRecetas = value;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 24),
-                          SwitchSetting(
-                            initialValue: AppSingleton().useTTS,
-                            text: 'Leer las recetas en alto',
-                            onChange: _useTTS,
-                          ),
-                          const SizedBox(height: 24),
-                          MultiListSetting(
-                            initialValues:
-                                compareEnumValues(
-                                  AppSingleton().personality,
-                                  Personality.displayNames,
-                                ).split(",").toSet().toList(),
-                            text: '¿Qué tono de texto prefieres?',
-                            options: Personality.displayNames,
-                            onChange: (List<String> values) {
-                              final personalities =
-                                  values
-                                      .map(
-                                        (value) =>
-                                            Personality.fromDisplayName(value),
-                                      )
-                                      .toList();
-                              setState(() {
-                                AppSingleton().setPersonality = personalities
-                                    .map((p) => p.name)
-                                    .toList()
-                                    .join(",");
-                              });
-                              Toaster.showToast(
-                                'El tono de texto se ha cambiado a ${personalities.map((p) => p.displayName).join(", ")}',
-                              );
-                            },
-                          ),
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          MultiListSetting(
-                            initialValues:
-                                compareEnumValues(
-                                  AppSingleton().idioma,
-                                  Idioma.displayNames,
-                                ).split(",").toSet().toList(),
-                            text: '¿En qué idioma quieres las recetas?',
-                            options: Idioma.displayNames,
-                            onChange: (List<String> values) {
-                              final idioma = Idioma.fromDisplayName(
-                                values.first,
-                              );
-                              setState(() {
-                                AppSingleton().setIdioma = idioma.name;
-                              });
-                              Toaster.showToast(
-                                'El idioma se ha cambiado a ${idioma.displayName}',
-                              );
-                            },
-                          ),
-
-                          const SizedBox(height: 24),
-                          MultiListSetting(
-                            initialValues:
-                                compareEnumValues(
-                                  AppSingleton().tipoReceta,
-                                  TipoReceta.displayNames,
-                                ).split(",").toSet().toList(),
-                            text: '¿Qué tipos de recetas harás?',
-                            options: TipoReceta.displayNames,
-                            onChange: (List<String> value) {
-                              final tipoReceta = TipoReceta.fromDisplayName(
-                                value.first,
-                              );
-                              setState(() {
-                                AppSingleton().setTipoReceta = tipoReceta.name;
-                              });
-                              Toaster.showToast(
-                                'El tipo de receta se ha cambiado a ${tipoReceta.displayName}',
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 20),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const LogsScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.terminal_rounded),
-                      label: const Text('Ver Logs del sistema'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+  Widget _sectionHeader(ThemeData theme, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title.toUpperCase(),
+        style: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.5,
+          color: theme.colorScheme.secondary,
         ),
       ),
     );

@@ -63,25 +63,40 @@ class _FeatureSelectorState extends State<FeatureSelector> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverAppBar.large(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'AI Kitchen',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                 IconButton( 
-                  icon: const Icon(Icons.settings_outlined),
-                  onPressed: () => _navigateTo(context, Settings()),
-                )
-              ],
+          SliverAppBar(
+            expandedHeight: 140,
+            collapsedHeight: 80,
+            floating: true,
+            pinned: true,
+            stretch: true,
+            backgroundColor: theme.colorScheme.surface,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'AI Kitchen',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.primary,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.settings_rounded),
+                    onPressed: () => _navigateTo(context, Settings()),
+                  ),
+                ],
+              ),
+              background: Container(color: theme.colorScheme.surface),
             ),
           ),
           if (_todayMenu != null && _todayMenu!.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 child: _TodayMenuCard(
                   dayName: _currentDayName!,
                   recipes: _todayMenu!,
@@ -89,61 +104,55 @@ class _FeatureSelectorState extends State<FeatureSelector> {
               ),
             ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.all(24.0),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
                 childAspectRatio: 0.85,
               ),
               delegate: SliverChildListDelegate([
                 _FeatureCard(
                   title: 'Receta por Nombre',
-                  icon: Icons.restaurant_menu,
-                  description: 'Busca una receta específica',
+                  icon: Icons.search_rounded,
                   color: theme.colorScheme.primary,
                   onTap: () => _navigateTo(context, const FindByName()),
                 ),
                 _FeatureCard(
-                  title: 'Receta por Ingredientes',
-                  icon: Icons.kitchen,
-                  description: 'Usa lo que tienes en casa',
+                  title: 'Por Nevera',
+                  icon: Icons.kitchen_rounded,
                   color: theme.colorScheme.secondary,
                   onTap: () => _navigateTo(context, const FindByIngredients()),
                 ),
                 _FeatureCard(
-                  title: 'Menú Semanal',
-                  icon: Icons.calendar_month,
-                  description: 'Organiza tu semana',
+                  title: 'Mi Menú',
+                  icon: Icons.calendar_today_rounded,
                   color: theme.colorScheme.tertiary,
                   onTap: () => _navigateTo(context, const WeeklyMenu()),
                 ),
                 _FeatureCard(
                   title: 'Favoritos',
-                  icon: Icons.favorite,
-                  description: 'Tus recetas guardadas',
+                  icon: Icons.favorite_rounded,
                   color: Colors.redAccent,
                   onTap: () => _navigateTo(context, const Favourites()),
                 ),
                 _FeatureCard(
-                  title: 'Lista de la Compra',
-                  icon: Icons.shopping_cart,
-                  description: 'Lo que necesitas comprar',
+                  title: 'La Compra',
+                  icon: Icons.shopping_bag_rounded,
                   color: Colors.orange,
                   onTap: () => _navigateTo(context, const ShoppingList()),
                 ),
                 _FeatureCard(
-                  title: 'Crear Receta',
-                  icon: Icons.add_circle,
-                  description: 'Añade tu propia receta',
+                  title: 'Crear',
+                  icon: Icons.add_rounded,
                   color: Colors.green,
                   onTap: () => _navigateTo(context, const CreateRecipe()),
                 ),
               ]),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+          const SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],
       ),
     );
@@ -167,91 +176,63 @@ class _TodayMenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.primaryContainer.withOpacity(0.4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.1)),
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(32),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.today, color: theme.colorScheme.primary),
-                const SizedBox(width: 12),
-                Text(
-                  'Menú de hoy ($dayName)',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                  ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, color: theme.colorScheme.onPrimaryContainer, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'PARA HOY',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  color: theme.colorScheme.onPrimaryContainer.withOpacity(0.7),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...recipes.asMap().entries.map((entry) {
-              final index = entry.key;
-              final recipe = entry.value;
-              final mealType = index == 0 ? 'Comida' : 'Cena';
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: InkWell(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => _PageWrapper(child: RecipeScreen(recipe: recipe)),
-                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...recipes.asMap().entries.map((entry) {
+            final recipe = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: InkWell(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => _PageWrapper(child: RecipeScreen(recipe: recipe))),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 4,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              mealType,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.primary.withOpacity(0.8),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              recipe.nombre,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                        child: Text(
+                          recipe.nombre,
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 16,
-                        color: theme.colorScheme.primary.withOpacity(0.5),
-                      ),
+                      Icon(Icons.arrow_forward_rounded, size: 18, color: theme.colorScheme.onPrimaryContainer),
                     ],
                   ),
                 ),
-              );
-            }),
-          ],
-        ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -263,21 +244,20 @@ class _PageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Column(
         children: [
-          const SizedBox(height: 25),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.fromLTRB(20, 45, 20, 10),
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                IconButton.filledTonal(
+                  icon: const Icon(Icons.arrow_back_rounded, size: 28),
+                  padding: const EdgeInsets.all(12),
                   onPressed: () => Navigator.pop(context),
                   style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    elevation: 1,
-                    shadowColor: Colors.black26,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                 ),
               ],
@@ -292,14 +272,12 @@ class _PageWrapper extends StatelessWidget {
 
 class _FeatureCard extends StatelessWidget {
   final String title;
-  final String description;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
   const _FeatureCard({
     required this.title,
-    required this.description,
     required this.icon,
     required this.color,
     required this.onTap,
@@ -309,46 +287,31 @@ class _FeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 32),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(32),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: color.withOpacity(0.1), width: 1),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 42),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: color.withOpacity(0.8),
+                letterSpacing: -0.5,
               ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

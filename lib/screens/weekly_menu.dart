@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/weekly_menu_widgets.dart';
 import 'package:aikitchen/services/json_documents.dart';
@@ -103,7 +102,6 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
         final menuData = Recipe.fromJsonList(cleanedResponse);
 
-        // Distribuir las recetas por día (2 por día: Comida y Cena)
         for (var i = 0; i < _diasSemana.length; i++) {
           final dayStartIndex = i * 2;
           final dayEndIndex = dayStartIndex + 2;
@@ -141,23 +139,13 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
   void _handleError(String error) {
     setState(() => _isLoading = false);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Error al generar el menú'),
-        content: Text('Ha ocurrido un error: ${error.split(":").last}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
+    Toaster.showError('Error: ${error.split(":").last}');
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(
@@ -167,14 +155,44 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
     }
 
     return Scaffold(
-      body: SafeArea(
-        child: _weeklyMenu.isEmpty
-            ? EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu)
-            : WeeklyMenuList(
-                diasSemana: _diasSemana,
-                weeklyMenu: _weeklyMenu,
-                onRegenerate: _generateWeeklyMenu,
-              ),
+      backgroundColor: Colors.transparent,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mi Menú',
+                  style: theme.textTheme.displayMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.primary,
+                    letterSpacing: -1.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tu planificación semanal inteligente',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: _weeklyMenu.isEmpty
+                ? EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu)
+                : WeeklyMenuList(
+                    diasSemana: _diasSemana,
+                    weeklyMenu: _weeklyMenu,
+                    onRegenerate: _generateWeeklyMenu,
+                  ),
+          ),
+        ],
       ),
     );
   }
