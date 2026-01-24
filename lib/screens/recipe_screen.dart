@@ -141,14 +141,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
           ],
           body: const TabBarView(
             children: [
-              // Slide 1: Ingredientes
-              _ScrollableSlide(
-                child: _IngredientsSlideContent(),
-              ),
-              // Slide 2: Preparación
-              _ScrollableSlide(
-                child: _StepsSlideContent(),
-              ),
+              _ScrollableSlide(child: _IngredientsSlideContent()),
+              _ScrollableSlide(child: _StepsSlideContent()),
             ],
           ),
         ),
@@ -239,7 +233,5 @@ class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(_StickyTabBarDelegate oldDelegate) {
-    return false;
-  }
+  bool shouldRebuild(_StickyTabBarDelegate oldDelegate) => false;
 }

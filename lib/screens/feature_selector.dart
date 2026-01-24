@@ -8,7 +8,10 @@ import 'package:aikitchen/screens/settings.dart';
 import 'package:aikitchen/screens/shopping_list.dart';
 import 'package:aikitchen/screens/weekly_menu.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/web/web_features.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class FeatureSelector extends StatefulWidget {
@@ -36,13 +39,8 @@ class _FeatureSelectorState extends State<FeatureSelector> {
       final englishDay = dayFormat.format(now);
       
       final Map<String, String> dayTranslations = {
-        'Monday': 'Lunes',
-        'Tuesday': 'Martes',
-        'Wednesday': 'Miércoles',
-        'Thursday': 'Jueves',
-        'Friday': 'Viernes',
-        'Saturday': 'Sábado',
-        'Sunday': 'Domingo',
+        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
+        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo',
       };
 
       final dayName = dayTranslations[englishDay];
@@ -64,11 +62,9 @@ class _FeatureSelectorState extends State<FeatureSelector> {
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
-            expandedHeight: 140,
+            expandedHeight: 120,
             collapsedHeight: 80,
-            floating: true,
             pinned: true,
-            stretch: true,
             backgroundColor: theme.colorScheme.surface,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: false,
@@ -78,9 +74,9 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                 children: [
                   Text(
                     'AI Kitchen',
-                    style: theme.textTheme.headlineMedium?.copyWith(
+                    style: GoogleFonts.robotoFlex(
                       fontWeight: FontWeight.w900,
-                      color: theme.colorScheme.primary,
+                      color: theme.colorScheme.onSurface,
                       letterSpacing: -1,
                     ),
                   ),
@@ -90,7 +86,6 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                   ),
                 ],
               ),
-              background: Container(color: theme.colorScheme.surface),
             ),
           ),
           if (_todayMenu != null && _todayMenu!.isNotEmpty)
@@ -108,27 +103,27 @@ class _FeatureSelectorState extends State<FeatureSelector> {
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.85,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.9,
               ),
               delegate: SliverChildListDelegate([
-                _FeatureCard(
-                  title: 'Receta por Nombre',
-                  icon: Icons.search_rounded,
-                  color: theme.colorScheme.primary,
-                  onTap: () => _navigateTo(context, const FindByName()),
+                // Tarjeta Combinada de IA (Nombre + Ingredientes)
+                _CombinedAICard(
+                  onNameTap: () => _navigateTo(context, const FindByName()),
+                  onIngredientsTap: () => _navigateTo(context, const FindByIngredients()),
                 ),
+                // Tarjeta Internet
                 _FeatureCard(
-                  title: 'Por Nevera',
-                  icon: Icons.kitchen_rounded,
-                  color: theme.colorScheme.secondary,
-                  onTap: () => _navigateTo(context, const FindByIngredients()),
+                  title: 'Internet',
+                  icon: Icons.cloud_rounded,
+                  color: theme.colorScheme.tertiary,
+                  onTap: () => _navigateTo(context, const WebFeaturesScreen()),
                 ),
                 _FeatureCard(
                   title: 'Mi Menú',
                   icon: Icons.calendar_today_rounded,
-                  color: theme.colorScheme.tertiary,
+                  color: Colors.deepPurpleAccent,
                   onTap: () => _navigateTo(context, const WeeklyMenu()),
                 ),
                 _FeatureCard(
@@ -166,6 +161,57 @@ class _FeatureSelectorState extends State<FeatureSelector> {
   }
 }
 
+class _CombinedAICard extends StatelessWidget {
+  final VoidCallback onNameTap;
+  final VoidCallback onIngredientsTap;
+
+  const _CombinedAICard({required this.onNameTap, required this.onIngredientsTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(32),
+      ),
+      child: Column(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: onNameTap,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_rounded, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text('Nombre', style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ),
+          Divider(height: 1, color: theme.colorScheme.primary.withOpacity(0.1)),
+          Expanded(
+            child: InkWell(
+              onTap: onIngredientsTap,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.kitchen_rounded, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text('Ingredientes', style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TodayMenuCard extends StatelessWidget {
   final String dayName;
   final List<Recipe> recipes;
@@ -178,7 +224,7 @@ class _TodayMenuCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer,
+        color: const Color(0xFF232D3F), // Color oscuro como en la referencia
         borderRadius: BorderRadius.circular(32),
       ),
       padding: const EdgeInsets.all(24),
@@ -187,19 +233,20 @@ class _TodayMenuCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome, color: theme.colorScheme.onPrimaryContainer, size: 20),
+              const Icon(Icons.auto_awesome, color: Colors.white70, size: 18),
               const SizedBox(width: 8),
               Text(
                 'PARA HOY',
-                style: theme.textTheme.labelLarge?.copyWith(
+                style: GoogleFonts.robotoFlex(
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  color: theme.colorScheme.onPrimaryContainer.withOpacity(0.7),
+                  letterSpacing: 1.5,
+                  color: Colors.white70,
+                  fontSize: 12,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ...recipes.asMap().entries.map((entry) {
             final recipe = entry.value;
             return Padding(
@@ -210,9 +257,9 @@ class _TodayMenuCard extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => _PageWrapper(child: RecipeScreen(recipe: recipe))),
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withOpacity(0.5),
+                    color: Colors.white.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -220,12 +267,12 @@ class _TodayMenuCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           recipe.nombre,
-                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w600, color: Colors.white),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Icon(Icons.arrow_forward_rounded, size: 18, color: theme.colorScheme.onPrimaryContainer),
+                      const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white70),
                     ],
                   ),
                 ),
@@ -254,7 +301,6 @@ class _PageWrapper extends StatelessWidget {
               children: [
                 IconButton.filledTonal(
                   icon: const Icon(Icons.arrow_back_rounded, size: 28),
-                  padding: const EdgeInsets.all(12),
                   onPressed: () => Navigator.pop(context),
                   style: IconButton.styleFrom(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -292,23 +338,23 @@ class _FeatureCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(32),
       child: Container(
         decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
+          color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: color.withOpacity(0.1), width: 1),
+          border: Border.all(color: color.withOpacity(0.05)),
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 42),
-            const SizedBox(height: 16),
+            Icon(icon, color: color, size: 36),
+            const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: color.withOpacity(0.8),
-                letterSpacing: -0.5,
+              style: GoogleFonts.robotoFlex(
+                fontWeight: FontWeight.w800,
+                color: color.withOpacity(0.9),
+                fontSize: 14,
               ),
             ),
           ],
