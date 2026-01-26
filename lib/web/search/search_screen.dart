@@ -1,13 +1,18 @@
+import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/web/search/search_service.dart';
 import 'package:aikitchen/web/search/search_widgets.dart';
 import 'package:aikitchen/web/search/web_recipe_result.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final String? initialUrl;
+  final String title;
+
+  const SearchScreen({super.key, this.initialUrl, this.title = 'Internet'});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -18,11 +23,33 @@ class _SearchScreenState extends State<SearchScreen> {
   final SearchService _service = SearchService();
   List<WebRecipeResult> _results = [];
   bool _isSearching = false;
+  bool _isFetchingRecipe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialUrl != null) {
+      _fetchInitialResults();
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchInitialResults() async {
+    setState(() {
+      _isSearching = true;
+    });
+    
+    final results = await _service.fetchRecipesFromUrl(widget.initialUrl!);
+    
+    setState(() {
+      _isSearching = false;
+      _results = results;
+    });
   }
 
   void _onSearch(String query) async {
@@ -46,7 +73,45 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _launchUrl(String url) async {
     if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
-      Toaster.showError('No se pudo abrir el enlace');
+      Toaster.showError('No se pudo abrir la web original');
+    }
+  }
+
+  Future<void> _handleRecipeTap(WebRecipeResult result) async {
+    setState(() {
+      _isFetchingRecipe = true;
+    });
+
+    try {
+      final Recipe? recipe = await _service.getFullRecipe(result.url);
+
+      if (recipe != null) {
+        if (!mounted) return;
+        
+        if (recipe.preparacion.isEmpty) {
+          await _launchUrl(result.url);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RecipeScreen(
+                recipe: recipe,
+                url: result.url,
+              ),
+            ),
+          );
+        }
+      } else {
+        await _launchUrl(result.url);
+      }
+    } catch (e) {
+      Toaster.showError('Error al obtener la receta: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFetchingRecipe = false;
+        });
+      }
     }
   }
 
@@ -56,70 +121,93 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar.large(
-            backgroundColor: theme.colorScheme.surface,
-            expandedHeight: 180,
-            pinned: true,
-            leading: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: IconButton.filledTonal(
-                icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              title: Text(
-                'Internet',
-                style: GoogleFonts.robotoFlex(
-                  fontWeight: FontWeight.w900,
-                  color: theme.colorScheme.primary,
-                  letterSpacing: -1,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar.large(
+                backgroundColor: theme.colorScheme.surface,
+                expandedHeight: 180,
+                pinned: true,
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: IconButton.filledTonal(
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  title: Text(
+                    widget.title,
+                    style: GoogleFonts.robotoFlex(
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.primary,
+                      letterSpacing: -1,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: SearchInput(
-                controller: _searchController,
-                onSearch: _onSearch,
-              ),
-            ),
-          ),
+              
+              if (widget.initialUrl == null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: SearchInput(
+                      controller: _searchController,
+                      onSearch: _onSearch,
+                    ),
+                  ),
+                ),
 
-          if (_isSearching)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_results.isEmpty)
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Welcome(),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final recipe = _results[index];
-                    return WebRecipeCard(
-                      result: recipe,
-                      onTap: () => _launchUrl(recipe.url),
-                    );
-                  },
-                  childCount: _results.length,
+              if (_isSearching)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_results.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Welcome(),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final recipeResult = _results[index];
+                        return WebRecipeCard(
+                          result: recipeResult,
+                          onTap: () => _handleRecipeTap(recipeResult),
+                        );
+                      },
+                      childCount: _results.length,
+                    ),
+                  ),
+                ),
+              
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
+          
+          if (_isFetchingRecipe)
+            Container(
+              color: theme.colorScheme.surface.withOpacity(0.8),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Descargando receta...',
+                      style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w700),
+                    ),
+                  ],
                 ),
               ),
             ),
-          
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );

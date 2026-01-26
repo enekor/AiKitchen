@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
@@ -8,10 +9,12 @@ import 'package:aikitchen/widgets/steps_list.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RecipeScreen extends StatefulWidget {
-  const RecipeScreen({super.key, required this.recipe});
+  const RecipeScreen({super.key, required this.recipe, this.url});
   final Recipe recipe;
+  final String? url;
 
   @override
   State<RecipeScreen> createState() => _RecipeScreenState();
@@ -52,6 +55,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
     _checkIfFavorite();
   }
 
+  Future<void> _launchUrl() async {
+    if (widget.url != null) {
+      if (!await launchUrl(Uri.parse(widget.url!), mode: LaunchMode.externalApplication)) {
+        Toaster.showError('No se pudo abrir la web original');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -76,6 +87,15 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 ),
               ),
               actions: [
+                if (widget.url != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: IconButton.filledTonal(
+                      onPressed: _launchUrl,
+                      icon: const Icon(Icons.language_rounded),
+                      tooltip: 'Abrir en la web',
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: IconButton.filledTonal(
