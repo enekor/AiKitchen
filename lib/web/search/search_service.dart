@@ -83,14 +83,19 @@ class SearchService {
 
       // 3. PASOS
       List<String> steps = [];
-      var article = document.querySelector('article');
-      if (article != null) {
-        var ol = article.querySelector('ol');
+
+// En Lidl, la lista suele estar en el siguiente contenedor hermano grande
+      var stepsContainer = document.querySelector('article');
+
+      if (stepsContainer != null) {
+        // Buscamos todos los 'li' que estén dentro de cualquier 'ol' en esa zona
+        var ol = stepsContainer.querySelector('ol');
         if (ol != null) {
-          var stepItems = ol.querySelectorAll('li');
-          for (var li in stepItems) {
-            var spanValue = li.querySelector('span')?.text.trim();
-            if (spanValue != null) steps.add(spanValue);
+          var liElements = ol.querySelectorAll('li');
+          for (var li in liElements) {
+            // El texto real del paso suele estar en un span con clase body_normal
+            var stepText = li.querySelector('span')?.text.trim() ?? li.text.trim();
+            if (stepText.isNotEmpty) steps.add(stepText);
           }
         }
       }
