@@ -76,7 +76,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
         physics: const BouncingScrollPhysics(),
         slivers: [
           // Header Expressive que respeta la barra de estado
-          SliverAppBar.large(
+          /*SliverAppBar.large(
             backgroundColor: theme.colorScheme.surface,
             expandedHeight: 200,
             collapsedHeight: kToolbarHeight + MediaQuery.of(context).padding.top,
@@ -104,7 +104,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                 ),
               ),
             ),
-          ),
+          ),*/
 
           // Formulario
           SliverPadding(
