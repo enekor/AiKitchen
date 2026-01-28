@@ -147,23 +147,6 @@ class _FindByNameState extends State<FindByName> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Buscar',
-              style: theme.textTheme.displayMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: theme.colorScheme.primary,
-                letterSpacing: -1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Encuentra inspiración para tu plato de hoy',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
-              ),
-            ),
-            const SizedBox(height: 32),
-            
             _buildSearchField(theme),
             const SizedBox(height: 12),
             _buildHistoryAndSuggestions(theme),

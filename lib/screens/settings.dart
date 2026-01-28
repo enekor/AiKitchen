@@ -91,23 +91,6 @@ class _SettingsState extends State<Settings> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Ajustes',
-              style: theme.textTheme.displayMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: theme.colorScheme.primary,
-                letterSpacing: -1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Personaliza tu experiencia culinaria con IA',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
-              ),
-            ),
-            const SizedBox(height: 32),
-            
             _sectionHeader(theme, 'Preferencias de recetas'),
             const SizedBox(height: 16),
             ScrollbarSetting(
@@ -139,7 +122,7 @@ class _SettingsState extends State<Settings> {
                 Toaster.showToast('Idioma: ${idio.displayName}');
               },
             ),
-            
+
             const SizedBox(height: 32),
             _sectionHeader(theme, 'Voz y Tono'),
             const SizedBox(height: 16),
@@ -159,7 +142,7 @@ class _SettingsState extends State<Settings> {
                 Toaster.showToast('Tono: ${personalities.map((p) => p.displayName).join(", ")}');
               },
             ),
-            
+
             const SizedBox(height: 40),
             _sectionHeader(theme, 'Sistema'),
             const SizedBox(height: 16),

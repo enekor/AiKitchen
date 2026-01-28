@@ -92,55 +92,7 @@ class _FavouritesState extends State<Favourites> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Favoritos',
-                      style: GoogleFonts.robotoFlex(
-                        textStyle: theme.textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: theme.colorScheme.primary,
-                          letterSpacing: -1.5,
-                        ),
-                      ),
-                    ),
-                    if (recipes.isNotEmpty && !_isSelectionMode)
-                      IconButton.filledTonal(
-                        onPressed: _loadFavorites,
-                        icon: const Icon(Icons.refresh_rounded),
-                      ),
-                    if (_isSelectionMode)
-                      IconButton.filledTonal(
-                        onPressed: () {
-                          setState(() {
-                            _isSelectionMode = false;
-                            _selectedRecipes.clear();
-                          });
-                        },
-                        icon: const Icon(Icons.close_rounded),
-                        color: theme.colorScheme.error,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _isSelectionMode 
-                    ? '${_selectedRecipes.length} seleccionadas'
-                    : 'Tus recetas guardadas para cualquier ocasión',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
+
           Expanded(
             child: recipes.isEmpty ? _buildEmptyState(theme) : _buildRecipeList(theme, recipes),
           ),

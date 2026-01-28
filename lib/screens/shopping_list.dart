@@ -128,43 +128,6 @@ class _ShoppingListState extends State<ShoppingList> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'La Compra',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: theme.colorScheme.primary,
-                        letterSpacing: -1.5,
-                      ),
-                    ),
-                    if (completedItems.isNotEmpty)
-                      IconButton.filledTonal(
-                        onPressed: _clearCompleted,
-                        icon: const Icon(Icons.delete_sweep_rounded),
-                        tooltip: 'Limpiar completados',
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Organiza lo que necesitas para tus recetas',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
           // Stats Row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),

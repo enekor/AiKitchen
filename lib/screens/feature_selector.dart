@@ -10,7 +10,6 @@ import 'package:aikitchen/screens/weekly_menu.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/web/search/search_screen.dart';
 import 'package:aikitchen/web/web_features.dart';
-import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -83,7 +82,7 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                   ),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.settings_rounded),
-                    onPressed: () => _navigateTo(context, Settings()),
+                    onPressed: () => _navigateTo(context, Settings(), title: 'Ajustes', subtitle: 'Personaliza tu experiencia'),
                   ),
                 ],
               ),
@@ -109,42 +108,39 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                 childAspectRatio: 0.9,
               ),
               delegate: SliverChildListDelegate([
-                // Tarjeta Combinada de IA (Nombre + Ingredientes)
                 _CombinedAICard(
-                  onNameTap: () => _navigateTo(context, const FindByName()),
-                  onIngredientsTap: () => _navigateTo(context, const FindByIngredients()),
+                  onNameTap: () => _navigateTo(context, const FindByName(), title: 'Buscar', subtitle: 'Inspiración para hoy'),
+                  onIngredientsTap: () => _navigateTo(context, const FindByIngredients(), title: 'Tu Nevera', subtitle: 'Cocina con lo que tienes'),
                 ),
-                // Tarjeta Internet
                 _FeatureCard(
                   title: 'Internet',
                   icon: Icons.cloud_rounded,
                   color: theme.colorScheme.tertiary,
-                  //onTap: () => _navigateTo(context, const WebFeaturesScreen()),
-                  onTap: () => _navigateTo(context, const LidSearchScreen()),
+                  onTap: () => _navigateTo(context, const LidSearchScreen(), title: 'Internet', subtitle: 'Recetas externas'),
                 ),
                 _FeatureCard(
                   title: 'Mi Menú',
                   icon: Icons.calendar_today_rounded,
                   color: Colors.deepPurpleAccent,
-                  onTap: () => _navigateTo(context, const WeeklyMenu()),
+                  onTap: () => _navigateTo(context, const WeeklyMenu(), title: 'Mi Menú', subtitle: 'Planificación inteligente'),
                 ),
                 _FeatureCard(
                   title: 'Favoritos',
                   icon: Icons.favorite_rounded,
                   color: Colors.redAccent,
-                  onTap: () => _navigateTo(context, const Favourites()),
+                  onTap: () => _navigateTo(context, const Favourites(), title: 'Favoritos', subtitle: 'Tus recetas guardadas'),
                 ),
                 _FeatureCard(
                   title: 'La Compra',
                   icon: Icons.shopping_bag_rounded,
                   color: Colors.orange,
-                  onTap: () => _navigateTo(context, const ShoppingList()),
+                  onTap: () => _navigateTo(context, const ShoppingList(), title: 'La Compra', subtitle: 'Lo que necesitas'),
                 ),
                 _FeatureCard(
                   title: 'Crear',
                   icon: Icons.add_rounded,
                   color: Colors.green,
-                  onTap: () => _navigateTo(context, const CreateRecipe()),
+                  onTap: () => _navigateTo(context, const CreateRecipe(), title: 'Crear Receta', subtitle: 'Tu propia magia'),
                 ),
               ]),
             ),
@@ -155,10 +151,10 @@ class _FeatureSelectorState extends State<FeatureSelector> {
     );
   }
 
-  void _navigateTo(BuildContext context, Widget page) {
+  void _navigateTo(BuildContext context, Widget page, {String? title, String? subtitle}) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => _PageWrapper(child: page)),
+      MaterialPageRoute(builder: (context) => _PageWrapper(child: page, title: title, subtitle: subtitle)),
     ).then((_) => _loadTodayMenu());
   }
 }
@@ -226,7 +222,7 @@ class _TodayMenuCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF232D3F), // Color oscuro como en la referencia
+        color: const Color(0xFF232D3F),
         borderRadius: BorderRadius.circular(32),
       ),
       padding: const EdgeInsets.all(24),
@@ -256,7 +252,7 @@ class _TodayMenuCard extends StatelessWidget {
               child: InkWell(
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => _PageWrapper(child: RecipeScreen(recipe: recipe))),
+                  MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
                 ),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -289,11 +285,15 @@ class _TodayMenuCard extends StatelessWidget {
 
 class _PageWrapper extends StatelessWidget {
   final Widget child;
-  const _PageWrapper({required this.child});
+  final String? title;
+  final String? subtitle;
+  
+  const _PageWrapper({required this.child, this.title, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    
     return Scaffold(
       body: Column(
         children: [
@@ -303,11 +303,43 @@ class _PageWrapper extends StatelessWidget {
               children: [
                 IconButton.filledTonal(
                   icon: const Icon(Icons.arrow_back_rounded, size: 28),
+                  padding: const EdgeInsets.all(12),
                   onPressed: () => Navigator.pop(context),
                   style: IconButton.styleFrom(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                 ),
+                if (title != null) ...[
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title!,
+                          style: GoogleFonts.robotoFlex(
+                            textStyle: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: theme.colorScheme.primary,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
+                        if (subtitle != null && subtitle!.isNotEmpty)
+                          Text(
+                            subtitle!,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

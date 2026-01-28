@@ -159,30 +159,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Mi Menú',
-                  style: theme.textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: theme.colorScheme.primary,
-                    letterSpacing: -1.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tu planificación semanal inteligente',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
+
           Expanded(
             child: _weeklyMenu.isEmpty
                 ? EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu)

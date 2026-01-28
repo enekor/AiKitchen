@@ -130,23 +130,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Tu Nevera',
-              style: theme.textTheme.displayMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: theme.colorScheme.primary,
-                letterSpacing: -1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '¿Qué tienes hoy por casa? Cocinemos algo increíble.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
-              ),
-            ),
-            const SizedBox(height: 32),
-            
+
             _buildInputSection(theme),
             const SizedBox(height: 16),
             _buildIngredientChips(theme),
