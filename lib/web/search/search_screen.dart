@@ -83,19 +83,22 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     try {
-      final Recipe? recipe = await _service.getFullRecipe(result.url);
+      Recipe? recipe = await _service.getFullRecipe(result.url);
 
       if (recipe != null) {
         if (!mounted) return;
         
         if (recipe.preparacion.isEmpty) {
-          await _launchUrl(result.url);
+          Toaster.showWarning('Volviendo a intentar...');
+          recipe = await _service.getFullRecipe(result.url);
+          if (recipe!.preparacion.isEmpty){await _launchUrl(result.url);}
+
         } else {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RecipeScreen(
-                recipe: recipe,
+                recipe: recipe!,
                 url: result.url,
               ),
             ),
@@ -106,6 +109,7 @@ class _SearchScreenState extends State<SearchScreen> {
       }
     } catch (e) {
       Toaster.showError('Error al obtener la receta: $e');
+      await _launchUrl(result.url);
     } finally {
       if (mounted) {
         setState(() {
