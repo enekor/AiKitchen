@@ -40,12 +40,8 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
   }
 
   Future<void> _fetchInitialResults() async {
-    setState(() {
-      _isSearching = true;
-    });
-    
+    setState(() => _isSearching = true);
     final results = await _service.fetchRecipesFromUrl(widget.initialUrl!);
-    
     setState(() {
       _isSearching = false;
       _results = results;
@@ -58,14 +54,11 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
       _isSearching = true;
       _results = [];
     });
-    
     final results = await _service.searchRecipes(query);
-    
     setState(() {
       _isSearching = false;
       _results = results;
     });
-
     if (results.isEmpty) {
       Toaster.showWarning('No se han encontrado recetas para "$query"');
     }
@@ -78,27 +71,23 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
   }
 
   Future<void> _handleRecipeTap(WebRecipeResult result) async {
-    setState(() {
-      _isFetchingRecipe = true;
-    });
+    setState(() => _isFetchingRecipe = true);
 
     try {
-      Recipe? recipe = await _service.getFullRecipe(result.url);
+      final Recipe? recipe = await _service.getFullRecipe(result.url);
 
       if (recipe != null) {
         if (!mounted) return;
         
+        // Fallback: Si no hay pasos, abrimos web. Si hay, mostramos pantalla nativa.
         if (recipe.preparacion.isEmpty) {
-          Toaster.showWarning('Volviendo a intentar...');
-          recipe = await _service.getFullRecipe(result.url);
-          if (recipe!.preparacion.isEmpty){await _launchUrl(result.url);}
-
+          await _launchUrl(result.url);
         } else {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RecipeScreen(
-                recipe: recipe!,
+                recipe: recipe,
                 url: result.url,
               ),
             ),
@@ -108,14 +97,9 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
         await _launchUrl(result.url);
       }
     } catch (e) {
-      Toaster.showError('Error al obtener la receta: $e');
       await _launchUrl(result.url);
     } finally {
-      if (mounted) {
-        setState(() {
-          _isFetchingRecipe = false;
-        });
-      }
+      if (mounted) setState(() => _isFetchingRecipe = false);
     }
   }
 
@@ -130,30 +114,6 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              /*SliverAppBar.large(
-                backgroundColor: theme.colorScheme.surface,
-                expandedHeight: 180,
-                pinned: true,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: IconButton.filledTonal(
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  title: Text(
-                    widget.title,
-                    style: GoogleFonts.robotoFlex(
-                      fontWeight: FontWeight.w900,
-                      color: theme.colorScheme.primary,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                ),
-              ),*/
-              
               if (widget.initialUrl == null)
                 SliverToBoxAdapter(
                   child: Padding(

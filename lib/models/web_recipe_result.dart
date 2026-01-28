@@ -10,9 +10,4 @@ class WebRecipeResult {
     required this.time,
     required this.url,
   });
-
-  @override
-  String toString() {
-    return 'WebRecipeResult(title: $title, time: $time)';
-  }
 }
