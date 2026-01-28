@@ -137,7 +137,7 @@ class _WebFeaturesScreenState extends State<WebFeaturesScreen> {
               color: theme.colorScheme.primary,
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SearchScreen()),
+                MaterialPageRoute(builder: (context) => const LidSearchScreen()),
               ),
             ),
 
@@ -151,7 +151,7 @@ class _WebFeaturesScreenState extends State<WebFeaturesScreen> {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const SearchScreen(
+                  builder: (context) => const LidSearchScreen(
                     initialUrl: 'https://recetas.lidl.es/todasrecetas?page=1&smartTools=e5b19ae4-45a5-400c-b2fe-742cba502e9a',
                     title: 'Air Fryer',
                   ),

@@ -1,24 +1,24 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/web/search/search_service.dart';
 import 'package:aikitchen/web/search/search_widgets.dart';
-import 'package:aikitchen/web/search/web_recipe_result.dart';
+import 'package:aikitchen/models/web_recipe_result.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SearchScreen extends StatefulWidget {
+class LidSearchScreen extends StatefulWidget {
   final String? initialUrl;
   final String title;
 
-  const SearchScreen({super.key, this.initialUrl, this.title = 'Internet'});
+  const LidSearchScreen({super.key, this.initialUrl, this.title = 'Internet'});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  State<LidSearchScreen> createState() => _LidSearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _LidSearchScreenState extends State<LidSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final SearchService _service = SearchService();
   List<WebRecipeResult> _results = [];
@@ -130,7 +130,7 @@ class _SearchScreenState extends State<SearchScreen> {
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverAppBar.large(
+              /*SliverAppBar.large(
                 backgroundColor: theme.colorScheme.surface,
                 expandedHeight: 180,
                 pinned: true,
@@ -152,7 +152,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                 ),
-              ),
+              ),*/
               
               if (widget.initialUrl == null)
                 SliverToBoxAdapter(

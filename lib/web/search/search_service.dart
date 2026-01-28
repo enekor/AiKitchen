@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/web/search/web_recipe_result.dart';
+import 'package:aikitchen/models/web_recipe_result.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';

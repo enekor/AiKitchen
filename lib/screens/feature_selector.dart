@@ -8,6 +8,7 @@ import 'package:aikitchen/screens/settings.dart';
 import 'package:aikitchen/screens/shopping_list.dart';
 import 'package:aikitchen/screens/weekly_menu.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/web/search/search_screen.dart';
 import 'package:aikitchen/web/web_features.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -118,7 +119,8 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                   title: 'Internet',
                   icon: Icons.cloud_rounded,
                   color: theme.colorScheme.tertiary,
-                  onTap: () => _navigateTo(context, const WebFeaturesScreen()),
+                  //onTap: () => _navigateTo(context, const WebFeaturesScreen()),
+                  onTap: () => _navigateTo(context, const LidSearchScreen()),
                 ),
                 _FeatureCard(
                   title: 'Mi Menú',

@@ -1,4 +1,4 @@
-import 'package:aikitchen/web/search/web_recipe_result.dart';
+import 'package:aikitchen/models/web_recipe_result.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
