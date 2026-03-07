@@ -1,12 +1,17 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
+import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class Favourites extends StatefulWidget {
   const Favourites({super.key});
@@ -95,6 +100,52 @@ class _FavouritesState extends State<Favourites> {
     Toaster.showWarning('Receta eliminada');
   }
 
+  Future<void> _openSharedRecipe() async {
+    try {
+      if (Platform.isAndroid) {
+        final plugin = DeviceInfoPlugin();
+        final androidInfo = await plugin.androidInfo;
+        
+        PermissionStatus status;
+        if (androidInfo.version.sdkInt >= 33) {
+          // Android 13+ requires photos/videos/audio permissions instead of storage
+          status = await Permission.photos.request();
+        } else {
+          status = await Permission.storage.request();
+        }
+
+        if (!status.isGranted) {
+          Toaster.showWarning('Se requiere permiso para leer archivos');
+          return;
+        }
+      }
+
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any, // Usamos any para evitar problemas de filtrado por extensión en Android
+      );
+      
+      if (result != null && result.files.single.path != null) {
+        final path = result.files.single.path!;
+        if (!path.toLowerCase().endsWith('.aikr')) {
+          Toaster.showWarning('Por favor, selecciona un archivo .aikr');
+          return;
+        }
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PreviewSharedFiles(recipeUri: path),
+            ),
+          ).then((_) {
+            _loadFavorites();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error al abrir el archivo: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -107,18 +158,36 @@ class _FavouritesState extends State<Favourites> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar recetas...',
-                prefixIcon: const Icon(Icons.search_rounded),
-                filled: true,
-                fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Buscar recetas...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onChanged: _filterRecipes,
+                  ),
                 ),
-              ),
-              onChanged: _filterRecipes,
+                const SizedBox(width: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.file_open_rounded, color: theme.colorScheme.onPrimaryContainer),
+                    onPressed: _openSharedRecipe,
+                    tooltip: 'Abrir receta compartida (.aikr)',
+                  ),
+                ),
+              ],
             ),
           ),
           SizedBox(height: 16),
