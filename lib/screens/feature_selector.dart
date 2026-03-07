@@ -56,97 +56,101 @@ class _FeatureSelectorState extends State<FeatureSelector> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final horizontalPadding = isLandscape ? MediaQuery.of(context).size.width * 0.05 : 24.0;
 
     return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 120,
-            collapsedHeight: 80,
-            pinned: true,
-            backgroundColor: theme.colorScheme.surface,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: false,
-              titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'AI Kitchen',
-                    style: GoogleFonts.robotoFlex(
-                      fontWeight: FontWeight.w900,
-                      color: theme.colorScheme.onSurface,
-                      letterSpacing: -1,
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120,
+              collapsedHeight: 80,
+              pinned: true,
+              backgroundColor: theme.colorScheme.surface,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: false,
+                titlePadding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'AI Kitchen',
+                      style: GoogleFonts.robotoFlex(
+                        fontWeight: FontWeight.w900,
+                        color: theme.colorScheme.onSurface,
+                        letterSpacing: -1,
+                      ),
                     ),
+                    IconButton.filledTonal(
+                      icon: const Icon(Icons.settings_rounded),
+                      onPressed: () => _navigateTo(context, Settings(), title: 'Ajustes', subtitle: 'Personaliza tu experiencia'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_todayMenu != null && _todayMenu!.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
+                  child: _TodayMenuCard(
+                    dayName: _currentDayName!,
+                    recipes: _todayMenu!,
                   ),
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.settings_rounded),
-                    onPressed: () => _navigateTo(context, Settings(), title: 'Ajustes', subtitle: 'Personaliza tu experiencia'),
+                ),
+              ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24.0),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isLandscape ? 4 : 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: isLandscape ? 1.1 : 0.9,
+                ),
+                delegate: SliverChildListDelegate([
+                  _CombinedAICard(
+                    onNameTap: () => _navigateTo(context, const FindByName(), title: 'Buscar', subtitle: 'Inspiración para hoy'),
+                    onIngredientsTap: () => _navigateTo(context, const FindByIngredients(), title: 'Tu Nevera', subtitle: 'Cocina con lo que tienes'),
                   ),
-                ],
+                  _FeatureCard(
+                    title: 'Internet',
+                    icon: Icons.cloud_rounded,
+                    color: theme.colorScheme.tertiary,
+                    onTap: () => _navigateTo(context, const LidSearchScreen(), title: 'Internet', subtitle: 'Recetas externas'),
+                  ),
+                  _FeatureCard(
+                    title: 'Mi Menú',
+                    icon: Icons.calendar_today_rounded,
+                    color: Colors.deepPurpleAccent,
+                    onTap: () => _navigateTo(context, const WeeklyMenu(), title: 'Mi Menú', subtitle: 'Planificación inteligente'),
+                  ),
+                  _FeatureCard(
+                    title: 'Favoritos',
+                    icon: Icons.favorite_rounded,
+                    color: Colors.redAccent,
+                    onTap: () => _navigateTo(context, const Favourites(), title: 'Favoritos', subtitle: 'Tus recetas guardadas'),
+                  ),
+                  _FeatureCard(
+                    title: 'La Compra',
+                    icon: Icons.shopping_bag_rounded,
+                    color: Colors.orange,
+                    onTap: () => _navigateTo(context, const ShoppingList(), title: 'La Compra', subtitle: 'Lo que necesitas'),
+                  ),
+                  _FeatureCard(
+                    title: 'Crear',
+                    icon: Icons.add_rounded,
+                    color: Colors.green,
+                    onTap: () => _navigateTo(context, const CreateRecipe(), title: 'Crear Receta', subtitle: 'Tu propia magia'),
+                  ),
+                ]),
               ),
             ),
-          ),
-          if (_todayMenu != null && _todayMenu!.isNotEmpty)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                child: _TodayMenuCard(
-                  dayName: _currentDayName!,
-                  recipes: _todayMenu!,
-                ),
-              ),
-            ),
-          SliverPadding(
-            padding: const EdgeInsets.all(24.0),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.9,
-              ),
-              delegate: SliverChildListDelegate([
-                _CombinedAICard(
-                  onNameTap: () => _navigateTo(context, const FindByName(), title: 'Buscar', subtitle: 'Inspiración para hoy'),
-                  onIngredientsTap: () => _navigateTo(context, const FindByIngredients(), title: 'Tu Nevera', subtitle: 'Cocina con lo que tienes'),
-                ),
-                _FeatureCard(
-                  title: 'Internet',
-                  icon: Icons.cloud_rounded,
-                  color: theme.colorScheme.tertiary,
-                  onTap: () => _navigateTo(context, const LidSearchScreen(), title: 'Internet', subtitle: 'Recetas externas'),
-                ),
-                _FeatureCard(
-                  title: 'Mi Menú',
-                  icon: Icons.calendar_today_rounded,
-                  color: Colors.deepPurpleAccent,
-                  onTap: () => _navigateTo(context, const WeeklyMenu(), title: 'Mi Menú', subtitle: 'Planificación inteligente'),
-                ),
-                _FeatureCard(
-                  title: 'Favoritos',
-                  icon: Icons.favorite_rounded,
-                  color: Colors.redAccent,
-                  onTap: () => _navigateTo(context, const Favourites(), title: 'Favoritos', subtitle: 'Tus recetas guardadas'),
-                ),
-                _FeatureCard(
-                  title: 'La Compra',
-                  icon: Icons.shopping_bag_rounded,
-                  color: Colors.orange,
-                  onTap: () => _navigateTo(context, const ShoppingList(), title: 'La Compra', subtitle: 'Lo que necesitas'),
-                ),
-                _FeatureCard(
-                  title: 'Crear',
-                  icon: Icons.add_rounded,
-                  color: Colors.green,
-                  onTap: () => _navigateTo(context, const CreateRecipe(), title: 'Crear Receta', subtitle: 'Tu propia magia'),
-                ),
-              ]),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 40)),
-        ],
+            const SliverToBoxAdapter(child: SizedBox(height: 40)),
+          ],
+        ),
       ),
     );
   }
@@ -219,6 +223,37 @@ class _TodayMenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    Widget buildRecipeItem(Recipe recipe) {
+      return InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  recipe.nombre,
+                  style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w600, color: Colors.white),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white70),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -245,38 +280,25 @@ class _TodayMenuCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          ...recipes.asMap().entries.map((entry) {
-            final recipe = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: InkWell(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RecipeScreen(recipe: recipe)),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(20),
+          if (isLandscape && recipes.isNotEmpty)
+            Row(
+              children: recipes.asMap().entries.map((entry) {
+                final isLast = entry.key == recipes.length - 1;
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: isLast ? 0 : 12),
+                    child: buildRecipeItem(entry.value),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          recipe.nombre,
-                          style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w600, color: Colors.white),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white70),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
+                );
+              }).toList(),
+            )
+          else
+            ...recipes.map((recipe) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: buildRecipeItem(recipe),
+              );
+            }),
         ],
       ),
     );
