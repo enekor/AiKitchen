@@ -18,6 +18,7 @@ class Favourites extends StatefulWidget {
 class _FavouritesState extends State<Favourites> {
   bool _isSelectionMode = false;
   final Set<Recipe> _selectedRecipes = {};
+  List<Recipe> _filteredReipes = [];
 
   @override
   void initState() {
@@ -29,6 +30,16 @@ class _FavouritesState extends State<Favourites> {
     final recipes = await JsonDocumentsService().getFavRecipes();
     setState(() {
       AppSingleton().recetasFavoritas = recipes;
+    });
+
+    _filteredReipes = recipes;
+  }
+
+  void _filterRecipes(String query) {
+    setState(() {
+      _filteredReipes = AppSingleton().recetasFavoritas
+          .where((r) => r.nombre.toLowerCase().contains(query.toLowerCase()))
+          .toList();
     });
   }
 
@@ -74,7 +85,9 @@ class _FavouritesState extends State<Favourites> {
 
   void _removeFavorite(Recipe recipe) {
     setState(() {
-      AppSingleton().recetasFavoritas.removeWhere((r) => r.nombre == recipe.nombre);
+      AppSingleton().recetasFavoritas.removeWhere(
+        (r) => r.nombre == recipe.nombre,
+      );
       _selectedRecipes.remove(recipe);
       if (_selectedRecipes.isEmpty) _isSelectionMode = false;
     });
@@ -85,16 +98,34 @@ class _FavouritesState extends State<Favourites> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final recipes = AppSingleton().recetasFavoritas;
+    final recipes = _filteredReipes;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar recetas...',
+                prefixIcon: const Icon(Icons.search_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onChanged: _filterRecipes,
+            ),
+          ),
+          SizedBox(height: 16),
           Expanded(
-            child: recipes.isEmpty ? _buildEmptyState(theme) : _buildRecipeList(theme, recipes),
+            child: recipes.isEmpty
+                ? _buildEmptyState(theme)
+                : _buildRecipeList(theme, recipes),
           ),
         ],
       ),
@@ -104,9 +135,14 @@ class _FavouritesState extends State<Favourites> {
               elevation: 0,
               backgroundColor: theme.colorScheme.primary,
               foregroundColor: theme.colorScheme.onPrimary,
-              label: const Text('COMPARTIR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+              label: const Text(
+                'COMPARTIR',
+                style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+              ),
               icon: const Icon(Icons.share_rounded),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
             )
           : null,
     );
@@ -123,12 +159,27 @@ class _FavouritesState extends State<Favourites> {
               color: theme.colorScheme.primaryContainer.withOpacity(0.4),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.favorite_rounded, size: 64, color: theme.colorScheme.primary),
+            child: Icon(
+              Icons.favorite_rounded,
+              size: 64,
+              color: theme.colorScheme.primary,
+            ),
           ),
           const SizedBox(height: 24),
-          Text('¡Nada por aquí!', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+          Text(
+            '¡Nada por aquí!',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('Las recetas que guardes aparecerán aquí.', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+          Text(
+            'Las recetas que guardes aparecerán aquí.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
         ],
       ),
     );
@@ -145,12 +196,14 @@ class _FavouritesState extends State<Favourites> {
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: isSelected 
-                ? theme.colorScheme.primaryContainer 
+            color: isSelected
+                ? theme.colorScheme.primaryContainer
                 : theme.colorScheme.surfaceVariant.withOpacity(0.3),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.1),
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline.withOpacity(0.1),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -174,14 +227,18 @@ class _FavouritesState extends State<Favourites> {
                         Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: Icon(
-                            isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                            isSelected
+                                ? Icons.check_circle_rounded
+                                : Icons.radio_button_unchecked_rounded,
                             color: theme.colorScheme.primary,
                           ),
                         ),
                       Expanded(
                         child: Text(
                           recipe.nombre,
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
                     ],
@@ -191,7 +248,9 @@ class _FavouritesState extends State<Favourites> {
                     recipe.descripcion,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
                   ),
                   if (!_isSelectionMode) ...[
                     const SizedBox(height: 20),
@@ -201,19 +260,35 @@ class _FavouritesState extends State<Favourites> {
                         IconButton.filledTonal(
                           onPressed: () => _onEditRecipe(recipe),
                           icon: const Icon(Icons.edit_rounded, size: 20),
-                          style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         IconButton.filledTonal(
                           onPressed: () => _removeFavorite(recipe),
-                          icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                          style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 20,
+                          ),
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         IconButton.filledTonal(
-                          onPressed: () => ShareRecipeService().shareRecipe([recipe]),
+                          onPressed: () =>
+                              ShareRecipeService().shareRecipe([recipe]),
                           icon: const Icon(Icons.share_rounded, size: 20),
-                          style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                         ),
                       ],
                     ),
