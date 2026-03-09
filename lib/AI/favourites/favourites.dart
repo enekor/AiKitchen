@@ -106,17 +106,16 @@ class _FavouritesState extends State<Favourites> {
         final plugin = DeviceInfoPlugin();
         final androidInfo = await plugin.androidInfo;
         
-        PermissionStatus status;
-        if (androidInfo.version.sdkInt >= 33) {
-          // Android 13+ requires photos/videos/audio permissions instead of storage
-          status = await Permission.photos.request();
-        } else {
-          status = await Permission.storage.request();
-        }
-
-        if (!status.isGranted) {
-          Toaster.showWarning('Se requiere permiso para leer archivos');
-          return;
+        // En Android 13+ (API 33+), el FilePicker utiliza el Storage Access Framework (SAF)
+        // que NO requiere pedir permisos de lectura generales (READ_EXTERNAL_STORAGE)
+        // ni permisos multimedia (READ_MEDIA_*) para los archivos que el usuario selecciona
+        // explícitamente a través de la interfaz nativa.
+        if (androidInfo.version.sdkInt < 33) {
+          final status = await Permission.storage.request();
+          if (!status.isGranted) {
+            Toaster.showWarning('Se requiere permiso para leer archivos en esta versión de Android');
+            return;
+          }
         }
       }
 
