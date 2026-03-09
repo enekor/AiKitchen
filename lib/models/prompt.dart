@@ -98,7 +98,7 @@ Genera una lista completa y equilibrada de ingredientes básicos y productos ese
       '''Necesito que me des una versión más saludable de la siguiente receta (menos calorías, menos grasas, etc). Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
 
   static String UpdateRecipePromptDieta(String recipeJson, String dieta) =>
-      '''Necesito que adaptes la siguiente receta para que sea apta para una dieta "$dieta". Responde únicamente with el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
+      '''Necesito que adaptes la siguiente receta para que sea apta para una dieta "$dieta". Responde únicamente con el json de la receta adaptada, sin ningún texto adicional y respetando los tipados del json original, es decir, nombre, descripcion, tiempoEstimado, cada ingrediente, cada paso de preparacion son string, calorias es un double y las raciones es un int. Aquí tienes el json de la receta: $recipeJson''';
 
   static String UpdateRecipePromptUnidades(String recipeJson) =>
       '''Necesito que conviertas las medidas de los ingredientes de la receta a cucharas, tazas, etc, lo que venga mejor para la cantidad. En caso de que la medida sea más práctica en su unidad original (como por ejemplo "1 huevo" o "1 pizca de sal"), déjala como está. Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';

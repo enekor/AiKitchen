@@ -189,10 +189,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
               ),
             ),
           ],
-          body: const TabBarView(
+          body: TabBarView(
             children: [
-              _ScrollableSlide(child: _IngredientsSlideContent()),
-              _ScrollableSlide(child: _StepsSlideContent()),
+              _ScrollableSlide(child: _IngredientsSlideContent(key: ValueKey('ingredients_${showingRecipe.nombre}_${showingRecipe.calorias}'))),
+              _ScrollableSlide(child: _StepsSlideContent(key: ValueKey('steps_${showingRecipe.nombre}_${showingRecipe.calorias}'))),
             ],
           ),
         ),
@@ -249,7 +249,7 @@ class _ScrollableSlide extends StatelessWidget {
 }
 
 class _IngredientsSlideContent extends StatelessWidget {
-  const _IngredientsSlideContent();
+  const _IngredientsSlideContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +259,7 @@ class _IngredientsSlideContent extends StatelessWidget {
 }
 
 class _StepsSlideContent extends StatelessWidget {
-  const _StepsSlideContent();
+  const _StepsSlideContent({super.key});
 
   @override
   Widget build(BuildContext context) {
