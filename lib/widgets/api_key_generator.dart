@@ -152,9 +152,9 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator>
             icon: const Icon(Icons.open_in_new_rounded),
             label: const Text('Ir a obtener mi clave gratuita'),
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
               ),
             ),
           ),
@@ -178,7 +178,7 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator>
               child: Container(
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: _controller.text.isEmpty
                         ? theme.colorScheme.outline.withOpacity(0.3)
@@ -195,7 +195,7 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator>
                     hintText: 'AIza...',
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
+                        horizontal: 18, vertical: 14),
                     suffixIcon: _controller.text.isNotEmpty
                         ? Icon(
                             _keyValid
@@ -216,7 +216,7 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator>
               tooltip: 'Pegar desde portapapeles',
               style: IconButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
             ),
@@ -228,9 +228,9 @@ class _ApiKeyGeneratorState extends State<ApiKeyGenerator>
           child: FilledButton.tonal(
             onPressed: _keyValid ? () => _applyKey(_controller.text) : null,
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(24),
               ),
             ),
             child: const Text('Guardar clave'),
@@ -250,10 +250,10 @@ class _DetectedKeyBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.green.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.green.withOpacity(0.4)),
       ),
       child: Row(
@@ -337,7 +337,7 @@ class _StepTile extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text(text, style: const TextStyle(fontSize: 14)),
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
           ),
         ),
       ],
