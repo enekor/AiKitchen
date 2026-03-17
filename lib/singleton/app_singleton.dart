@@ -3,15 +3,12 @@ import 'dart:io';
 
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/gemini_service.dart';
-import 'package:aikitchen/services/groq_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/warning_modal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:properties/properties.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:url_launcher/url_launcher.dart';
@@ -27,7 +24,6 @@ class AppSingleton {
   List<Recipe> recetasFavoritas = [];
   
   GeminiService? _geminiService;
-  GroqService? _groqService;
   
   String _tipoReceta = 'omnívora';
   bool _useTTS = false;
@@ -108,34 +104,15 @@ class AppSingleton {
         ) ??
         'omnivora';
 
-    // Primero intentamos cargar la API Key del archivo de configuración
-    try {
-      final propertiesContent = await rootBundle.loadString('config.properties');
-      Properties p = Properties.fromString(propertiesContent);
-
-      _apiKey = p.get('GROQ_API_KEY');
-
-      if (_apiKey != null && (_apiKey!.isEmpty || _apiKey == 'tu_api_key_aqui')) {
-        _apiKey = null;
-      }
-    } catch (e) {
-      debugPrint('Error cargando config.properties: $e');
-      _apiKey = null;
-    }
-
-    // Si no se encontró en config.properties, miramos en SQLite (via wrapper)
-    if (_apiKey == null) {
-      _apiKey = await SharedPreferencesService.getStringValue(
-        SharedPreferencesKeys.geminiApiKey,
-      );
-    }
+    _apiKey = await SharedPreferencesService.getStringValue(
+      SharedPreferencesKeys.geminiApiKey,
+    );
 
     _useTTS = await SharedPreferencesService.getBoolValue(
       SharedPreferencesKeys.useTTS,
     );
 
     _geminiService = GeminiService();
-    _groqService = GroqService();
 
     recetasFavoritas = await JsonDocumentsService().getFavRecipes();
   }
@@ -164,7 +141,7 @@ class AppSingleton {
 
       throw NoApiKeyException();
     } else {
-      return await _groqService!.generateContent(prompt, _apiKey!, context: context);
+      return await _geminiService!.generateContent(prompt, _apiKey!);
     }
   }
 

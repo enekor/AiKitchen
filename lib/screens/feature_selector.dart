@@ -8,8 +8,6 @@ import 'package:aikitchen/screens/settings.dart';
 import 'package:aikitchen/screens/shopping_list.dart';
 import 'package:aikitchen/screens/weekly_menu.dart';
 import 'package:aikitchen/services/json_documents.dart';
-import 'package:aikitchen/web/search/search_screen.dart';
-import 'package:aikitchen/web/web_features.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -114,12 +112,6 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                   _CombinedAICard(
                     onNameTap: () => _navigateTo(context, const FindByName(), title: 'Buscar', subtitle: 'Inspiración para hoy'),
                     onIngredientsTap: () => _navigateTo(context, const FindByIngredients(), title: 'Tu Nevera', subtitle: 'Cocina con lo que tienes'),
-                  ),
-                  _FeatureCard(
-                    title: 'Internet',
-                    icon: Icons.cloud_rounded,
-                    color: theme.colorScheme.tertiary,
-                    onTap: () => _navigateTo(context, const LidSearchScreen(), title: 'Internet', subtitle: 'Recetas externas'),
                   ),
                   _FeatureCard(
                     title: 'Mi Menú',
