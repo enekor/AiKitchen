@@ -37,7 +37,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
   void _checkIfFavorite() {
     setState(() {
       _isFavorite = AppSingleton().recetasFavoritas.any(
-        (r) => r.nombre == showingRecipe.nombre && r.descripcion == showingRecipe.descripcion,
+        (r) =>
+            r.nombre == showingRecipe.nombre &&
+            r.descripcion == showingRecipe.descripcion,
       );
     });
   }
@@ -45,7 +47,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
   void _toggleFavorite() async {
     if (_isFavorite) {
       AppSingleton().recetasFavoritas.removeWhere(
-        (r) => r.nombre == showingRecipe.nombre && r.descripcion == showingRecipe.descripcion,
+        (r) =>
+            r.nombre == showingRecipe.nombre &&
+            r.descripcion == showingRecipe.descripcion,
       );
       Toaster.showWarning('Eliminado de favoritos');
     } else {
@@ -60,7 +64,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
   Future<void> _launchUrl() async {
     if (widget.url != null) {
-      if (!await launchUrl(Uri.parse(widget.url!), mode: LaunchMode.externalApplication)) {
+      if (!await launchUrl(
+        Uri.parse(widget.url!),
+        mode: LaunchMode.externalApplication,
+      )) {
         Toaster.showError('No se pudo abrir la web original');
       }
     }
@@ -78,7 +85,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
           setState(() {
             showingRecipe = newRecipe;
             // Al modificarla, dejamos de considerarla la misma para favoritos hasta que la guarde
-            _isFavorite = false; 
+            _isFavorite = false;
           });
         },
       ),
@@ -98,7 +105,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
             SliverAppBar.large(
               backgroundColor: theme.colorScheme.surface,
               expandedHeight: 240,
-              collapsedHeight: kToolbarHeight + MediaQuery.of(context).padding.top,
+              collapsedHeight:
+                  kToolbarHeight + MediaQuery.of(context).padding.top,
               pinned: true,
               stretch: true,
               leading: Padding(
@@ -130,14 +138,24 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: IconButton.filledTonal(
                     onPressed: _toggleFavorite,
-                    icon: Icon(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded),
+                    icon: Icon(
+                      _isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                    ),
                     color: _isFavorite ? Colors.redAccent : null,
                   ),
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
-                stretchModes: const [StretchMode.zoomBackground, StretchMode.fadeTitle],
-                titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                stretchModes: const [
+                  StretchMode.zoomBackground,
+                  StretchMode.fadeTitle,
+                ],
+                titlePadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 centerTitle: false,
                 title: Text(
                   showingRecipe.nombre,
@@ -153,7 +171,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
                 child: _buildInfoBadges(theme),
               ),
             ),
@@ -162,11 +183,16 @@ class _RecipeScreenState extends State<RecipeScreen> {
               delegate: _StickyTabBarDelegate(
                 child: Container(
                   color: theme.colorScheme.surface,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Container(
                     height: 56,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                      color: theme.colorScheme.primaryContainer.withOpacity(
+                        0.3,
+                      ),
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: TabBar(
@@ -178,7 +204,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
                       dividerColor: Colors.transparent,
                       labelColor: theme.colorScheme.onPrimary,
                       unselectedLabelColor: theme.colorScheme.primary,
-                      labelStyle: GoogleFonts.robotoFlex(fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 12),
+                      labelStyle: GoogleFonts.robotoFlex(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
+                        fontSize: 12,
+                      ),
                       tabs: const [
                         Tab(text: 'INGREDIENTES'),
                         Tab(text: 'PREPARACIÓN'),
@@ -191,8 +221,20 @@ class _RecipeScreenState extends State<RecipeScreen> {
           ],
           body: TabBarView(
             children: [
-              _ScrollableSlide(child: _IngredientsSlideContent(key: ValueKey('ingredients_${showingRecipe.nombre}_${showingRecipe.calorias}'))),
-              _ScrollableSlide(child: _StepsSlideContent(key: ValueKey('steps_${showingRecipe.nombre}_${showingRecipe.calorias}'))),
+              _ScrollableSlide(
+                child: _IngredientsSlideContent(
+                  key: ValueKey(
+                    'ingredients_${showingRecipe.nombre}_${showingRecipe.calorias}',
+                  ),
+                ),
+              ),
+              _ScrollableSlide(
+                child: _StepsSlideContent(
+                  key: ValueKey(
+                    'steps_${showingRecipe.nombre}_${showingRecipe.calorias}',
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -206,17 +248,37 @@ class _RecipeScreenState extends State<RecipeScreen> {
       physics: const BouncingScrollPhysics(),
       child: Row(
         children: [
-          _expressiveBadge(theme, Icons.timer_rounded, showingRecipe.tiempoEstimado, theme.colorScheme.primaryContainer),
+          _expressiveBadge(
+            theme,
+            Icons.timer_rounded,
+            showingRecipe.tiempoEstimado,
+            theme.colorScheme.primaryContainer,
+          ),
           const SizedBox(width: 12),
-          _expressiveBadge(theme, Icons.local_fire_department_rounded, '${showingRecipe.calorias.toInt()} cal', theme.colorScheme.secondaryContainer),
+          _expressiveBadge(
+            theme,
+            Icons.local_fire_department_rounded,
+            '${showingRecipe.calorias.toInt()} cal',
+            theme.colorScheme.secondaryContainer,
+          ),
           const SizedBox(width: 12),
-          _expressiveBadge(theme, Icons.group_rounded, '${showingRecipe.raciones} pers.', theme.colorScheme.tertiaryContainer),
+          _expressiveBadge(
+            theme,
+            Icons.group_rounded,
+            '${showingRecipe.raciones} pers.',
+            theme.colorScheme.tertiaryContainer,
+          ),
         ],
       ),
     );
   }
 
-  Widget _expressiveBadge(ThemeData theme, IconData icon, String text, Color color) {
+  Widget _expressiveBadge(
+    ThemeData theme,
+    IconData icon,
+    String text,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
@@ -227,7 +289,13 @@ class _RecipeScreenState extends State<RecipeScreen> {
         children: [
           Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
-          Text(text, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+          Text(
+            text,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+            ),
+          ),
         ],
       ),
     );
@@ -278,7 +346,11 @@ class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 88;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return child;
   }
 
@@ -304,15 +376,21 @@ class _AiEditBottomSheetState extends State<_AiEditBottomSheet> {
 
   void _processAiRequest(String prompt) async {
     setState(() => _isProcessing = true);
-    
+
     try {
       final response = await AppSingleton().generateContent(prompt, context);
-      
+
       if (response.isNotEmpty && !response.contains('error')) {
         String cleanedResponse = response;
-        cleanedResponse = cleanedResponse.replaceAll(RegExp(r'^```json\s*', multiLine: true), '');
-        cleanedResponse = cleanedResponse.replaceAll(RegExp(r'\s*```$', multiLine: true), '');
-        
+        cleanedResponse = cleanedResponse.replaceAll(
+          RegExp(r'^```json\s*', multiLine: true),
+          '',
+        );
+        cleanedResponse = cleanedResponse.replaceAll(
+          RegExp(r'\s*```$', multiLine: true),
+          '',
+        );
+
         final newRecipeList = Recipe.fromJsonList(cleanedResponse);
         if (newRecipeList.isNotEmpty) {
           widget.onRecipeUpdated(newRecipeList.first);
@@ -351,7 +429,10 @@ class _AiEditBottomSheetState extends State<_AiEditBottomSheet> {
             children: [
               LottieAnimationWidget(type: LottieAnimationType.loading),
               SizedBox(height: 16),
-              Text('Cocinando modificaciones...', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                'Cocinando modificaciones...',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ],
           ),
         ),
@@ -378,7 +459,10 @@ class _AiEditBottomSheetState extends State<_AiEditBottomSheet> {
           const SizedBox(height: 24),
           Row(
             children: [
-              const Icon(Icons.auto_awesome_rounded, color: Colors.deepPurpleAccent),
+              const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.deepPurpleAccent,
+              ),
               const SizedBox(width: 12),
               Text(
                 'EDICIÓN MÁGICA',
@@ -396,28 +480,36 @@ class _AiEditBottomSheetState extends State<_AiEditBottomSheet> {
             title: 'Versión Exprés',
             subtitle: 'Haz que sea más rápida de cocinar',
             color: Colors.orange,
-            onTap: () => _processAiRequest(Prompt.UpdateRecipePromptExpress(recipeJsonStr)),
+            onTap: () => _processAiRequest(
+              Prompt.UpdateRecipePromptExpress(recipeJsonStr),
+            ),
           ),
           _EditOption(
             icon: Icons.favorite_outline_rounded,
             title: 'Más Saludable',
             subtitle: 'Reduce grasas y calorías',
             color: Colors.green,
-            onTap: () => _processAiRequest(Prompt.UpdateRecipePromptSaludable(recipeJsonStr)),
+            onTap: () => _processAiRequest(
+              Prompt.UpdateRecipePromptSaludable(recipeJsonStr),
+            ),
           ),
           _EditOption(
             icon: Icons.eco_rounded,
             title: 'Hacer Vegana',
             subtitle: 'Sustituye ingredientes de origen animal',
             color: Colors.lightGreen,
-            onTap: () => _processAiRequest(Prompt.UpdateRecipePromptDieta(recipeJsonStr, "Vegana")),
+            onTap: () => _processAiRequest(
+              Prompt.UpdateRecipePromptDieta(recipeJsonStr, "Vegana"),
+            ),
           ),
           _EditOption(
             icon: Icons.scale_rounded,
             title: 'Cambiar Unidades',
             subtitle: 'A tazas, cucharadas, pizcas...',
             color: Colors.blueAccent,
-            onTap: () => _processAiRequest(Prompt.UpdateRecipePromptUnidades(recipeJsonStr)),
+            onTap: () => _processAiRequest(
+              Prompt.UpdateRecipePromptUnidades(recipeJsonStr),
+            ),
           ),
         ],
       ),
@@ -470,10 +562,17 @@ class _EditOption extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
                     ),
                   ],
                 ),
