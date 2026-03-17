@@ -1,166 +1,344 @@
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/animated_card.dart';
-import 'package:aikitchen/widgets/text_input.dart';
 import 'package:aikitchen/widgets/toaster.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ApiKeyGenerator extends StatefulWidget {
-  ApiKeyGenerator({super.key, this.onChange, this.isPopup = false});
-  Function(String)? onChange;
-  bool isPopup = false;
+  const ApiKeyGenerator({super.key, this.onChange, this.isPopup = false});
+  final Function(String)? onChange;
+  final bool isPopup;
 
   @override
   State<ApiKeyGenerator> createState() => _ApiKeyGeneratorState();
 }
 
-bool _isGeminiCardExpanded = false;
-int _currentIndex = 0;
+class _ApiKeyGeneratorState extends State<ApiKeyGenerator>
+    with WidgetsBindingObserver {
+  bool _isExpanded = false;
+  final _controller = TextEditingController();
+  String? _detectedKey;
+  bool _keyValid = false;
 
-class _ApiKeyGeneratorState extends State<ApiKeyGenerator> {
+  static const _studioUrl = 'https://aistudio.google.com/app/apikey';
+
   @override
-  Widget build(BuildContext context) {
-    Future<void> _launchUrl(String url) async {
-      if (!await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      )) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se pudo abrir el enlace')),
-          );
-        }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _controller.text = AppSingleton().apiKey ?? '';
+    _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller.removeListener(_onTextChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkClipboardForKey();
+    }
+  }
+
+  bool _isValidKey(String key) {
+    final k = key.trim();
+    return k.startsWith('AIza') && k.length >= 35;
+  }
+
+  void _onTextChanged() {
+    final valid = _isValidKey(_controller.text);
+    if (valid != _keyValid) {
+      setState(() => _keyValid = valid);
+    }
+    widget.onChange?.call(_controller.text);
+  }
+
+  Future<void> _checkClipboardForKey() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text?.trim() ?? '';
+    if (_isValidKey(text) && text != AppSingleton().apiKey) {
+      setState(() => _detectedKey = text);
+    }
+  }
+
+  Future<void> _applyKey(String key) async {
+    final k = key.trim();
+    await AppSingleton().setApiKey(k);
+    setState(() {
+      _controller.text = k;
+      _keyValid = true;
+      _detectedKey = null;
+    });
+    Toaster.showSuccess('¡Clave aplicada correctamente!');
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text?.trim() ?? '';
+    if (text.isEmpty) {
+      Toaster.showError('El portapapeles está vacío');
+      return;
+    }
+    setState(() => _controller.text = text);
+  }
+
+  Future<void> _openStudio() async {
+    if (!await launchUrl(Uri.parse(_studioUrl),
+        mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir el enlace')),
+        );
       }
     }
+  }
 
-    Widget _buildCarouselItem(String imagePath, String caption) {
-      return Container(
-        margin: EdgeInsets.symmetric(horizontal: 5.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12.0),
-                child: Image.asset(imagePath, fit: BoxFit.contain),
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasKey = AppSingleton().apiKey != null;
+
+    return AnimatedCard(
+      isExpanded: widget.isPopup ? true : _isExpanded,
+      text: hasKey ? 'Acceso a IA activado' : 'Activa el acceso a la IA',
+      icon: hasKey
+          ? const Icon(Icons.check_circle_rounded, color: Colors.green)
+          : const Icon(Icons.lock_open_rounded),
+      onTap: () => setState(() => _isExpanded = !_isExpanded),
+      children: [
+        // Banner de clave detectada
+        if (_detectedKey != null) _DetectedKeyBanner(
+          onApply: () => _applyKey(_detectedKey!),
+          onDismiss: () => setState(() => _detectedKey = null),
+        ),
+
+        if (_detectedKey != null) const SizedBox(height: 16),
+
+        // Pasos
+        _StepTile(
+          number: '1',
+          text: 'Pulsa el botón de abajo para abrir Google AI Studio. '
+              'Es completamente gratis, solo necesitas una cuenta de Google.',
+          color: theme.colorScheme.primary,
+        ),
+        const SizedBox(height: 10),
+        _StepTile(
+          number: '2',
+          text: 'Inicia sesión y crea una clave nueva. '
+              'Dale al botón azul que dice "Crear clave de API".',
+          color: theme.colorScheme.primary,
+        ),
+        const SizedBox(height: 10),
+        _StepTile(
+          number: '3',
+          text: 'Copia la clave y vuelve aquí. '
+              'La detectaremos automáticamente.',
+          color: theme.colorScheme.primary,
+        ),
+
+        const SizedBox(height: 20),
+
+        // Botón principal
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _openStudio,
+            icon: const Icon(Icons.open_in_new_rounded),
+            label: const Text('Ir a obtener mi clave gratuita'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
-            SizedBox(height: 8),
-            Text(
-              caption,
-              style: TextStyle(fontSize: 14),
-              textAlign: TextAlign.center,
+          ),
+        ),
+
+        const SizedBox(height: 24),
+        Divider(color: theme.colorScheme.outlineVariant),
+        const SizedBox(height: 16),
+
+        // Entrada manual
+        Text(
+          'O pégala aquí si ya la tienes:',
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _controller.text.isEmpty
+                        ? theme.colorScheme.outline.withOpacity(0.3)
+                        : _keyValid
+                            ? Colors.green
+                            : Colors.red.shade300,
+                    width: 1.5,
+                  ),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'AIza...',
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    suffixIcon: _controller.text.isNotEmpty
+                        ? Icon(
+                            _keyValid
+                                ? Icons.check_circle_rounded
+                                : Icons.error_rounded,
+                            color: _keyValid ? Colors.green : Colors.red,
+                            size: 20,
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              onPressed: _pasteFromClipboard,
+              icon: const Icon(Icons.content_paste_rounded),
+              tooltip: 'Pegar desde portapapeles',
+              style: IconButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
             ),
           ],
         ),
-      );
-    }
-
-    return AnimatedCard(
-      isExpanded: widget.isPopup ? true : _isGeminiCardExpanded,
-      text:
-          'Gemini api key ${AppSingleton().apiKey != null ? 'aplicada' : 'no aplicada'}',
-      icon: AppSingleton().apiKey == null
-          ? const Icon(Icons.api_rounded)
-          : const Icon(Icons.check_circle_rounded, color: Colors.green),
-      onTap: () {
-        setState(() {
-          _isGeminiCardExpanded = !_isGeminiCardExpanded;
-        });
-      },
-      children: [
-        const Text(
-          'Para usar la aplicación, necesitas una API Key de Google AI Studio. Sigue estos pasos:',
-          style: TextStyle(fontSize: 16),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 16),
-        // Carrusel de imágenes integrado
-        Container(
-          height: 300, // Ajusta según necesites
-          child: CarouselSlider(
-            options: CarouselOptions(
-              height: 280,
-              viewportFraction: 0.9,
-              enlargeCenterPage: true,
-              enableInfiniteScroll: false,
-              autoPlay: false,
-              pageSnapping: true,
-              padEnds: true,
-              onPageChanged: (index, reason) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.tonal(
+            onPressed: _keyValid ? () => _applyKey(_controller.text) : null,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
-            items: [
-              _buildCarouselItem(
-                'assets/guide/step1.jpg',
-                '1. Ve a Google AI Studio inicia sesión y seleciona "Crear clave de API',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step2.jpg',
-                '2. Selecciona "Crear proyecto" si no tienes uno ya existente',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step3.jpg',
-                '3. Ponle un nombre a tu proyecto y dale a crear proyecto',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step4.jpg',
-                '4. Una vez creado el proyecto, ponle un nombre cualquiera a la clave, y selecciona "Crear clave"',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step5.jpg',
-                '5. Selecciona la clave que acabas de crear clicando en el texto marcado en la imagen',
-              ),
-              _buildCarouselItem(
-                'assets/guide/step6.jpg',
-                '6. Copia la API Key usando el botón remarcado en la imagen y pégala en el campo de abajo',
-              ),
-            ],
+            child: const Text('Guardar clave'),
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [0, 1, 2, 3, 4, 5, 6].map((index) {
-            return Container(
-              width: 10.0,
-              height: 10.0,
-              margin: EdgeInsets.symmetric(horizontal: 4.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentIndex == index
-                    ? Theme.of(context).colorScheme.primary.withAlpha(45)
-                    : Colors.grey.shade300,
+      ],
+    );
+  }
+}
+
+class _DetectedKeyBanner extends StatelessWidget {
+  final VoidCallback onApply;
+  final VoidCallback onDismiss;
+
+  const _DetectedKeyBanner({required this.onApply, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.green.withOpacity(0.4)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome_rounded, color: Colors.green, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '¡Clave detectada!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+                Text(
+                  'Hemos encontrado una clave en tu portapapeles.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: onApply,
+            style: TextButton.styleFrom(foregroundColor: Colors.green),
+            child: const Text('Aplicar'),
+          ),
+          IconButton(
+            onPressed: onDismiss,
+            icon: const Icon(Icons.close_rounded, size: 18),
+            color: Colors.green,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepTile extends StatelessWidget {
+  final String number;
+  final String text;
+  final Color color;
+
+  const _StepTile({
+    required this.number,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: color,
+                fontSize: 13,
               ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 16),
-        const SizedBox(height: 16),
-        Center(
-          child: ElevatedButton.icon(
-            onPressed: () =>
-                _launchUrl('https://makersuite.google.com/app/apikey'),
-            icon: const Icon(Icons.open_in_new),
-            label: const Text('Obtener API Key'),
+            ),
           ),
         ),
-        const SizedBox(height: 48),
-        BasicTextInput(
-          onSearch: (apiKey) {
-            setState(() {
-              AppSingleton().setApiKey(apiKey);
-            });
-            Toaster.showSuccess('API Key guardada');
-          },
-          hint: 'Pega aquí tu API Key',
-          initialValue: AppSingleton().apiKey ?? '',
-          checkIcon: Icons.save_rounded,
-          padding: const EdgeInsets.all(2),
-          isInnerShadow: true,
-          onChanged: widget.onChange,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(text, style: const TextStyle(fontSize: 14)),
+          ),
         ),
       ],
     );
