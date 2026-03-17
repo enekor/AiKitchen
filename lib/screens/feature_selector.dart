@@ -109,9 +109,17 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                   childAspectRatio: isLandscape ? 1.1 : 0.9,
                 ),
                 delegate: SliverChildListDelegate([
-                  _CombinedAICard(
-                    onNameTap: () => _navigateTo(context, const FindByName(), title: 'Buscar', subtitle: 'Inspiración para hoy'),
-                    onIngredientsTap: () => _navigateTo(context, const FindByIngredients(), title: 'Tu Nevera', subtitle: 'Cocina con lo que tienes'),
+                  _FeatureCard(
+                    title: 'Ingredientes',
+                    icon: Icons.kitchen_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                    onTap: () => _navigateTo(context, const FindByIngredients(), title: 'Tu Nevera', subtitle: 'Cocina con lo que tienes'),
+                  ),
+                  _FeatureCard(
+                    title: 'Nombre',
+                    icon: Icons.search_rounded,
+                    color: Theme.of(context).colorScheme.secondary,
+                    onTap: () => _navigateTo(context, const FindByName(), title: 'Buscar', subtitle: 'Inspiración para hoy'),
                   ),
                   _FeatureCard(
                     title: 'Mi Menú',
@@ -155,56 +163,6 @@ class _FeatureSelectorState extends State<FeatureSelector> {
   }
 }
 
-class _CombinedAICard extends StatelessWidget {
-  final VoidCallback onNameTap;
-  final VoidCallback onIngredientsTap;
-
-  const _CombinedAICard({required this.onNameTap, required this.onIngredientsTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(32),
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: InkWell(
-              onTap: onNameTap,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search_rounded, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text('Nombre', style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w700)),
-                ],
-              ),
-            ),
-          ),
-          Divider(height: 1, color: theme.colorScheme.primary.withOpacity(0.1)),
-          Expanded(
-            child: InkWell(
-              onTap: onIngredientsTap,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.kitchen_rounded, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text('Ingredientes', style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w700)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _TodayMenuCard extends StatelessWidget {
   final String dayName;
