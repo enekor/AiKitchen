@@ -11,7 +11,8 @@ enum SharedPreferencesKeys {
   historialBusquedaNombres,
   useTTS,
   termsAccepted,
-  firstStart
+  firstStart,
+  onboardingComplete
 }
 
 class SharedPreferencesService {
@@ -19,7 +20,8 @@ class SharedPreferencesService {
   // El resto van a SQLite tabla 'preferences'.
   static bool _isSqliteKey(SharedPreferencesKeys key) {
     return key != SharedPreferencesKeys.firstStart &&
-           key != SharedPreferencesKeys.termsAccepted;
+           key != SharedPreferencesKeys.termsAccepted &&
+           key != SharedPreferencesKeys.onboardingComplete;
   }
 
   static Future<void> setStringValue(

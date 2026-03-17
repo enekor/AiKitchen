@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/screens/feature_selector.dart';
+import 'package:aikitchen/screens/onboarding_screen.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/first_start_service.dart';
@@ -90,45 +91,58 @@ class _MyAppState extends State<MyApp> {
           debugShowCheckedModeBanner: false,
           theme: CookingTheme.lightTheme(lightDynamic),
           darkTheme: CookingTheme.darkTheme(darkDynamic),
-          home: FutureBuilder<bool?>(
-            future: SharedPreferencesService.getBoolValue(
-              SharedPreferencesKeys.termsAccepted,
-            ),
+          home: FutureBuilder<List<bool>>(
+            future: Future.wait([
+              SharedPreferencesService.getBoolValue(
+                SharedPreferencesKeys.termsAccepted,
+              ),
+              SharedPreferencesService.getBoolValue(
+                SharedPreferencesKeys.onboardingComplete,
+              ),
+            ]),
             builder: (context, snapshot) {
-              if (snapshot.data == true) {
-                return _sharedFiles.isNotEmpty
-                    ? PreviewSharedFiles(recipeUri: _sharedFiles.first.path)
-                    : const FeatureSelector(); // Cambiado de Home() a FeatureSelector()
+              if (!snapshot.hasData) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               }
-              return TerminosYCondicionesModal(
-                onAccept: () {
-                  setState(() {
+
+              final termsAccepted = snapshot.data![0];
+              final onboardingDone = snapshot.data![1];
+
+              // Términos no aceptados → mostrar modal de términos
+              if (!termsAccepted) {
+                return TerminosYCondicionesModal(
+                  onAccept: () {
                     SharedPreferencesService.setBoolValue(
                       SharedPreferencesKeys.termsAccepted,
                       true,
                     );
-                  });
-
-                  Navigator.of(context).pushReplacement( // Usamos pushReplacement para limpiar el stack
-                    MaterialPageRoute(
-                      builder: (context) => _sharedFiles.isNotEmpty
-                          ? PreviewSharedFiles(
-                              recipeUri: _sharedFiles.first.path,
-                            )
-                          : const FeatureSelector(),
-                    ),
-                  );
-                },
-                onReject: () {
-                  setState(() {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => const OnboardingScreen(),
+                      ),
+                    );
+                  },
+                  onReject: () {
                     SharedPreferencesService.setBoolValue(
                       SharedPreferencesKeys.termsAccepted,
                       false,
                     );
-                  });
-                  exit(0);
-                },
-              );
+                    exit(0);
+                  },
+                );
+              }
+
+              // Términos aceptados pero onboarding pendiente → pantalla de configuración
+              if (!onboardingDone) {
+                return const OnboardingScreen();
+              }
+
+              // Todo listo → app principal
+              return _sharedFiles.isNotEmpty
+                  ? PreviewSharedFiles(recipeUri: _sharedFiles.first.path)
+                  : const FeatureSelector();
             },
           ),
           routes: {
