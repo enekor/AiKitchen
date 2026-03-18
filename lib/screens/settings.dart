@@ -1,6 +1,7 @@
 import 'package:aikitchen/screens/logs_screen.dart';
 import 'package:aikitchen/widgets/setting_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/api_key_generator.dart';
 import 'package:flutter/material.dart';
 import '../singleton/app_singleton.dart';
 
@@ -91,6 +92,21 @@ class _SettingsState extends State<Settings> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.isNotApiKeySetted)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0),
+                child: Text(
+                  'El generador de recetas usa IA. Configura tu acceso gratuito para comenzar a cocinar.',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            _sectionHeader(theme, 'Acceso a la Inteligencia Artificial'),
+            const SizedBox(height: 16),
+            ApiKeyGenerator(isPopup: widget.isNotApiKeySetted),
+            const SizedBox(height: 32),
             _sectionHeader(theme, 'Preferencias de recetas'),
             const SizedBox(height: 16),
             ScrollbarSetting(

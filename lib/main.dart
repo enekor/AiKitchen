@@ -118,7 +118,7 @@ class _MyAppState extends State<MyApp> {
                       SharedPreferencesKeys.termsAccepted,
                       true,
                     );
-                    Navigator.of(context).pushReplacement(
+                    Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const OnboardingScreen(),
                       ),

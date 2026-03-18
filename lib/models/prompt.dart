@@ -10,7 +10,7 @@ Para esta receta, necesito que me responns solo con la receta en formato json, n
 
         "descripcion": "descripcion de la receta",
 
-        "tiempo_estimado": "x min/h",
+        "tiempoEstimado": "x min/h",
 
         "calorias": 123 (el numero de calorias aproximadas),
 
@@ -150,7 +150,7 @@ Responde ÚNICAMENTE en este formato JSON (lista de 14 recetas):
     {
         "nombre": "nombre de la receta",
         "descripcion": "descripcion de la receta",
-        "tiempo_estimado": "x min/h",
+        "tiempoEstimado": "x min/h",
         "calorias": 123 (el numero de calorias aproximadas),
         "raciones": 2 (el numero de raciones/comensales),
         "ingredientes":[
