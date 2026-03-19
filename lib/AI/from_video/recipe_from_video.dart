@@ -106,9 +106,8 @@ class _RecipeFromVideoState extends State<RecipeFromVideo> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return _buildLoadingView();
-
     final theme = Theme.of(context);
+    if (_loading) return _buildLoadingView(theme);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -139,7 +138,7 @@ class _RecipeFromVideoState extends State<RecipeFromVideo> {
     );
   }
 
-  Widget _buildLoadingView() {
+  Widget _buildLoadingView(ThemeData theme) {
     return Scaffold(
       body: Center(
         child: Column(
@@ -152,14 +151,14 @@ class _RecipeFromVideoState extends State<RecipeFromVideo> {
               style: GoogleFonts.robotoFlex(
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Esto puede tardar unos minutos',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade500,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.45),
               ),
             ),
           ],
