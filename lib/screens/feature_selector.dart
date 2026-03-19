@@ -1,5 +1,7 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients.dart';
 import 'package:aikitchen/AI/by_name/find_by_name.dart';
+import 'package:aikitchen/AI/from_url/recipe_from_url.dart';
+import 'package:aikitchen/AI/from_video/recipe_from_video.dart';
 import 'package:aikitchen/AI/favourites/favourites.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
@@ -144,6 +146,18 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                     icon: Icons.add_rounded,
                     color: Colors.green,
                     onTap: () => _navigateTo(context, const CreateRecipe(), title: 'Crear Receta', subtitle: 'Tu propia magia'),
+                  ),
+                  _FeatureCard(
+                    title: 'Desde URL',
+                    icon: Icons.link_rounded,
+                    color: Colors.teal,
+                    onTap: () => _navigateTo(context, const RecipeFromUrl(), title: 'Desde URL', subtitle: 'Receta desde cualquier página'),
+                  ),
+                  _FeatureCard(
+                    title: 'Desde Video',
+                    icon: Icons.smart_display_rounded,
+                    color: Colors.deepOrange,
+                    onTap: () => _navigateTo(context, const RecipeFromVideo(), title: 'Desde Video', subtitle: 'YouTube, TikTok o Instagram'),
                   ),
                 ]),
               ),
