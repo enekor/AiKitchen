@@ -24,6 +24,7 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
   List<WebRecipeResult> _results = [];
   bool _isSearching = false;
   bool _isFetchingRecipe = false;
+  RecipeSource _selectedSource = RecipeSource.lidl;
 
   @override
   void initState() {
@@ -54,7 +55,7 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
       _isSearching = true;
       _results = [];
     });
-    final results = await _service.searchRecipes(query);
+    final results = await _service.searchRecipes(query, source: _selectedSource);
     setState(() {
       _isSearching = false;
       _results = results;
@@ -118,9 +119,41 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
-                    child: SearchInput(
-                      controller: _searchController,
-                      onSearch: _onSearch,
+                      child: Column(
+                      children: [
+                        SearchInput(
+                          controller: _searchController,
+                          onSearch: _onSearch,
+                        ),
+                        const SizedBox(height: 16),
+                        SegmentedButton<RecipeSource>(
+                          segments: const [
+                            ButtonSegment(
+                              value: RecipeSource.lidl,
+                              label: Text('Lidl'),
+                              icon: Icon(Icons.shopping_basket_rounded),
+                            ),
+                            ButtonSegment(
+                              value: RecipeSource.cookpad,
+                              label: Text('Cookpad'),
+                              icon: Icon(Icons.restaurant_rounded),
+                            ),
+                          ],
+                          selected: {_selectedSource},
+                          onSelectionChanged: (Set<RecipeSource> newSelection) {
+                            setState(() {
+                              _selectedSource = newSelection.first;
+                              if (_searchController.text.isNotEmpty) {
+                                _onSearch(_searchController.text);
+                              }
+                            });
+                          },
+                          showSelectedIcon: false,
+                          style: SegmentedButton.styleFrom(
+                            visualDensity: VisualDensity.comfortable,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

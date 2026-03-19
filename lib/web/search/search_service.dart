@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
 
+enum RecipeSource { lidl, cookpad }
+
 class SearchService {
   String? web;
   
@@ -19,18 +21,25 @@ class SearchService {
     'Pragma': 'no-cache',
   };
 
-  Future<List<WebRecipeResult>> searchRecipes(String query) async {
-    final url = 'https://recetas.lidl.es/todasrecetas?q=$query';
-    return fetchRecipesFromUrl(url);
+  Future<List<WebRecipeResult>> searchRecipes(String query, {RecipeSource source = RecipeSource.lidl}) async {
+    final url = source == RecipeSource.lidl 
+      ? 'https://recetas.lidl.es/todasrecetas?q=$query'
+      : 'https://cookpad.com/es/buscar/$query';
+    return fetchRecipesFromUrl(url, source: source);
   }
 
-  Future<List<WebRecipeResult>> fetchRecipesFromUrl(String urlString) async {
+  Future<List<WebRecipeResult>> fetchRecipesFromUrl(String urlString, {RecipeSource? source}) async {
     try {
+      final effectiveSource = source ?? (urlString.contains('cookpad.com') ? RecipeSource.cookpad : RecipeSource.lidl);
       final response = await _client.get(Uri.parse(urlString), headers: _headers);
 
       if (response.statusCode == 200) {
         web = response.body;
-        return _parseLidlDom(web!);
+        if (effectiveSource == RecipeSource.lidl) {
+          return _parseLidlDom(web!);
+        } else {
+          return _parseCookpadSearch(web!);
+        }
       }
     } catch (e) {
       print('Excepción durante el scraping de búsqueda: $e');
@@ -40,16 +49,18 @@ class SearchService {
 
   Future<Recipe?> getFullRecipe(String url) async {
     try {
-      // Intento 1
+      final isCookpad = url.contains('cookpad.com');
+      
       var response = await _client.get(Uri.parse(url), headers: _headers);
       if (response.statusCode != 200) return null;
 
-      var recipe = _parseFullRecipeDetails(response.body);
+      var recipe = isCookpad 
+          ? _parseCookpadRecipeDetails(response.body)
+          : _parseFullRecipeDetails(response.body);
 
-      // SI LOS PASOS ESTÁN VACÍOS, REINTENTAMOS (Soluciona el problema del primer hit vacío)
-      if (recipe == null || recipe.preparacion.isEmpty) {
+      // SI LOS PASOS ESTÁN VACÍOS, REINTENTAMOS (Soluciona el problema del primer hit vacío en Lidl)
+      if (!isCookpad && (recipe == null || recipe.preparacion.isEmpty)) {
         print('Pasos vacíos en el primer intento, reintentando...');
-        // Esperamos un momento mínimo para que el servidor procese la sesión
         await Future.delayed(const Duration(milliseconds: 500));
         
         response = await _client.get(Uri.parse(url), headers: _headers);
@@ -153,6 +164,106 @@ class SearchService {
       print('Error parseando detalle de receta: $e');
       return null;
     }
+  }
+
+  Recipe? _parseCookpadRecipeDetails(String htmlContent) {
+    try {
+      var document = parse(htmlContent);
+
+      // 1. NOMBRE
+      var name = document.querySelector('h1.text-cookpad-36')?.text.trim() ?? 
+                 document.querySelector('h1')?.text.trim() ?? 'No encontrado';
+
+      // 2. INGREDIENTES
+      List<String> ingredients = [];
+      var ingredientsList = document.querySelectorAll('div#ingredients ol li');
+      for (var li in ingredientsList) {
+        var text = li.text.trim().replaceAll(RegExp(r'\s+'), ' ');
+        if (text.isNotEmpty) ingredients.add(text);
+      }
+
+      // 3. PASOS
+      List<String> steps = [];
+      var stepsList = document.querySelectorAll('div#steps ol li');
+      for (var li in stepsList) {
+        // El texto del paso suele estar en un div o p dentro del li
+        var p = li.querySelector('p');
+        var stepText = p?.text.trim() ?? li.text.trim();
+        // Limpiamos el número del paso si está al principio
+        stepText = stepText.replaceFirst(RegExp(r'^\d+\s*'), '').trim();
+        if (stepText.isNotEmpty) steps.add(stepText);
+      }
+
+      // 4. TIEMPO
+      String preparationTime = 'No indicado';
+      var timeElement = document.querySelector('div[id^="cooking_time_recipe_"] span.mise-icon-text');
+      if (timeElement != null) {
+        preparationTime = timeElement.text.trim();
+      }
+
+      // 5. RACIONES
+      String servings = '1';
+      var servingsElement = document.querySelector('div[id^="serving_recipe_"] span.mise-icon-text');
+      if (servingsElement != null) {
+        servings = RegExp(r'(\d+)').firstMatch(servingsElement.text)?.group(1) ?? '1';
+      }
+
+      return Recipe(
+        nombre: name,
+        descripcion: "",
+        ingredientes: ingredients,
+        preparacion: steps,
+        tiempoEstimado: preparationTime,
+        calorias: 0, // Cookpad no suele mostrar kcal directamente
+        raciones: int.tryParse(servings) ?? 1,
+      );
+    } catch (e) {
+      print('Error parseando detalle de receta Cookpad: $e');
+      return null;
+    }
+  }
+
+  List<WebRecipeResult> _parseCookpadSearch(String htmlContent) {
+    final List<WebRecipeResult> results = [];
+    var document = parse(htmlContent);
+    var items = document.querySelectorAll('li.block-link');
+
+    for (var item in items) {
+      try {
+        var linkElement = item.querySelector('a.block-link__main');
+        String? relativeUrl = linkElement?.attributes['href'];
+        if (relativeUrl == null) continue;
+        String fullUrl = relativeUrl.startsWith('http') ? relativeUrl : 'https://cookpad.com$relativeUrl';
+
+        var titleElement = item.querySelector('h2') ?? item.querySelector('.text-cookpad-body-16');
+        String title = titleElement?.text.trim() ?? '';
+        if (title.isEmpty) continue;
+
+        // Intentar encontrar la imagen de la receta (evitando avatares y cooksnaps)
+        var imgElements = item.querySelectorAll('picture img');
+        var imgElement = imgElements.cast<Element?>().firstWhere(
+          (img) => (img?.attributes['src'] ?? '').contains('/recipes/'),
+          orElse: () => imgElements.isNotEmpty ? imgElements.first : null,
+        );
+        String imageUrl = imgElement?.attributes['src'] ?? '';
+
+        String time = 'Desconocido';
+        var timeElement = item.querySelector('div.flex.items-center.gap-xs span.mise-icon-text');
+        if (timeElement != null) {
+          time = timeElement.text.trim();
+        }
+
+        results.add(WebRecipeResult(
+          title: title,
+          imageUrl: imageUrl,
+          time: time,
+          url: fullUrl,
+        ));
+      } catch (e) {
+        print('Error parseando tarjeta Cookpad: $e');
+      }
+    }
+    return results;
   }
 
   List<WebRecipeResult> _parseLidlDom(String htmlContent) {
