@@ -7,8 +7,8 @@ class Recipe {
   final String tiempoEstimado;
   final List<String> ingredientes;
   final List<String> preparacion;
-  final double calorias;
-  final int raciones;
+  final String calorias;
+  final String raciones;
 
   Recipe({
     this.id,
@@ -29,8 +29,8 @@ class Recipe {
       tiempoEstimado: json['tiempoEstimado'],
       ingredientes: List<String>.from(json['ingredientes']),
       preparacion: List<String>.from(json['preparacion']),
-      calorias: json['calorias']?.toDouble() ?? 0,
-      raciones: json['raciones'] ?? 1,
+      calorias: json['calorias'].toString(),
+      raciones: json['raciones'].toString(),
     );
   }
 
@@ -69,8 +69,8 @@ class Recipe {
       tiempoEstimado: map['tiempoEstimado'],
       ingredientes: List<String>.from(jsonDecode(map['ingredientes'])),
       preparacion: List<String>.from(jsonDecode(map['preparacion'])),
-      calorias: map['calorias']?.toDouble() ?? 0,
-      raciones: map['raciones'] ?? 1,
+      calorias: map['calorias'].toString(),
+      raciones: map['raciones'].toString(),
     );
   }
 

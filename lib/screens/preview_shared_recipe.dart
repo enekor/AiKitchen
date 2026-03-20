@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class PreviewSharedFiles extends StatefulWidget {
-  const PreviewSharedFiles({Key? key, required this.recipeUri}) : super(key: key);
+  const PreviewSharedFiles({Key? key, required this.recipeUri})
+    : super(key: key);
 
   final String recipeUri;
 
@@ -26,7 +27,9 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
 
   Future<List<Recipe>?> _loadRecipe() async {
     try {
-      final recipes = await RecipeFromFileService().loadRecipes(widget.recipeUri);
+      final recipes = await RecipeFromFileService().loadRecipes(
+        widget.recipeUri,
+      );
       if (mounted) {
         setState(() => _recipe = recipes);
       }
@@ -53,14 +56,23 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+              if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data == null) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline_rounded, size: 64, color: theme.colorScheme.error),
+                      Icon(
+                        Icons.error_outline_rounded,
+                        size: 64,
+                        color: theme.colorScheme.error,
+                      ),
                       const SizedBox(height: 16),
-                      Text('Error al cargar la receta', style: theme.textTheme.titleLarge),
+                      Text(
+                        'Error al cargar la receta',
+                        style: theme.textTheme.titleLarge,
+                      ),
                     ],
                   ),
                 );
@@ -74,13 +86,14 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                   viewportFraction: 1.0,
                   enlargeCenterPage: false,
                   enableInfiniteScroll: false,
-                  onPageChanged: (index, _) => setState(() => _showingRecipe = index),
+                  onPageChanged: (index, _) =>
+                      setState(() => _showingRecipe = index),
                 ),
                 items: recipes.map((r) => _recipePreview(r, theme)).toList(),
               );
             },
           ),
-          
+
           // Back Button Floating (Material Expressive style)
           Positioned(
             top: 45,
@@ -89,7 +102,9 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
               icon: const Icon(Icons.close_rounded, size: 28),
               onPressed: () => Navigator.of(context).pop(),
               style: IconButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 padding: const EdgeInsets.all(12),
               ),
             ),
@@ -103,15 +118,27 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
               right: 24,
               child: FloatingActionButton.extended(
                 onPressed: () async {
-                  await JsonDocumentsService().addFavRecipe(_recipe![_showingRecipe]);
-                  Toaster.showSuccess('¡${_recipe![_showingRecipe].nombre} guardada!');
+                  await JsonDocumentsService().addFavRecipe(
+                    _recipe![_showingRecipe],
+                  );
+                  Toaster.showSuccess(
+                    '¡${_recipe![_showingRecipe].nombre} guardada!',
+                  );
                 },
                 elevation: 0,
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
-                label: const Text('GUARDAR RECETA', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                label: const Text(
+                  'GUARDAR RECETA',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
+                  ),
+                ),
                 icon: const Icon(Icons.favorite_rounded),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
               ),
             ),
         ],
@@ -158,36 +185,58 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
             ),
           ),
           const SizedBox(height: 32),
-          
+
           // Modern Info Badges
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildExpressiveChip(theme, Icons.timer_rounded, recipe.tiempoEstimado, theme.colorScheme.secondaryContainer),
+                _buildExpressiveChip(
+                  theme,
+                  Icons.timer_rounded,
+                  recipe.tiempoEstimado,
+                  theme.colorScheme.secondaryContainer,
+                ),
                 const SizedBox(width: 8),
-                _buildExpressiveChip(theme, Icons.local_fire_department_rounded, '${recipe.calorias.toInt()} cal', theme.colorScheme.tertiaryContainer),
+                _buildExpressiveChip(
+                  theme,
+                  Icons.local_fire_department_rounded,
+                  recipe.calorias,
+                  theme.colorScheme.tertiaryContainer,
+                ),
                 const SizedBox(width: 8),
-                _buildExpressiveChip(theme, Icons.group_rounded, '${recipe.raciones}', theme.colorScheme.surfaceVariant),
+                _buildExpressiveChip(
+                  theme,
+                  Icons.group_rounded,
+                  '${recipe.raciones}',
+                  theme.colorScheme.surfaceVariant,
+                ),
               ],
             ),
           ),
-          
+
           const SizedBox(height: 40),
           _sectionHeader(theme, 'Ingredientes', Icons.shopping_basket_rounded),
           const SizedBox(height: 16),
           ...recipe.ingredientes.map((ing) => _ingredientBubble(theme, ing)),
-          
+
           const SizedBox(height: 40),
           _sectionHeader(theme, 'Pasos a seguir', Icons.auto_fix_high_rounded),
           const SizedBox(height: 16),
-          ...recipe.preparacion.asMap().entries.map((entry) => _stepBubble(theme, entry.key + 1, entry.value)),
+          ...recipe.preparacion.asMap().entries.map(
+            (entry) => _stepBubble(theme, entry.key + 1, entry.value),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildExpressiveChip(ThemeData theme, IconData icon, String label, Color bgColor) {
+  Widget _buildExpressiveChip(
+    ThemeData theme,
+    IconData icon,
+    String label,
+    Color bgColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -199,7 +248,12 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
         children: [
           Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
-          Text(label, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900)),
+          Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ),
     );
@@ -233,9 +287,20 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
       ),
       child: Row(
         children: [
-          Icon(Icons.check_circle_rounded, size: 20, color: theme.colorScheme.primary.withOpacity(0.5)),
+          Icon(
+            Icons.check_circle_rounded,
+            size: 20,
+            color: theme.colorScheme.primary.withOpacity(0.5),
+          ),
           const SizedBox(width: 14),
-          Expanded(child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500))),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -257,7 +322,11 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
             child: Center(
               child: Text(
                 '$step',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
               ),
             ),
           ),

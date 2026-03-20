@@ -150,7 +150,39 @@ Tu tarea:
 2. Si NO contiene ninguna receta ni información culinaria relevante (por ejemplo es un vídeo, audio, noticia, página sin contenido de cocina, etc.), responde ÚNICAMENTE con este JSON exacto:
    {"status": "fail", "response": "El contenido de la URL no parece contener una receta de cocina."}
 3. Si SÍ contiene una receta, extráela y responde ÚNICAMENTE con este JSON exacto:
-   {"status": "ok", "response": [{"nombre": "...","descripcion": "...","tiempoEstimado": "x min","calorias": 123,"raciones": 2,"ingredientes": ["ingrediente 1", "ingrediente 2"],"preparacion": ["paso 1", "paso 2"]}]}
+   {"status": "ok", "response": [{
+
+        "nombre": "nombre de la receta",
+
+        "descripcion": "descripcion de la receta",
+
+        "tiempoEstimado": "x min/h",
+
+        "calorias": 123 (el numero de calorias aproximadas),
+
+        "raciones": 2 (el numero de raciones/comensales),
+
+        "ingredientes":[
+
+            "ingrediente 1",
+
+            "ingrediente 2",
+
+            "ingrediente 3"
+
+        ],
+
+        "preparacion":[
+
+            "paso 1",
+
+            "paso 2",
+
+            "paso 3"
+
+        ]
+
+    }]}
 
 Reglas importantes:
 - Responde SOLO con el JSON, sin texto adicional, sin markdown, sin bloques de código.

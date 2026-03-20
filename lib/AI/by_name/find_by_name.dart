@@ -115,9 +115,13 @@ class _FindByNameState extends State<FindByName> {
   }
 
   void _onFavRecipe(Recipe recipe) {
-    bool isFav = AppSingleton().recetasFavoritas.any((r) => r.nombre == recipe.nombre);
+    bool isFav = AppSingleton().recetasFavoritas.any(
+      (r) => r.nombre == recipe.nombre,
+    );
     if (isFav) {
-      AppSingleton().recetasFavoritas.removeWhere((r) => r.nombre == recipe.nombre);
+      AppSingleton().recetasFavoritas.removeWhere(
+        (r) => r.nombre == recipe.nombre,
+      );
       Toaster.showWarning('Eliminado de favoritos');
       if (recipe.id != null) JsonDocumentsService().removeFavRecipe(recipe.id!);
     } else {
@@ -150,7 +154,7 @@ class _FindByNameState extends State<FindByName> {
             _buildSearchField(theme),
             const SizedBox(height: 12),
             _buildHistoryAndSuggestions(theme),
-            
+
             if (_recetas != null) ...[
               const SizedBox(height: 40),
               _buildRecipeResults(theme),
@@ -221,7 +225,9 @@ class _FindByNameState extends State<FindByName> {
                 _nameController.text = _historial[index];
                 _searchByName(_historial[index]);
               },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
             );
           },
         ),
@@ -232,19 +238,26 @@ class _FindByNameState extends State<FindByName> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: suggestions.map((s) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: ActionChip(
-            label: Text(s),
-            onPressed: () {
-              _nameController.text = s;
-              _searchByName(s);
-            },
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
-            side: BorderSide.none,
-          ),
-        )).toList(),
+        children: suggestions
+            .map(
+              (s) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ActionChip(
+                  label: Text(s),
+                  onPressed: () {
+                    _nameController.text = s;
+                    _searchByName(s);
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: theme.colorScheme.primaryContainer
+                      .withOpacity(0.3),
+                  side: BorderSide.none,
+                ),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -252,7 +265,10 @@ class _FindByNameState extends State<FindByName> {
   Widget _buildRecipeResults(ThemeData theme) {
     if (_recetas!.isEmpty) {
       return Center(
-        child: Text('No se han encontrado recetas.', style: theme.textTheme.bodyLarge),
+        child: Text(
+          'No se han encontrado recetas.',
+          style: theme.textTheme.bodyLarge,
+        ),
       );
     }
 
@@ -274,7 +290,9 @@ class _FindByNameState extends State<FindByName> {
   }
 
   Widget _recipeCard(ThemeData theme, Recipe receta) {
-    bool isFav = AppSingleton().recetasFavoritas.any((r) => r.nombre == receta.nombre);
+    bool isFav = AppSingleton().recetasFavoritas.any(
+      (r) => r.nombre == receta.nombre,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -285,7 +303,11 @@ class _FindByNameState extends State<FindByName> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(32),
-        onTap: () => Navigator.pushNamed(context, '/recipe', arguments: RecipeScreenArguments(recipe: receta)),
+        onTap: () => Navigator.pushNamed(
+          context,
+          '/recipe',
+          arguments: RecipeScreenArguments(recipe: receta),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -300,21 +322,29 @@ class _FindByNameState extends State<FindByName> {
                       children: [
                         Text(
                           receta.nombre,
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           receta.descripcion,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
                   IconButton.filledTonal(
-                    icon: Icon(isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded),
+                    icon: Icon(
+                      isFav
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                    ),
                     color: isFav ? Colors.redAccent : null,
                     onPressed: () => _onFavRecipe(receta),
                   ),
@@ -325,12 +355,18 @@ class _FindByNameState extends State<FindByName> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _infoBadge(theme, Icons.timer_rounded, receta.tiempoEstimado),
-                  _infoBadge(theme, Icons.local_fire_department_rounded, '${receta.calorias.toInt()} cal'),
+                  _infoBadge(
+                    theme,
+                    Icons.local_fire_department_rounded,
+                    receta.calorias,
+                  ),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.share_rounded, size: 20),
                     onPressed: () => _shareRecipe(receta),
                     style: IconButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ],
@@ -354,7 +390,12 @@ class _FindByNameState extends State<FindByName> {
         children: [
           Icon(icon, size: 16, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
-          Text(text, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            text,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

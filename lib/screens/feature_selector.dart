@@ -1,7 +1,6 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients.dart';
 import 'package:aikitchen/AI/by_name/find_by_name.dart';
 import 'package:aikitchen/AI/from_url/recipe_from_url.dart';
-import 'package:aikitchen/AI/from_video/recipe_from_video.dart';
 import 'package:aikitchen/AI/favourites/favourites.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
@@ -37,10 +36,15 @@ class _FeatureSelectorState extends State<FeatureSelector> {
       final now = DateTime.now();
       final dayFormat = DateFormat('EEEE');
       final englishDay = dayFormat.format(now);
-      
+
       final Map<String, String> dayTranslations = {
-        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
-        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo',
+        'Monday': 'Lunes',
+        'Tuesday': 'Martes',
+        'Wednesday': 'Miércoles',
+        'Thursday': 'Jueves',
+        'Friday': 'Viernes',
+        'Saturday': 'Sábado',
+        'Sunday': 'Domingo',
       };
 
       final dayName = dayTranslations[englishDay];
@@ -56,8 +60,11 @@ class _FeatureSelectorState extends State<FeatureSelector> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final horizontalPadding = isLandscape ? MediaQuery.of(context).size.width * 0.05 : 24.0;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final horizontalPadding = isLandscape
+        ? MediaQuery.of(context).size.width * 0.05
+        : 24.0;
 
     return Scaffold(
       body: SafeArea(
@@ -71,7 +78,10 @@ class _FeatureSelectorState extends State<FeatureSelector> {
               backgroundColor: theme.colorScheme.surface,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: false,
-                titlePadding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+                titlePadding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: 16,
+                ),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -85,7 +95,12 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                     ),
                     IconButton.filledTonal(
                       icon: const Icon(Icons.settings_rounded),
-                      onPressed: () => _navigateTo(context, Settings(), title: 'Ajustes', subtitle: 'Personaliza tu experiencia'),
+                      onPressed: () => _navigateTo(
+                        context,
+                        Settings(),
+                        title: 'Ajustes',
+                        subtitle: 'Personaliza tu experiencia',
+                      ),
                     ),
                   ],
                 ),
@@ -94,7 +109,10 @@ class _FeatureSelectorState extends State<FeatureSelector> {
             if (_todayMenu != null && _todayMenu!.isNotEmpty)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: 8,
+                  ),
                   child: _TodayMenuCard(
                     dayName: _currentDayName!,
                     recipes: _todayMenu!,
@@ -102,7 +120,10 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                 ),
               ),
             SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: 24.0,
+              ),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: isLandscape ? 4 : 2,
@@ -115,49 +136,78 @@ class _FeatureSelectorState extends State<FeatureSelector> {
                     title: 'Ingredientes',
                     icon: Icons.kitchen_rounded,
                     color: Theme.of(context).colorScheme.primary,
-                    onTap: () => _navigateTo(context, const FindByIngredients(), title: 'Tu Nevera', subtitle: 'Cocina con lo que tienes'),
+                    onTap: () => _navigateTo(
+                      context,
+                      const FindByIngredients(),
+                      title: 'Tu Nevera',
+                      subtitle: 'Cocina con lo que tienes',
+                    ),
                   ),
                   _FeatureCard(
                     title: 'Nombre',
                     icon: Icons.search_rounded,
                     color: Theme.of(context).colorScheme.secondary,
-                    onTap: () => _navigateTo(context, const FindByName(), title: 'Buscar', subtitle: 'Inspiración para hoy'),
+                    onTap: () => _navigateTo(
+                      context,
+                      const FindByName(),
+                      title: 'Buscar',
+                      subtitle: 'Inspiración para hoy',
+                    ),
                   ),
                   _FeatureCard(
                     title: 'Mi Menú',
                     icon: Icons.calendar_today_rounded,
                     color: Colors.deepPurpleAccent,
-                    onTap: () => _navigateTo(context, const WeeklyMenu(), title: 'Mi Menú', subtitle: 'Planificación inteligente'),
+                    onTap: () => _navigateTo(
+                      context,
+                      const WeeklyMenu(),
+                      title: 'Mi Menú',
+                      subtitle: 'Planificación inteligente',
+                    ),
                   ),
                   _FeatureCard(
                     title: 'Favoritos',
                     icon: Icons.favorite_rounded,
                     color: Colors.redAccent,
-                    onTap: () => _navigateTo(context, const Favourites(), title: 'Favoritos', subtitle: 'Tus recetas guardadas'),
+                    onTap: () => _navigateTo(
+                      context,
+                      const Favourites(),
+                      title: 'Favoritos',
+                      subtitle: 'Tus recetas guardadas',
+                    ),
                   ),
                   _FeatureCard(
                     title: 'La Compra',
                     icon: Icons.shopping_bag_rounded,
                     color: Colors.orange,
-                    onTap: () => _navigateTo(context, const ShoppingList(), title: 'La Compra', subtitle: 'Lo que necesitas'),
+                    onTap: () => _navigateTo(
+                      context,
+                      const ShoppingList(),
+                      title: 'La Compra',
+                      subtitle: 'Lo que necesitas',
+                    ),
                   ),
                   _FeatureCard(
                     title: 'Crear',
                     icon: Icons.add_rounded,
                     color: Colors.green,
-                    onTap: () => _navigateTo(context, const CreateRecipe(), title: 'Crear Receta', subtitle: 'Tu propia magia'),
+                    onTap: () => _navigateTo(
+                      context,
+                      const CreateRecipe(),
+                      title: 'Crear Receta',
+                      subtitle: 'Tu propia magia',
+                    ),
                   ),
                   _FeatureCard(
                     title: 'Desde URL',
                     icon: Icons.link_rounded,
                     color: Colors.teal,
-                    onTap: () => _navigateTo(context, const RecipeFromUrl(), title: 'Desde URL', subtitle: 'Receta desde cualquier página'),
-                  ),
-                  _FeatureCard(
-                    title: 'Desde Video',
-                    icon: Icons.smart_display_rounded,
-                    color: Colors.deepOrange,
-                    onTap: () => _navigateTo(context, const RecipeFromVideo(), title: 'Desde Video', subtitle: 'YouTube, TikTok o Instagram'),
+                    onTap: () => _navigateTo(
+                      context,
+                      const RecipeFromUrl(),
+                      title: 'Desde URL',
+                      subtitle: 'Receta desde cualquier página',
+                    ),
                   ),
                 ]),
               ),
@@ -169,14 +219,21 @@ class _FeatureSelectorState extends State<FeatureSelector> {
     );
   }
 
-  void _navigateTo(BuildContext context, Widget page, {String? title, String? subtitle}) {
+  void _navigateTo(
+    BuildContext context,
+    Widget page, {
+    String? title,
+    String? subtitle,
+  }) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => _PageWrapper(child: page, title: title, subtitle: subtitle)),
+      MaterialPageRoute(
+        builder: (context) =>
+            _PageWrapper(child: page, title: title, subtitle: subtitle),
+      ),
     ).then((_) => _loadTodayMenu());
   }
 }
-
 
 class _TodayMenuCard extends StatelessWidget {
   final String dayName;
@@ -187,7 +244,8 @@ class _TodayMenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     Widget buildRecipeItem(Recipe recipe) {
       return InkWell(
@@ -206,13 +264,20 @@ class _TodayMenuCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   recipe.nombre,
-                  style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w600, color: Colors.white),
+                  style: GoogleFonts.robotoFlex(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white70),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 18,
+                color: Colors.white70,
+              ),
             ],
           ),
         ),
@@ -273,13 +338,13 @@ class _PageWrapper extends StatelessWidget {
   final Widget child;
   final String? title;
   final String? subtitle;
-  
+
   const _PageWrapper({required this.child, this.title, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       body: Column(
         children: [
@@ -292,7 +357,9 @@ class _PageWrapper extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   onPressed: () => Navigator.pop(context),
                   style: IconButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                 ),
                 if (title != null) ...[
@@ -316,7 +383,9 @@ class _PageWrapper extends StatelessWidget {
                           Text(
                             subtitle!,
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.6,
+                              ),
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 1,
