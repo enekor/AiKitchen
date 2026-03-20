@@ -37,18 +37,17 @@ class WidgetService {
       ); // Debug
 
       // Preparar datos para el widget
-      final pendingItems =
-          cartItems.where((item) => !item.isPurchased).toList();
-      final completedItems =
-          cartItems.where((item) => item.isPurchased).toList();
+      final pendingItems = cartItems
+          .where((item) => !item.isPurchased)
+          .toList();
+      final completedItems = cartItems
+          .where((item) => item.isPurchased)
+          .toList();
 
       // Convertir a formato simple para el widget nativo
-      final itemsData =
-          cartItems
-              .map(
-                (item) => {'name': item.name, 'isPurchased': item.isPurchased},
-              )
-              .toList();
+      final itemsData = cartItems
+          .map((item) => {'name': item.name, 'isPurchased': item.isPurchased})
+          .toList();
 
       // Enviar datos al widget nativo
       await HomeWidget.saveWidgetData<String>(
@@ -93,18 +92,17 @@ class WidgetService {
 
       // Preparar datos para el widget (limitar a las primeras 5 recetas)
       final limitedRecipes = favoriteRecipes.take(5).toList();
-      final widgetData =
-          limitedRecipes
-              .map(
-                (recipe) => {
-                  'nombre': recipe.nombre,
-                  'descripcion': recipe.descripcion,
-                  'tiempo': recipe.tiempoEstimado,
-                  'calorias': recipe.calorias.toInt(),
-                  'raciones': recipe.raciones,
-                },
-              )
-              .toList();
+      final widgetData = limitedRecipes
+          .map(
+            (recipe) => {
+              'nombre': recipe.nombre,
+              'descripcion': recipe.descripcion,
+              'tiempo': recipe.tiempoEstimado,
+              'calorias': recipe.calorias,
+              'raciones': recipe.raciones,
+            },
+          )
+          .toList();
 
       // Enviar datos al widget nativo
       await HomeWidget.saveWidgetData<String>(
@@ -167,17 +165,16 @@ class WidgetService {
     final itemIndex = cartItems.firstWhere((item) => item.name == itemName);
 
     itemIndex.isPurchased = !itemIndex.isPurchased;
-      await JsonDocumentsService().updateCartItem(itemIndex);
-      await updateShoppingListWidget();
-
+    await JsonDocumentsService().updateCartItem(itemIndex);
+    await updateShoppingListWidget();
   }
 
   /// Añade un nuevo item a la lista de compra
   static Future<void> _addShoppingItem(String itemName) async {
     if (itemName.trim().isEmpty) return;
 
-      await JsonDocumentsService().addCartItem(CartItem(name: itemName.trim()));
-      await updateShoppingListWidget();
+    await JsonDocumentsService().addCartItem(CartItem(name: itemName.trim()));
+    await updateShoppingListWidget();
   }
 
   /// Limpia los items completados de la lista de compra
@@ -188,7 +185,6 @@ class WidgetService {
     for (var item in cartItems) {
       await JsonDocumentsService().removeCartItem(item.id!);
     }
-
 
     await updateShoppingListWidget();
   }

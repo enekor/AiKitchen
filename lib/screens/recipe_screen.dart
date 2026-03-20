@@ -258,7 +258,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
           _expressiveBadge(
             theme,
             Icons.local_fire_department_rounded,
-            '${showingRecipe.calorias.toInt()} cal',
+            showingRecipe.calorias,
             theme.colorScheme.secondaryContainer,
           ),
           const SizedBox(width: 12),

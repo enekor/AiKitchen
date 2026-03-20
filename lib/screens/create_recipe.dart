@@ -29,7 +29,10 @@ class _CreateRecipeState extends State<CreateRecipe> {
     if (widget.recipe != null) {
       _nameController.text = widget.recipe!.nombre;
       _descriptionController.text = widget.recipe!.descripcion;
-      _estimatedTimeController.text = widget.recipe!.tiempoEstimado.replaceAll(RegExp(r'[^0-9]'), '');
+      _estimatedTimeController.text = widget.recipe!.tiempoEstimado.replaceAll(
+        RegExp(r'[^0-9]'),
+        '',
+      );
       _caloriesController.text = widget.recipe!.calorias.toString();
       _rationsController.text = widget.recipe!.raciones.toString();
       _ingredients.clear();
@@ -49,8 +52,8 @@ class _CreateRecipeState extends State<CreateRecipe> {
       id: widget.recipe?.id,
       nombre: _nameController.text,
       descripcion: _descriptionController.text,
-      raciones: int.tryParse(_rationsController.text) ?? 1,
-      calorias: double.tryParse(_caloriesController.text) ?? 0,
+      raciones: _rationsController.text,
+      calorias: _caloriesController.text,
       ingredientes: _ingredients.where((i) => i.isNotEmpty).toList(),
       preparacion: _steps.where((s) => s.isNotEmpty).toList(),
       tiempoEstimado: "${_estimatedTimeController.text} min",
@@ -61,7 +64,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
     } else {
       JsonDocumentsService().addFavRecipe(recipe);
     }
-    
+
     Toaster.showSuccess('${_nameController.text} guardada');
     Navigator.pop(context);
   }
@@ -111,29 +114,85 @@ class _CreateRecipeState extends State<CreateRecipe> {
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 120),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _sectionHeader(theme, 'Información básica', Icons.info_outline_rounded),
+                _sectionHeader(
+                  theme,
+                  'Información básica',
+                  Icons.info_outline_rounded,
+                ),
                 const SizedBox(height: 20),
-                _buildTextField(theme, _nameController, '¿Cómo se llama tu plato?', Icons.restaurant_rounded),
+                _buildTextField(
+                  theme,
+                  _nameController,
+                  '¿Cómo se llama tu plato?',
+                  Icons.restaurant_rounded,
+                ),
                 const SizedBox(height: 16),
-                _buildTextField(theme, _descriptionController, 'Cuéntanos algo sobre ella...', Icons.description_rounded, maxLines: 3),
+                _buildTextField(
+                  theme,
+                  _descriptionController,
+                  'Cuéntanos algo sobre ella...',
+                  Icons.description_rounded,
+                  maxLines: 3,
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildTextField(theme, _rationsController, 'Raciones', Icons.people_rounded, keyboardType: TextInputType.number)),
+                    Expanded(
+                      child: _buildTextField(
+                        theme,
+                        _rationsController,
+                        'Raciones',
+                        Icons.people_rounded,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildTextField(theme, _estimatedTimeController, 'Minutos', Icons.timer_rounded, keyboardType: TextInputType.number)),
+                    Expanded(
+                      child: _buildTextField(
+                        theme,
+                        _estimatedTimeController,
+                        'Minutos',
+                        Icons.timer_rounded,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 48),
-                _sectionHeader(theme, 'Ingredientes', Icons.shopping_basket_rounded),
+                _sectionHeader(
+                  theme,
+                  'Ingredientes',
+                  Icons.shopping_basket_rounded,
+                ),
                 const SizedBox(height: 20),
-                ..._ingredients.asMap().entries.map((entry) => _buildDynamicField(theme, entry.key, _ingredients, 'Ingrediente...', Icons.check_rounded)),
-                
+                ..._ingredients.asMap().entries.map(
+                  (entry) => _buildDynamicField(
+                    theme,
+                    entry.key,
+                    _ingredients,
+                    'Ingrediente...',
+                    Icons.check_rounded,
+                  ),
+                ),
+
                 const SizedBox(height: 48),
-                _sectionHeader(theme, 'Preparación', Icons.format_list_numbered_rounded),
+                _sectionHeader(
+                  theme,
+                  'Preparación',
+                  Icons.format_list_numbered_rounded,
+                ),
                 const SizedBox(height: 20),
-                ..._steps.asMap().entries.map((entry) => _buildDynamicField(theme, entry.key, _steps, 'Paso ${entry.key + 1}', Icons.arrow_forward_rounded, maxLines: 2)),
+                ..._steps.asMap().entries.map(
+                  (entry) => _buildDynamicField(
+                    theme,
+                    entry.key,
+                    _steps,
+                    'Paso ${entry.key + 1}',
+                    Icons.arrow_forward_rounded,
+                    maxLines: 2,
+                  ),
+                ),
               ]),
             ),
           ),
@@ -147,9 +206,14 @@ class _CreateRecipeState extends State<CreateRecipe> {
           elevation: 0,
           backgroundColor: theme.colorScheme.primary,
           foregroundColor: theme.colorScheme.onPrimary,
-          label: const Text('GUARDAR CAMBIOS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+          label: const Text(
+            'GUARDAR CAMBIOS',
+            style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2),
+          ),
           icon: const Icon(Icons.save_rounded),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -173,7 +237,14 @@ class _CreateRecipeState extends State<CreateRecipe> {
     );
   }
 
-  Widget _buildTextField(ThemeData theme, TextEditingController controller, String hint, IconData icon, {int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(
+    ThemeData theme,
+    TextEditingController controller,
+    String hint,
+    IconData icon, {
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
@@ -188,8 +259,14 @@ class _CreateRecipeState extends State<CreateRecipe> {
         style: const TextStyle(fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.4)),
-          prefixIcon: Icon(icon, size: 20, color: theme.colorScheme.primary.withOpacity(0.7)),
+          hintStyle: TextStyle(
+            color: theme.colorScheme.onSurface.withOpacity(0.4),
+          ),
+          prefixIcon: Icon(
+            icon,
+            size: 20,
+            color: theme.colorScheme.primary.withOpacity(0.7),
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 20),
         ),
@@ -197,7 +274,14 @@ class _CreateRecipeState extends State<CreateRecipe> {
     );
   }
 
-  Widget _buildDynamicField(ThemeData theme, int index, List<String> list, String hint, IconData icon, {int maxLines = 1}) {
+  Widget _buildDynamicField(
+    ThemeData theme,
+    int index,
+    List<String> list,
+    String hint,
+    IconData icon, {
+    int maxLines = 1,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -216,12 +300,19 @@ class _CreateRecipeState extends State<CreateRecipe> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
                 onChanged: (v) => list[index] = v,
-                controller: TextEditingController(text: list[index])..selection = TextSelection.collapsed(offset: list[index].length),
+                controller: TextEditingController(text: list[index])
+                  ..selection = TextSelection.collapsed(
+                    offset: list[index].length,
+                  ),
                 maxLines: maxLines,
                 style: const TextStyle(fontWeight: FontWeight.w500),
                 decoration: InputDecoration(
                   hintText: hint,
-                  prefixIcon: Icon(icon, size: 18, color: theme.colorScheme.secondary.withOpacity(0.6)),
+                  prefixIcon: Icon(
+                    icon,
+                    size: 18,
+                    color: theme.colorScheme.secondary.withOpacity(0.6),
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 18),
                 ),
@@ -239,10 +330,18 @@ class _CreateRecipeState extends State<CreateRecipe> {
                 }
               });
             },
-            icon: Icon(index == list.length - 1 ? Icons.add_rounded : Icons.remove_rounded),
+            icon: Icon(
+              index == list.length - 1
+                  ? Icons.add_rounded
+                  : Icons.remove_rounded,
+            ),
             style: IconButton.styleFrom(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              backgroundColor: index == list.length - 1 ? theme.colorScheme.primaryContainer : null,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              backgroundColor: index == list.length - 1
+                  ? theme.colorScheme.primaryContainer
+                  : null,
             ),
           ),
         ],

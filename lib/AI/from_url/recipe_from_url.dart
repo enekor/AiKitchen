@@ -33,13 +33,21 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
   String _stripHtml(String html) {
     return html
         .replaceAll(
-            RegExp(r'<script[^>]*>.*?</script>',
-                dotAll: true, caseSensitive: false),
-            ' ')
+          RegExp(
+            r'<script[^>]*>.*?</script>',
+            dotAll: true,
+            caseSensitive: false,
+          ),
+          ' ',
+        )
         .replaceAll(
-            RegExp(r'<style[^>]*>.*?</style>',
-                dotAll: true, caseSensitive: false),
-            ' ')
+          RegExp(
+            r'<style[^>]*>.*?</style>',
+            dotAll: true,
+            caseSensitive: false,
+          ),
+          ' ',
+        )
         .replaceAll(RegExp(r'<[^>]+>'), ' ')
         .replaceAll('&nbsp;', ' ')
         .replaceAll('&amp;', '&')
@@ -81,13 +89,17 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
           .timeout(const Duration(seconds: 15));
 
       if (httpResponse.statusCode != 200) {
-        _handleError('No se pudo acceder a la URL (código ${httpResponse.statusCode})');
+        _handleError(
+          'No se pudo acceder a la URL (código ${httpResponse.statusCode})',
+        );
         return;
       }
 
       // Strip HTML and truncate to avoid token limits
       final rawText = _stripHtml(httpResponse.body);
-      final content = rawText.length > 7000 ? rawText.substring(0, 7000) : rawText;
+      final content = rawText.length > 7000
+          ? rawText.substring(0, 7000)
+          : rawText;
 
       // Call AI
       final aiResponse = await AppSingleton().generateContent(
@@ -117,7 +129,8 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
         }
       } else {
         setState(() {
-          _errorMessage = parsed['response'] as String? ??
+          _errorMessage =
+              parsed['response'] as String? ??
               'No se pudo extraer una receta de esa URL.';
           _loading = false;
         });
@@ -133,10 +146,13 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
   }
 
   void _onFavRecipe(Recipe recipe) {
-    bool isFav =
-        AppSingleton().recetasFavoritas.any((r) => r.nombre == recipe.nombre);
+    bool isFav = AppSingleton().recetasFavoritas.any(
+      (r) => r.nombre == recipe.nombre,
+    );
     if (isFav) {
-      AppSingleton().recetasFavoritas.removeWhere((r) => r.nombre == recipe.nombre);
+      AppSingleton().recetasFavoritas.removeWhere(
+        (r) => r.nombre == recipe.nombre,
+      );
       Toaster.showWarning('Eliminado de favoritos');
       if (recipe.id != null) JsonDocumentsService().removeFavRecipe(recipe.id!);
     } else {
@@ -245,14 +261,16 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
       decoration: BoxDecoration(
         color: theme.colorScheme.errorContainer.withOpacity(0.5),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(
-            color: theme.colorScheme.error.withOpacity(0.2)),
+        border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded,
-              color: theme.colorScheme.error, size: 22),
+          Icon(
+            Icons.info_outline_rounded,
+            color: theme.colorScheme.error,
+            size: 22,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -279,8 +297,9 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
   }
 
   Widget _recipeCard(ThemeData theme, Recipe receta) {
-    bool isFav =
-        AppSingleton().recetasFavoritas.any((r) => r.nombre == receta.nombre);
+    bool isFav = AppSingleton().recetasFavoritas.any(
+      (r) => r.nombre == receta.nombre,
+    );
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
@@ -308,8 +327,9 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
                       children: [
                         Text(
                           receta.nombre,
-                          style: theme.textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w900),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -325,9 +345,11 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
                   ),
                   const SizedBox(width: 12),
                   IconButton.filledTonal(
-                    icon: Icon(isFav
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded),
+                    icon: Icon(
+                      isFav
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                    ),
                     color: isFav ? Colors.redAccent : null,
                     onPressed: () => _onFavRecipe(receta),
                   ),
@@ -338,14 +360,18 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _infoBadge(theme, Icons.timer_rounded, receta.tiempoEstimado),
-                  _infoBadge(theme, Icons.local_fire_department_rounded,
-                      '${receta.calorias.toInt()} cal'),
+                  _infoBadge(
+                    theme,
+                    Icons.local_fire_department_rounded,
+                    receta.calorias,
+                  ),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.share_rounded, size: 20),
                     onPressed: () => ShareRecipeService().shareRecipe([receta]),
                     style: IconButton.styleFrom(
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ],
@@ -369,9 +395,12 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
         children: [
           Icon(icon, size: 16, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
-          Text(text,
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            text,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

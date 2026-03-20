@@ -98,9 +98,13 @@ class _FindByIngredientsState extends State<FindByIngredients> {
   }
 
   void _onFavRecipe(Recipe recipe) {
-    bool isFav = AppSingleton().recetasFavoritas.any((r) => r.nombre == recipe.nombre);
+    bool isFav = AppSingleton().recetasFavoritas.any(
+      (r) => r.nombre == recipe.nombre,
+    );
     if (isFav) {
-      AppSingleton().recetasFavoritas.removeWhere((r) => r.nombre == recipe.nombre);
+      AppSingleton().recetasFavoritas.removeWhere(
+        (r) => r.nombre == recipe.nombre,
+      );
       Toaster.showWarning('Eliminado de favoritos');
       if (recipe.id != null) JsonDocumentsService().removeFavRecipe(recipe.id!);
     } else {
@@ -130,14 +134,13 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             _buildInputSection(theme),
             const SizedBox(height: 16),
             _buildIngredientChips(theme),
-            
+
             const SizedBox(height: 32),
             _buildActionButtons(theme),
-            
+
             if (recetas != null) ...[
               const SizedBox(height: 40),
               _buildResults(theme),
@@ -185,14 +188,25 @@ class _FindByIngredientsState extends State<FindByIngredients> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: ingredientes.map((ing) => Chip(
-        label: Text(ing, style: const TextStyle(fontWeight: FontWeight.bold)),
-        onDeleted: () => _removeIngredient(ing),
-        deleteIcon: const Icon(Icons.close_rounded, size: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: theme.colorScheme.secondaryContainer.withOpacity(0.5),
-        side: BorderSide.none,
-      )).toList(),
+      children: ingredientes
+          .map(
+            (ing) => Chip(
+              label: Text(
+                ing,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onDeleted: () => _removeIngredient(ing),
+              deleteIcon: const Icon(Icons.close_rounded, size: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              backgroundColor: theme.colorScheme.secondaryContainer.withOpacity(
+                0.5,
+              ),
+              side: BorderSide.none,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -208,10 +222,19 @@ class _FindByIngredientsState extends State<FindByIngredients> {
             foregroundColor: theme.colorScheme.onPrimary,
             label: Text(
               ingredientes.isEmpty ? '¡SORPRÉNDEME!' : 'BUSCAR RECETAS',
-              style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+              ),
             ),
-            icon: Icon(ingredientes.isEmpty ? Icons.auto_awesome_rounded : Icons.restaurant_menu_rounded),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            icon: Icon(
+              ingredientes.isEmpty
+                  ? Icons.auto_awesome_rounded
+                  : Icons.restaurant_menu_rounded,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
           ),
         ),
         if (ingredientes.isNotEmpty)
@@ -247,7 +270,9 @@ class _FindByIngredientsState extends State<FindByIngredients> {
   }
 
   Widget _recipeCard(ThemeData theme, Recipe receta) {
-    bool isFav = AppSingleton().recetasFavoritas.any((r) => r.nombre == receta.nombre);
+    bool isFav = AppSingleton().recetasFavoritas.any(
+      (r) => r.nombre == receta.nombre,
+    );
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -257,7 +282,11 @@ class _FindByIngredientsState extends State<FindByIngredients> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(32),
-        onTap: () => Navigator.pushNamed(context, '/recipe', arguments: RecipeScreenArguments(recipe: receta)),
+        onTap: () => Navigator.pushNamed(
+          context,
+          '/recipe',
+          arguments: RecipeScreenArguments(recipe: receta),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -270,20 +299,31 @@ class _FindByIngredientsState extends State<FindByIngredients> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(receta.nombre, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                        Text(
+                          receta.nombre,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           receta.descripcion,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
                   IconButton.filledTonal(
-                    icon: Icon(isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded),
+                    icon: Icon(
+                      isFav
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                    ),
                     color: isFav ? Colors.redAccent : null,
                     onPressed: () => _onFavRecipe(receta),
                   ),
@@ -294,11 +334,19 @@ class _FindByIngredientsState extends State<FindByIngredients> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _infoBadge(theme, Icons.timer_rounded, receta.tiempoEstimado),
-                  _infoBadge(theme, Icons.local_fire_department_rounded, '${receta.calorias.toInt()} cal'),
+                  _infoBadge(
+                    theme,
+                    Icons.local_fire_department_rounded,
+                    receta.calorias,
+                  ),
                   IconButton.filledTonal(
                     icon: const Icon(Icons.share_rounded, size: 20),
                     onPressed: () => ShareRecipeService().shareRecipe([receta]),
-                    style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -321,7 +369,12 @@ class _FindByIngredientsState extends State<FindByIngredients> {
         children: [
           Icon(icon, size: 16, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
-          Text(text, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            text,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
