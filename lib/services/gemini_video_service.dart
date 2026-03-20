@@ -41,11 +41,15 @@ class GeminiVideoService {
       final platform = _detectPlatform(videoUrl);
       if (platform == 'youtube') {
         onStatus?.call('Enviando video a Gemini...');
-        await log.appendLog('INFO GeminiVideoService: Procesando YouTube URL directamente');
+        await log.appendLog(
+          'INFO GeminiVideoService: Procesando YouTube URL directamente',
+        );
         return await _processYouTube(videoUrl);
       } else {
         onStatus?.call('Obteniendo enlace de descarga...');
-        await log.appendLog('INFO GeminiVideoService: Obteniendo cobalt URL para $videoUrl');
+        await log.appendLog(
+          'INFO GeminiVideoService: Obteniendo cobalt URL para $videoUrl',
+        );
         final downloadUrl = await _getCobaltUrl(videoUrl);
 
         onStatus?.call('Descargando audio...');
@@ -58,7 +62,9 @@ class GeminiVideoService {
           final fileInfo = await _uploadToFilesApi(audioFile);
 
           onStatus?.call('Procesando audio...');
-          await log.appendLog('INFO GeminiVideoService: Esperando estado ACTIVE');
+          await log.appendLog(
+            'INFO GeminiVideoService: Esperando estado ACTIVE',
+          );
           final activeFile = await _waitForActive(fileInfo['name'] as String);
 
           onStatus?.call('Extrayendo la receta...');
@@ -93,7 +99,7 @@ class GeminiVideoService {
           },
           {'text': _recipePrompt(videoUrl)},
         ],
-      }
+      },
     ]);
   }
 
@@ -114,7 +120,7 @@ class GeminiVideoService {
           },
           {'text': _recipePrompt(videoUrl)},
         ],
-      }
+      },
     ]);
   }
 
@@ -261,15 +267,20 @@ class GeminiVideoService {
         if (res.statusCode == 429) {
           lastErr = Exception('Cuota agotada en $model');
           await log.appendLog(
-              'WARN GeminiVideoService: Cuota agotada en $model, probando siguiente...');
+            'WARN GeminiVideoService: Cuota agotada en $model, probando siguiente...',
+          );
           continue;
         }
 
         if (res.statusCode != 200) {
-          throw Exception('Gemini ($model) error ${res.statusCode}: ${res.body}');
+          throw Exception(
+            'Gemini ($model) error ${res.statusCode}: ${res.body}',
+          );
         }
 
-        await log.appendLog('INFO GeminiVideoService: Receta extraída con $model');
+        await log.appendLog(
+          'INFO GeminiVideoService: Receta extraída con $model',
+        );
         return _parseGeminiResponse(res.body);
       } catch (e) {
         lastErr = Exception(e.toString());
@@ -282,8 +293,7 @@ class GeminiVideoService {
 
   String _parseGeminiResponse(String body) {
     final data = jsonDecode(body) as Map<String, dynamic>;
-    final parts =
-        (data['candidates'] as List)[0]['content']['parts'] as List;
+    final parts = (data['candidates'] as List)[0]['content']['parts'] as List;
     final text = (parts[0]['text'] as String)
         .replaceAll(RegExp(r'^```json\s*', multiLine: true), '')
         .replaceAll(RegExp(r'```\s*$', multiLine: true), '')
@@ -309,14 +319,38 @@ class GeminiVideoService {
       'Si NO contiene ninguna receta de cocina, devuelve EXACTAMENTE:\n'
       '{"status": "fail", "response": "No se encontró ninguna receta en este video"}\n\n'
       'Si SÍ contiene una receta, devuelve EXACTAMENTE este JSON:\n'
-      '{"status": "ok", "response": [{'
-      '"nombre": "nombre del plato",'
-      '"descripcion": "descripción breve y apetitosa",'
-      '"tiempoEstimado": "x min",'
-      '"calorias": 350,'
-      '"raciones": 2,'
-      '"ingredientes": ["ingrediente con cantidad 1", "ingrediente con cantidad 2"],'
-      '"preparacion": ["Paso 1 detallado", "Paso 2 detallado"]'
-      '}]}\n\n'
+      '''{
+
+        "nombre": "nombre de la receta",
+
+        "descripcion": "descripcion de la receta",
+
+        "tiempoEstimado": "x min/h",
+
+        "calorias": 123 (el numero de calorias aproximadas),
+
+        "raciones": 2 (el numero de raciones/comensales),
+
+        "ingredientes":[
+
+            "ingrediente 1",
+
+            "ingrediente 2",
+
+            "ingrediente 3"
+
+        ],
+
+        "preparacion":[
+
+            "paso 1",
+
+            "paso 2",
+
+            "paso 3"
+
+        ]
+
+    }'''
       'Responde SOLO con el JSON, sin texto adicional ni markdown.';
 }
