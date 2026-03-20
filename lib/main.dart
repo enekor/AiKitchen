@@ -109,7 +109,8 @@ class _MyAppState extends State<MyApp> {
                     );
                   });
 
-                  Navigator.of(context).pushReplacement( // Usamos pushReplacement para limpiar el stack
+                  Navigator.of(context).push(
+                    // Usamos pushReplacement para limpiar el stack
                     MaterialPageRoute(
                       builder: (context) => _sharedFiles.isNotEmpty
                           ? PreviewSharedFiles(
