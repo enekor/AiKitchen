@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application") version "8.7.3" apply false  // Usa la misma versión que ya está cargada
+    id("com.android.application") version "9.1.0" apply false
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
 }
 
@@ -10,13 +10,23 @@ allprojects {
     }
 }
 
-// Configuración de directorios de build (opcional, puedes comentarla temporalmente para pruebas)
-val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
-rootProject.layout.buildDirectory.value(newBuildDir)
-
 subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
+    afterEvaluate {
+        if (project.extensions.findByName("android") != null) {
+            val android = project.extensions.getByName("android")
+            try {
+                val compileSdkMethod = android::class.java.getMethod("setCompileSdk", Integer::class.java)
+                compileSdkMethod.invoke(android, 37)
+            } catch (e: Exception) {
+                // Fallback for older AGP versions or different DSL
+            }
+        }
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+        }
+    }
 }
 
 subprojects {
