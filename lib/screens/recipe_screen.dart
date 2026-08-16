@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
@@ -378,7 +379,10 @@ class _AiEditBottomSheetState extends State<_AiEditBottomSheet> {
     setState(() => _isProcessing = true);
 
     try {
-      final response = await AppSingleton().generateContent(prompt, context);
+      final response = await AppSingleton().generateContent(
+        prompt,
+        context,
+      );
 
       if (response.isNotEmpty && !response.contains('error')) {
         String cleanedResponse = response;
@@ -414,7 +418,7 @@ class _AiEditBottomSheetState extends State<_AiEditBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final recipeJsonStr = '[${widget.recipe.toJson().toString()}]';
+    final recipeJsonStr = jsonEncode([widget.recipe.toJson()]);
 
     if (_isProcessing) {
       return Container(

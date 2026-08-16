@@ -1,50 +1,25 @@
 class Prompt {
-  static String basePrompt = '''
-Eres un chef de reconocido prestigio, que crea platos bien explicados y faciles de entender.
-Para esta receta, necesito que me responns solo con la receta en formato json, nada mas  ue la receta. El formato es el siguiente:
-[
-
-    {
-
-        "nombre": "nombre de la receta",
-
-        "descripcion": "descripcion de la receta",
-
-        "tiempoEstimado": "x min/h",
-
-        "calorias": 123 (el numero de calorias aproximadas),
-
-        "raciones": 2 (el numero de raciones/comensales),
-
-        "ingredientes":[
-
-            "ingrediente 1",
-
-            "ingrediente 2",
-
-            "ingrediente 3"
-
-        ],
-
-        "preparacion":[
-
-            "paso 1",
-
-            "paso 2",
-
-            "paso 3"
-
-        ]
-
-    }
-
-]
-
-para los ingredientes, no te dejes ninguno por muy simpples u obvios que parezcan, por ejemplo si es una receta de pasta con tomate, no te dejes el tomate, la pasta, el aceite, la sal, la pimienta, etc.
-en cuanto a los paso de la receta, todos los pasos son iual de  importantes, no des nada por hecho, por ejemplo si es una receta de pasta con tomate, no digas "cocina la pasta", di "pon agua a hervir, añade sal, cuando hierva añade la pasta y cocina durante 10 minutos, luego escurre la pasta y reserva".
-
-Para la generación de la receta, ten en cuenta los siguientes parámetros:
+  static String systemPrompt = '''
+Eres un chef experto. Generas recetas detalladas en formato JSON.
+REGLA CRÍTICA: PROHIBIDO incluir razonamientos, pensamientos o etiquetas <think>.
+REGLA CRÍTICA: Responde ÚNICAMENTE con el objeto JSON solicitado, sin texto antes ni después.
+Estructura obligatoria:
+{
+  "recetas": [
+    {
+      "nombre": "título",
+      "descripcion": "resumen",
+      "tiempoEstimado": "X min",
+      "calorias": 0,
+      "raciones": 1,
+      "ingredientes": ["item 1", "item 2"],
+      "preparacion": ["paso 1", "paso 2"]
+    }
+  ]
+}
 ''';
+
+  static String basePrompt = 'Genera recetas de cocina con estos parámetros:';
 
   static String recipePrompt(
     List<String> ingredientes,
@@ -150,39 +125,22 @@ Tu tarea:
 2. Si NO contiene ninguna receta ni información culinaria relevante (por ejemplo es un vídeo, audio, noticia, página sin contenido de cocina, etc.), responde ÚNICAMENTE con este JSON exacto:
    {"status": "fail", "response": "El contenido de la URL no parece contener una receta de cocina."}
 3. Si SÍ contiene una receta, extráela y responde ÚNICAMENTE con este JSON exacto:
-   {"status": "ok", "response": [{
-
-        "nombre": "nombre de la receta",
-
-        "descripcion": "descripcion de la receta",
-
-        "tiempoEstimado": "x min/h",
-
-        "calorias": 123 (el numero de calorias aproximadas),
-
-        "raciones": 2 (el numero de raciones/comensales),
-
-        "ingredientes":[
-
-            "ingrediente 1",
-
-            "ingrediente 2",
-
-            "ingrediente 3"
-
-        ],
-
-        "preparacion":[
-
-            "paso 1",
-
-            "paso 2",
-
-            "paso 3"
-
-        ]
-
-    }]}
+   {
+     "status": "ok", 
+     "response": {
+       "recetas": [
+         {
+           "nombre": "nombre de la receta",
+           "descripcion": "descripcion de la receta",
+           "tiempoEstimado": "x min/h",
+           "calorias": 123,
+           "raciones": 2,
+           "ingredientes": ["ingrediente 1", "ingrediente 2"],
+           "preparacion": ["paso 1", "paso 2"]
+         }
+       ]
+     }
+   }
 
 Reglas importantes:
 - Responde SOLO con el JSON, sin texto adicional, sin markdown, sin bloques de código.
@@ -205,26 +163,20 @@ $urlContent
     return '''
 $externalContent
 
-Responde ÚNICAMENTE en este formato JSON (lista de 14 recetas):
-[
-    {
-        "nombre": "nombre de la receta",
-        "descripcion": "descripcion de la receta",
-        "tiempoEstimado": "x min/h",
-        "calorias": 123 (el numero de calorias aproximadas),
-        "raciones": 2 (el numero de raciones/comensales),
-        "ingredientes":[
-            "ingrediente 1",
-            "ingrediente 2",
-            "ingrediente 3"
-        ],
-        "preparacion":[
-            "paso 1",
-            "paso 2",
-            "paso 3"
-        ]
-    }
-]
+Responde ÚNICAMENTE en este formato JSON (objeto con lista de 14 recetas):
+{
+  "recetas": [
+    {
+      "nombre": "nombre de la receta",
+      "descripcion": "descripcion de la receta",
+      "tiempoEstimado": "x min/h",
+      "calorias": 123,
+      "raciones": 2,
+      "ingredientes": ["ingrediente 1", "ingrediente 2"],
+      "preparacion": ["paso 1", "paso 2"]
+    }
+  ]
+}
 
 Parámetros adicionales:
 - Idioma de las recetas: $idioma

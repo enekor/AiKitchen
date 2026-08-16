@@ -97,7 +97,10 @@ class _ShoppingListState extends State<ShoppingList> {
         presupuesto: formData['presupuesto'] ?? '',
       );
 
-      final response = await AppSingleton().generateContent(prompt, context);
+      final response = await AppSingleton().generateContent(
+        prompt,
+        context,
+      );
       final cleanedResponse = _cleanJsonResponse(response);
       final jsonData = jsonDecode(cleanedResponse);
 

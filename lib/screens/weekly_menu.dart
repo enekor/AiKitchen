@@ -94,6 +94,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
       final response = await AppSingleton().generateContent(
         finalPrompt,
         context,
+        maxTokens: 6000,
       );
 
       if (response.isNotEmpty && !response.contains('error')) {

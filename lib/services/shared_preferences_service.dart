@@ -11,7 +11,8 @@ enum SharedPreferencesKeys {
   historialBusquedaNombres,
   useTTS,
   termsAccepted,
-  firstStart
+  firstStart,
+  selectedModel
 }
 
 class SharedPreferencesService {

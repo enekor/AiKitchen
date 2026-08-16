@@ -27,10 +27,12 @@ class ShareRecipeService {
     await file.writeAsString(recipeJson);
 
     // Usamos el MIME type personalizado para que el sistema lo vincule a nuestra app
-    await Share.shareXFiles(
-      [XFile(file.path, mimeType: 'application/vnd.aikitchen.recipe')],
-      subject: 'Recetas de AiKitchen',
-      text: 'Mira estas recetas que tengo en AiKitchen',
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path, mimeType: 'application/vnd.aikitchen.recipe')],
+        subject: 'Recetas de AiKitchen',
+        text: 'Mira estas recetas que tengo en AiKitchen',
+      ),
     );
   }
 }

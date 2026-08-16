@@ -75,7 +75,29 @@ class Recipe {
   }
 
   static List<Recipe> fromJsonList(String jsonString) {
-    final List<dynamic> jsonData = json.decode(jsonString);
+    final dynamic decoded = json.decode(jsonString);
+    
+    List<dynamic>? jsonData;
+
+    List<dynamic>? findList(dynamic obj) {
+      if (obj is List) return obj;
+      if (obj is Map) {
+        if (obj.containsKey('recetas') && obj['recetas'] is List) {
+          return obj['recetas'];
+        }
+        if (obj.containsKey('response')) {
+          return findList(obj['response']);
+        }
+      }
+      return null;
+    }
+
+    jsonData = findList(decoded);
+
+    if (jsonData == null) {
+      throw Exception('No se encontró una lista de recetas válida en la respuesta JSON');
+    }
+    
     return jsonData.map((json) => Recipe.fromJson(json)).toList();
   }
 

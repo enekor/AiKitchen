@@ -16,15 +16,13 @@ import 'package:path_provider/path_provider.dart';
 ///
 /// Límites del tier gratuito de Groq:
 ///   Whisper: 7.200 segundos de audio/día (~2 h)
-///   LLM:    14.400 tokens/minuto (Llama 3.3 70B)
 class GroqVideoService {
   final String apiKey;
 
   static const _groqBase = 'https://api.groq.com/openai/v1';
   static const _whisperModel = 'whisper-large-v3-turbo';
   static const _llmModels = [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
+    'openai/gpt-oss-120b'
   ];
 
   GroqVideoService({required this.apiKey});
@@ -201,7 +199,7 @@ class GroqVideoService {
                 'model': model,
                 'response_format': {'type': 'json_object'},
                 'temperature': 0.1,
-                'max_tokens': 1024,
+                'max_tokens': 4096,
                 'messages': [
                   {
                     'role': 'system',
@@ -253,14 +251,19 @@ class GroqVideoService {
       'Si la transcripción NO contiene una receta de cocina, devuelve EXACTAMENTE:\n'
       '{"status": "fail", "response": "No se encontró ninguna receta en este video"}\n\n'
       'Si SÍ contiene una receta, extráela y devuelve EXACTAMENTE este JSON:\n'
-      '{"status": "ok", "response": [{'
-      '"nombre": "nombre del plato",'
-      '"descripcion": "descripción breve y apetitosa",'
-      '"tiempoEstimado": "x min",'
-      '"calorias": 350,'
-      '"raciones": 2,'
-      '"ingredientes": ["ingrediente con cantidad 1", "ingrediente con cantidad 2"],'
-      '"preparacion": ["Paso 1 detallado", "Paso 2 detallado"]'
-      '}]}\n'
+      '{\n'
+      '  "status": "ok",\n'
+      '  "response": {\n'
+      '    "recetas": [{\n'
+      '      "nombre": "nombre del plato",\n'
+      '      "descripcion": "descripción breve",\n'
+      '      "tiempoEstimado": "x min",\n'
+      '      "calorias": 350,\n'
+      '      "raciones": 2,\n'
+      '      "ingredientes": ["ingrediente 1"],\n'
+      '      "preparacion": ["paso 1"]\n'
+      '    }]\n'
+      '  }\n'
+      '}\n'
       'Responde SOLO con el JSON, sin texto adicional ni markdown.';
 }

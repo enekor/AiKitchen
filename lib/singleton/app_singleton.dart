@@ -14,8 +14,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:properties/properties.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'package:url_launcher/url_launcher.dart';
-
 class AppSingleton {
   static final AppSingleton _instance = AppSingleton._internal();
 
@@ -24,6 +22,7 @@ class AppSingleton {
   int _numRecetas = 5;
   String _idioma = 'español';
   String _personality = 'neutral';
+  String _selectedModel = 'llama-3.3-70b-versatile';
   List<Recipe> recetasFavoritas = [];
   
   GeminiService? _geminiService;
@@ -44,6 +43,7 @@ class AppSingleton {
   String get personality => _personality;
   String get idioma => _idioma;
   String get tipoReceta => _tipoReceta;
+  String get selectedModel => _selectedModel;
 
   set setNumRecetas(int value) {
     _numRecetas = value;
@@ -85,6 +85,14 @@ class AppSingleton {
     );
   }
 
+  set setSelectedModel(String value) {
+    _selectedModel = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.selectedModel,
+      value,
+    );
+  }
+
   Future<void> initializeWithStoredKey() async {
     _numRecetas = int.parse(
       await SharedPreferencesService.getStringValue(
@@ -107,6 +115,11 @@ class AppSingleton {
           SharedPreferencesKeys.tipoReceta,
         ) ??
         'omnivora';
+    _selectedModel =
+        await SharedPreferencesService.getStringValue(
+          SharedPreferencesKeys.selectedModel,
+        ) ??
+        'llama-3.3-70b-versatile';
 
     // Primero intentamos cargar la API Key del archivo de configuración
     try {
@@ -148,7 +161,11 @@ class AppSingleton {
     _apiKey = apiKey;
   }
 
-  Future<String> generateContent(String prompt, BuildContext context) async {
+  Future<String> generateContent(
+    String prompt,
+    BuildContext context, {
+    int? maxTokens = 4096,
+  }) async {
     if (_apiKey == null || _apiKey == "" || _apiKey!.isEmpty) {
       await WarningModal.ShowWarningDialog(
         title: 'Api key no configurada',
@@ -164,7 +181,13 @@ class AppSingleton {
 
       throw NoApiKeyException();
     } else {
-      return await _groqService!.generateContent(prompt, _apiKey!, context: context);
+      return await _groqService!.generateContent(
+        prompt,
+        _apiKey!,
+        model: _selectedModel,
+        maxTokens: maxTokens,
+        context: context,
+      );
     }
   }
 
@@ -175,7 +198,9 @@ class AppSingleton {
         final file = File('${directory.path}/${recipe.nombre}.aikr');
         await file.writeAsString(jsonEncode(recipe.toJson()));
         final xFile = XFile(file.path);
-        await Share.shareXFiles([xFile], text: 'Mira esta receta:');
+        await SharePlus.instance.share(
+          ShareParams(files: [xFile], text: 'Mira esta receta:'),
+        );
       }
     } catch (e) {
       Toaster.showError('Error al guardar o compartir la receta: $e');

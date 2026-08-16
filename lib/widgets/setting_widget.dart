@@ -32,7 +32,7 @@ class _SwitchSettingState extends State<SwitchSetting> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         // Forma asimétrica asimétrica característica de M3 Expressive
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(36),
@@ -245,6 +245,157 @@ class _MultiListSettingState extends State<MultiListSetting> {
   }
 }
 
+class SingleListSetting extends StatefulWidget {
+  final String initialValue;
+  final String text;
+  final List<String> options;
+  final ValueChanged<String> onChange;
+
+  const SingleListSetting({
+    super.key,
+    required this.initialValue,
+    required this.text,
+    required this.options,
+    required this.onChange,
+  });
+
+  @override
+  _SingleListSettingState createState() => _SingleListSettingState();
+}
+
+class _SingleListSettingState extends State<SingleListSetting> {
+  late String selectedValue;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedValue = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: _showSelectionModal,
+      borderRadius: BorderRadius.circular(32),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer.withOpacity(0.2),
+          borderRadius: const BorderRadius.all(Radius.circular(42)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.text,
+                    style: GoogleFonts.robotoFlex(
+                      textStyle: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    selectedValue,
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.unfold_more_rounded, color: theme.colorScheme.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSelectionModal() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _ExpressiveSingleSelectionModal(
+        text: widget.text,
+        options: widget.options,
+        initialSelected: selectedValue,
+      ),
+    );
+    if (result != null) {
+      setState(() => selectedValue = result);
+      widget.onChange(selectedValue);
+    }
+  }
+}
+
+class _ExpressiveSingleSelectionModal extends StatelessWidget {
+  final String text;
+  final List<String> options;
+  final String initialSelected;
+
+  const _ExpressiveSingleSelectionModal({required this.text, required this.options, required this.initialSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(42)),
+      ),
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(width: 48, height: 6, decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(3))),
+          ),
+          const SizedBox(height: 32),
+          Text(text, style: GoogleFonts.robotoFlex(textStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900))),
+          const SizedBox(height: 24),
+          Expanded(
+            child: ListView.builder(
+              itemCount: options.length,
+              itemBuilder: (context, index) {
+                final option = options[index];
+                final isSelected = initialSelected == option;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context, option),
+                    borderRadius: BorderRadius.circular(24),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded, color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.primary),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(option, style: TextStyle(color: isSelected ? theme.colorScheme.onPrimary : null, fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ExpressiveSelectionModal extends StatefulWidget {
   final String text;
   final List<String> options;
@@ -299,7 +450,7 @@ class _ExpressiveSelectionModalState extends State<_ExpressiveSelectionModal> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(28),
                       ),
                       child: Row(

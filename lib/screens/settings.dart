@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import '../singleton/app_singleton.dart';
 
 class Settings extends StatefulWidget {
-  Settings({super.key, this.isNotApiKeySetted = false});
-  bool isNotApiKeySetted;
+  final bool isNotApiKeySetted;
+  const Settings({super.key, this.isNotApiKeySetted = false});
 
   @override
   State<Settings> createState() => _SettingsState();
@@ -80,6 +80,29 @@ class _SettingsState extends State<Settings> {
     return options.first;
   }
 
+  String _getModelDisplayName(String modelId) {
+    switch (modelId) {
+
+      case 'openai/gpt-oss-120b':
+        return 'GPT-OSS 120B (Potente)';
+      case 'openai/gpt-oss-20b':
+        return 'GPT-OSS 20B (Rápido)';
+      default:
+        return 'openai/gpt-oss-20b';
+    }
+  }
+
+  String _getModelId(String displayName) {
+    switch (displayName) {
+      case 'GPT-OSS 120B (Potente)':
+        return 'openai/gpt-oss-120b';
+      case 'GPT-OSS 20B (Rápido)':
+        return 'openai/gpt-oss-20b';
+      default:
+        return 'openai/gpt-oss-20b';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -144,6 +167,23 @@ class _SettingsState extends State<Settings> {
             ),
 
             const SizedBox(height: 40),
+            _sectionHeader(theme, 'Inteligencia Artificial'),
+            const SizedBox(height: 16),
+            SingleListSetting(
+              initialValue: _getModelDisplayName(AppSingleton().selectedModel),
+              text: 'Modelo de Lenguaje',
+              options: const [
+                'GPT-OSS 120B (Potente)',
+                'GPT-OSS 20B (Rápido)',
+              ],
+              onChange: (String value) {
+                final modelId = _getModelId(value);
+                setState(() => AppSingleton().setSelectedModel = modelId);
+                Toaster.showToast('Modelo cambiado a: $value');
+              },
+            ),
+
+            const SizedBox(height: 40),
             _sectionHeader(theme, 'Sistema'),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -154,7 +194,7 @@ class _SettingsState extends State<Settings> {
               label: const Text('REGISTROS DEL SISTEMA (LOGS)', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(double.infinity, 64),
-                backgroundColor: theme.colorScheme.surfaceVariant,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 foregroundColor: theme.colorScheme.onSurfaceVariant,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               ),
