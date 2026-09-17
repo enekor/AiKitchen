@@ -10,6 +10,14 @@ import 'package:flutter/material.dart';
 /// Centro de búsqueda con cuatro modos: por nombre, por ingredientes, de
 /// internet y desde una URL. Cada modo conserva su estado al cambiar de modo,
 /// gracias al `IndexedStack`.
+///
+/// Como todos los destinos del armazón, este widget se construye una sola vez
+/// y se mantiene vivo mientras dura la sesión: `initState` no vuelve a
+/// ejecutarse al volver a esta pestaña. Por eso el modo pedido desde Inicio se
+/// aplica escuchando al controlador de forma continua y no solo al arrancar;
+/// leerlo únicamente en `initState` hacía que, tras la primera visita, Buscar
+/// se quedara siempre en el último modo que el propio usuario hubiera tocado
+/// dentro de la pantalla, ignorando los accesos rápidos de Inicio.
 class SearchHub extends StatefulWidget {
   const SearchHub({super.key});
 
@@ -37,10 +45,25 @@ class _SearchHubState extends State<SearchHub> {
   @override
   void initState() {
     super.initState();
-    // Se consume una sola vez: si Inicio pidió abrir un modo concreto, se
-    // respeta; si no, se mantiene el que ya se estuviera viendo.
     _mode = AppShellController.instance.consumePendingSearchMode() ??
         SearchMode.byName;
+    // Este widget no se reconstruye al volver a la pestaña, así que hace
+    // falta escuchar cada vez que Inicio (u otra pantalla) pide un modo
+    // concreto, no solo comprobarlo una vez al crearse.
+    AppShellController.instance.addListener(_applyPendingMode);
+  }
+
+  @override
+  void dispose() {
+    AppShellController.instance.removeListener(_applyPendingMode);
+    super.dispose();
+  }
+
+  void _applyPendingMode() {
+    final pending = AppShellController.instance.consumePendingSearchMode();
+    if (pending != null && pending != _mode) {
+      setState(() => _mode = pending);
+    }
   }
 
   @override

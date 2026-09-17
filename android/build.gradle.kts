@@ -29,7 +29,12 @@ subprojects {
     afterEvaluate {
         if (project.extensions.findByName("android") != null) {
             val android = project.extensions.getByName("android") as com.android.build.gradle.BaseExtension
-            android.compileSdkVersion(37)
+            // Fuerza el mismo compileSdk en todos los módulos, incluidos los
+            // de los plugins, para que no haya desajustes entre ellos y la
+            // app. 36 es la versión estable más reciente; 37 no existe como
+            // paquete descargable todavía y rompía la compilación en
+            // cualquier máquina sin ese SDK preinstalado a mano.
+            android.compileSdkVersion(36)
             android.compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_17
                 targetCompatibility = JavaVersion.VERSION_17

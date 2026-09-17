@@ -21,15 +21,42 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Recipe>? _todayMenu;
   String? _currentDayName;
   List<Recipe> _recentFavourites = const [];
+  int _pendingShoppingCount = 0;
 
   @override
   void initState() {
     super.initState();
     _load();
+    // Inicio no se reconstruye al volver a esta pestaña, así que sin esto el
+    // menú del día, los favoritos y el contador de la compra se quedarían
+    // congelados con los datos de la primera visita aunque cambiaran en otra
+    // pantalla (justo el mismo problema que tenía Buscar con el modo pedido
+    // desde aquí).
+    AppShellController.instance.addListener(_onReturnToHome);
+  }
+
+  @override
+  void dispose() {
+    AppShellController.instance.removeListener(_onReturnToHome);
+    super.dispose();
+  }
+
+  void _onReturnToHome() {
+    if (AppShellController.instance.tab == AppShellTab.home) _load();
   }
 
   Future<void> _load() async {
-    await Future.wait([_loadTodayMenu(), _loadRecentFavourites()]);
+    await Future.wait([
+      _loadTodayMenu(),
+      _loadRecentFavourites(),
+      _loadShoppingCount(),
+    ]);
+  }
+
+  Future<void> _loadShoppingCount() async {
+    final items = await JsonDocumentsService().getCartItems();
+    final pending = items.where((i) => !i.isPurchased).length;
+    if (mounted) setState(() => _pendingShoppingCount = pending);
   }
 
   Future<void> _loadTodayMenu() async {
@@ -135,6 +162,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
+                  if (_pendingShoppingCount > 0) ...[
+                    const SizedBox(height: Spacing.md),
+                    _ShoppingListBanner(
+                      count: _pendingShoppingCount,
+                      onTap: () => AppShellController.instance
+                          .goTo(AppShellTab.shoppingList),
+                    ),
+                  ],
                   const SizedBox(height: Spacing.xl),
                   SectionHeader(title: 'Accesos rápidos'),
                   const SizedBox(height: Spacing.md),
@@ -265,6 +300,55 @@ class _QuickAccessCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelLarge,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Aviso de artículos pendientes en la lista de la compra. Solo aparece si
+/// hay al menos uno; si la lista está vacía o todo está comprado, no ocupa
+/// sitio en Inicio.
+class _ShoppingListBanner extends StatelessWidget {
+  const _ShoppingListBanner({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AppCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(Icons.shopping_cart_outlined, color: theme.colorScheme.primary),
+          const SizedBox(width: Spacing.md),
+          Expanded(
+            child: Text(
+              count == 1
+                  ? 'Tienes 1 artículo pendiente en la compra'
+                  : 'Tienes $count artículos pendientes en la compra',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: 2),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: AppRadius.capsule,
+            ),
+            child: Text(
+              '$count',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Icon(Icons.arrow_forward_rounded, size: 18, color: theme.colorScheme.onSurfaceVariant),
         ],
       ),
     );
