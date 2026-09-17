@@ -11,6 +11,7 @@ class GroqService {
     String apiKey, {
     String model = 'llama-3.3-70b-versatile',
     int? maxTokens = 4096,
+    double temperature = 0.1,
     BuildContext? context,
   }) async {
     final logService = LogFileService();
@@ -31,7 +32,7 @@ class GroqService {
               {'role': 'system', 'content': Prompt.systemPrompt},
               {'role': 'user', 'content': prompt}
             ],
-            'temperature': 0.1, // Mínima temperatura para evitar razonamientos
+            'temperature': temperature,
           };
 
           // Solo activamos modo JSON si es un modelo oficial soportado

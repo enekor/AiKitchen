@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
-import 'package:aikitchen/screens/feature_selector.dart';
+import 'package:aikitchen/navigation/app_routes.dart';
+import 'package:aikitchen/navigation/app_shell.dart';
+import 'package:aikitchen/screens/create_recipe.dart';
+import 'package:aikitchen/screens/logs_screen.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/cors_proxy.dart';
@@ -14,7 +17,6 @@ import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/theme/theme_controller.dart';
 import 'package:aikitchen/widgets/terminos_y_condiciones.dart';
 import 'package:flutter/material.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'screens/settings.dart';
 import 'singleton/app_singleton.dart';
@@ -107,42 +109,37 @@ class _MyAppState extends State<MyApp> {
     return AnimatedBuilder(
       animation: themeController,
       builder: (context, _) {
-        return DynamicColorBuilder(
-          builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-            return MaterialApp(
-              title: 'AI Kitchen',
-              debugShowCheckedModeBanner: false,
-              theme: CookingTheme.lightTheme(lightDynamic),
-              darkTheme: CookingTheme.darkTheme(darkDynamic),
-              themeMode: themeController.mode,
-              home: _Root(sharedFiles: _sharedFiles),
-              routes: {
-                FeatureSelector.routeName: (context) => const FeatureSelector(),
-                Settings.routeName: (context) => Settings(),
-                // Alias heredado, mantenido para no romper enlaces guardados.
-                '/api_key': (context) => Settings(),
-              },
-              onGenerateRoute: (settings) {
-                if (settings.name == RecipeScreen.routeName) {
-                  final args = settings.arguments;
-                  // Al recargar la página en el navegador no hay argumentos:
-                  // se vuelve al inicio en lugar de reventar.
-                  if (args is! RecipeScreenArguments) {
-                    return MaterialPageRoute(
-                      builder: (_) => const FeatureSelector(),
-                    );
-                  }
-                  return MaterialPageRoute(
-                    settings: settings,
-                    builder: (_) => RecipeScreen(recipe: args.recipe),
-                  );
-                }
-                return null;
-              },
-              onUnknownRoute: (_) =>
-                  MaterialPageRoute(builder: (_) => const FeatureSelector()),
-            );
+        return MaterialApp(
+          title: 'AI Kitchen',
+          debugShowCheckedModeBanner: false,
+          theme: CookingTheme.lightTheme(),
+          darkTheme: CookingTheme.darkTheme(),
+          themeMode: themeController.mode,
+          home: _Root(sharedFiles: _sharedFiles),
+          routes: {
+            AppRoutes.settings: (context) => Settings(),
+            AppRoutes.createRecipe: (context) => const CreateRecipe(),
+            AppRoutes.logs: (context) => const LogsScreen(),
+            // Alias heredado, mantenido para no romper enlaces guardados.
+            '/api_key': (context) => Settings(),
           },
+          onGenerateRoute: (settings) {
+            if (settings.name == AppRoutes.recipe) {
+              final args = settings.arguments;
+              // Al recargar la página en el navegador no hay argumentos:
+              // se vuelve al inicio en lugar de reventar.
+              if (args is! RecipeScreenArguments) {
+                return MaterialPageRoute(builder: (_) => const AppShell());
+              }
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (_) => RecipeScreen(recipe: args.recipe),
+              );
+            }
+            return null;
+          },
+          onUnknownRoute: (_) =>
+              MaterialPageRoute(builder: (_) => const AppShell()),
         );
       },
     );
@@ -173,7 +170,7 @@ class _RootState extends State<_Root> {
 
   Widget get _start => widget.sharedFiles.isNotEmpty
       ? PreviewSharedFiles(recipeUri: widget.sharedFiles.first.path)
-      : const FeatureSelector();
+      : const AppShell();
 
   @override
   Widget build(BuildContext context) {

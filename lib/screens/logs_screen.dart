@@ -1,4 +1,5 @@
 import 'package:aikitchen/services/log_file_service.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +11,7 @@ class LogsScreen extends StatefulWidget {
 }
 
 class _LogsScreenState extends State<LogsScreen> {
-  String _logs = 'Cargando logs...';
+  String _logs = 'Cargando registros...';
 
   @override
   void initState() {
@@ -22,49 +23,32 @@ class _LogsScreenState extends State<LogsScreen> {
     final logService = LogFileService();
     await logService.initialize();
     final logs = await logService.readLogs();
-    setState(() {
-      _logs = logs.isEmpty ? 'No hay logs disponibles.' : logs;
-    });
+    if (mounted) {
+      setState(() => _logs = logs.isEmpty ? 'No hay registros disponibles.' : logs);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.only(top: 30.0),
-          child: Text('Logs'),
-        ),
+        title: const Text('Registros del sistema'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(top: 25.0),
-            child: IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _loadLogs,
-            ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Actualizar',
+            onPressed: _loadLogs,
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 25.0),
-            child: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                LogFileService().clearLogs().then((_) => _loadLogs());
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded),
+            tooltip: 'Borrar registros',
+            onPressed: () => LogFileService().clearLogs().then((_) => _loadLogs()),
           ),
+          const SizedBox(width: Spacing.sm),
         ],
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 25.0),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: Spacing.lg),
         child: ContentShell(
           child: SelectableText(
             _logs,

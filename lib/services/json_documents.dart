@@ -67,6 +67,20 @@ class JsonDocumentsService {
     }
   }
 
+  /// Igual que [addCartItemsFromNames], pero conservando la categoría de cada
+  /// artículo. Se usa al generar la lista con IA o al exportar el menú
+  /// semanal ya clasificado por pasillo.
+  Future<void> addCategorizedCartItems(List<CartItem> items) async {
+    final currentItems = await _storage.getCartItems();
+    for (final item in items) {
+      if (!currentItems.any(
+        (existing) => existing.name.toLowerCase() == item.name.toLowerCase(),
+      )) {
+        await _storage.insertCartItem(item);
+      }
+    }
+  }
+
   // --- Menú Semanal ---
   Future<Map<String, List<Recipe>>> loadWeeklyMenu() async {
     return await _storage.getWeeklyMenu();

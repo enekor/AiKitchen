@@ -5,17 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Dos regresiones que dejaron la aplicación inservible en el navegador.
 void main() {
-  setUpAll(() {
-    // El tema se construye sin la tipografía de Google: descargarla por red no
-    // funciona en un test y no influye en los tamaños ni en los colores, que
-    // es lo que aquí se comprueba.
-    CookingTheme.useGoogleFonts = false;
-  });
-
-  tearDownAll(() {
-    CookingTheme.useGoogleFonts = true;
-  });
-
   group('Colores del tema', () {
     /// Un TextStyle sin color se pinta negro. Al pasar los estilos crudos a los
     /// subtemas, en modo oscuro salía texto negro sobre fondo oscuro.

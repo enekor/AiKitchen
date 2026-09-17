@@ -1,8 +1,11 @@
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+/// Pasos de preparación numerados, con el actual resaltado y los anteriores
+/// marcados como hechos. Si la lectura por voz está activa en Ajustes, cada
+/// paso se lee al mostrarse, a la velocidad configurada.
 class StepsList extends StatefulWidget {
   final List<String> steps;
 
@@ -13,14 +16,15 @@ class StepsList extends StatefulWidget {
 }
 
 class _StepsListState extends State<StepsList> {
-  int _currentStep = -1; 
+  int _currentStep = -1;
   late FlutterTts _flutterTts;
 
   @override
   void initState() {
     super.initState();
     _flutterTts = FlutterTts();
-    _flutterTts.setLanguage("es-ES");
+    _flutterTts.setLanguage('es-ES');
+    _flutterTts.setSpeechRate(AppSingleton().velocidadVoz * 0.5);
   }
 
   @override
@@ -41,136 +45,155 @@ class _StepsListState extends State<StepsList> {
 
     if (_currentStep == -1) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-                shape: BoxShape.circle,
+        child: Padding(
+          padding: const EdgeInsets.all(Spacing.xxl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.restaurant_menu_rounded,
+                size: 48,
+                color: theme.colorScheme.primary,
               ),
-              child: Icon(Icons.restaurant_menu_rounded, size: 48, color: theme.colorScheme.primary),
-            ),
-            const SizedBox(height: 32),
-            FilledButton.icon(
-              onPressed: () {
-                setState(() => _currentStep = 0);
-                _speak(widget.steps[0]);
-              },
-              icon: const Icon(Icons.play_arrow_rounded, size: 28),
-              label: const Text('COMENZAR A COCINAR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              const SizedBox(height: Spacing.xl),
+              FilledButton.icon(
+                onPressed: () {
+                  setState(() => _currentStep = 0);
+                  _speak(widget.steps[0]);
+                },
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: const Text('Comenzar a cocinar'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: widget.steps.length,
-      itemBuilder: (context, index) {
-        final text = widget.steps[index];
-        final isCurrent = _currentStep == index;
-        final isDone = _currentStep > index;
-
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 400),
-          margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isCurrent 
-              ? theme.colorScheme.primaryContainer 
-              : (isDone ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3) : theme.colorScheme.surface),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(42),
-              bottomLeft: Radius.circular(42),
-              bottomRight: Radius.circular(12),
-            ),
-            border: Border.all(
-              color: isCurrent ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.1),
-              width: isCurrent ? 2 : 1,
-            ),
+    return Column(
+      children: [
+        for (var index = 0; index < widget.steps.length; index++) ...[
+          if (index > 0) const SizedBox(height: Spacing.md),
+          _StepCard(
+            number: index + 1,
+            text: widget.steps[index],
+            isCurrent: _currentStep == index,
+            isDone: _currentStep > index,
+            isLast: index == widget.steps.length - 1,
+            onPrevious: index > 0
+                ? () {
+                    setState(() => _currentStep--);
+                    _speak(widget.steps[_currentStep]);
+                  }
+                : null,
+            onNext: () {
+              setState(() => _currentStep++);
+              if (_currentStep < widget.steps.length) {
+                _speak(widget.steps[_currentStep]);
+              }
+            },
+            onFinish: () => Navigator.pop(context),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ],
+    );
+  }
+}
+
+class _StepCard extends StatelessWidget {
+  const _StepCard({
+    required this.number,
+    required this.text,
+    required this.isCurrent,
+    required this.isDone,
+    required this.isLast,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onFinish,
+  });
+
+  final int number;
+  final String text;
+  final bool isCurrent;
+  final bool isDone;
+  final bool isLast;
+  final VoidCallback? onPrevious;
+  final VoidCallback onNext;
+  final VoidCallback onFinish;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: isCurrent
+            ? theme.colorScheme.primaryContainer
+            : theme.colorScheme.surfaceContainerLowest,
+        borderRadius: AppRadius.medium,
+        border: Border.all(
+          color: isCurrent ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+          width: isCurrent ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Text(
-                    '${index + 1}',
-                    style: GoogleFonts.robotoFlex(
-                      textStyle: theme.textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: isCurrent ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (isDone) Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary),
-                ],
-              ),
-              const SizedBox(height: 12),
               Text(
-                text,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  height: 1.6,
-                  fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                  color: isDone ? theme.colorScheme.onSurface.withValues(alpha: 0.4) : theme.colorScheme.onSurface,
+                '$number',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: isCurrent
+                      ? theme.colorScheme.onPrimaryContainer
+                      : theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (isCurrent) ...[
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (_currentStep > 0)
-                      TextButton.icon(
-                        onPressed: () {
-                          setState(() => _currentStep--);
-                          _speak(widget.steps[_currentStep]);
-                        },
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        label: const Text('ANTERIOR'),
-                      )
-                    else
-                      const SizedBox.shrink(),
-                    
-                    if (_currentStep < widget.steps.length - 1)
-                      FilledButton(
-                        onPressed: () {
-                          setState(() => _currentStep++);
-                          _speak(widget.steps[_currentStep]);
-                        },
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        child: const Text('SIGUIENTE'),
-                      )
-                    else
-                      FilledButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.celebration_rounded),
-                        label: const Text('TERMINAR'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: theme.colorScheme.tertiary,
-                          foregroundColor: theme.colorScheme.onTertiary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
+              const Spacer(),
+              if (isDone)
+                Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary),
             ],
           ),
-        );
-      },
+          const SizedBox(height: Spacing.sm),
+          Text(
+            text,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: isCurrent
+                  ? theme.colorScheme.onPrimaryContainer
+                  : (isDone
+                        ? theme.colorScheme.onSurfaceVariant
+                        : theme.colorScheme.onSurface),
+              decoration: isDone && !isCurrent ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          if (isCurrent) ...[
+            const SizedBox(height: Spacing.lg),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (onPrevious != null)
+                  TextButton.icon(
+                    onPressed: onPrevious,
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    label: const Text('Anterior'),
+                  )
+                else
+                  const SizedBox.shrink(),
+                if (!isLast)
+                  FilledButton(onPressed: onNext, child: const Text('Siguiente'))
+                else
+                  FilledButton.icon(
+                    onPressed: onFinish,
+                    icon: const Icon(Icons.celebration_rounded),
+                    label: const Text('Terminar'),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

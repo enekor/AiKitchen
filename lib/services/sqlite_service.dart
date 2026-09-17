@@ -25,7 +25,7 @@ class SqliteService {
 
     return await openDatabase(
       path,
-      version: 2, // Subimos versión para añadir la tabla preferences
+      version: 3, // v2: tabla preferences. v3: origen y categoria.
       onCreate: (db, version) async {
         await _createTables(db);
       },
@@ -38,6 +38,13 @@ class SqliteService {
             )
           ''');
         }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE fav_recipes ADD COLUMN origen TEXT');
+          await db.execute('ALTER TABLE menu ADD COLUMN origen TEXT');
+          await db.execute(
+            'ALTER TABLE shopping_list ADD COLUMN categoria TEXT',
+          );
+        }
       },
     );
   }
@@ -47,7 +54,8 @@ class SqliteService {
       CREATE TABLE shopping_list (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        isPurchased INTEGER NOT NULL DEFAULT 0
+        isPurchased INTEGER NOT NULL DEFAULT 0,
+        categoria TEXT
       )
     ''');
     await db.execute('''
@@ -59,7 +67,8 @@ class SqliteService {
         ingredientes TEXT NOT NULL,
         preparacion TEXT NOT NULL,
         calorias REAL NOT NULL,
-        raciones INTEGER NOT NULL
+        raciones INTEGER NOT NULL,
+        origen TEXT
       )
     ''');
     await db.execute('''
@@ -73,7 +82,8 @@ class SqliteService {
         calorias REAL NOT NULL,
         raciones INTEGER NOT NULL,
         dia TEXT NOT NULL,
-        tipo_comida TEXT NOT NULL
+        tipo_comida TEXT NOT NULL,
+        origen TEXT
       )
     ''');
     await db.execute('''

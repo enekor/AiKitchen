@@ -158,7 +158,7 @@ class _SettingsState extends State<Settings> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      appBar: AppBar(title: const Text('Ajustes')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
         child: ContentShell(
@@ -196,6 +196,13 @@ class _SettingsState extends State<Settings> {
                 };
                 themeController.setMode(mode);
               },
+            ),
+            const SizedBox(height: Spacing.md),
+            SwitchSetting(
+              initialValue: AppSingleton().densidadCompacta,
+              text: 'Densidad compacta',
+              subtitle: 'Reduce el espaciado para ver más contenido a la vez',
+              onChange: (value) => setState(() => AppSingleton().setDensidadCompacta = value),
             ),
 
             if (CorsProxy.isRequired) ...[
@@ -266,6 +273,16 @@ class _SettingsState extends State<Settings> {
               onChange: _useTTS,
             ),
             const SizedBox(height: 16),
+            DecimalSliderSetting(
+              initialValue: AppSingleton().velocidadVoz,
+              text: 'Velocidad de reproducción',
+              min: 0.75,
+              max: 1.75,
+              divisions: 20,
+              labelBuilder: (v) => '${v.toStringAsFixed(2)}x',
+              onChange: (value) => AppSingleton().setVelocidadVoz = value,
+            ),
+            const SizedBox(height: 16),
             MultiListSetting(
               initialValues: Personality.displayNamesFromStored(
                 AppSingleton().personality,
@@ -294,6 +311,20 @@ class _SettingsState extends State<Settings> {
                 setState(() => AppSingleton().setSelectedModel = modelId);
                 Toaster.showToast('Modelo cambiado a: $value');
               },
+            ),
+            const SizedBox(height: 16),
+            DecimalSliderSetting(
+              initialValue: AppSingleton().creatividad,
+              text: 'Creatividad',
+              min: 0.0,
+              max: 1.0,
+              divisions: 10,
+              labelBuilder: (v) => v < 0.3
+                  ? 'Fiel (${v.toStringAsFixed(1)})'
+                  : (v > 0.7
+                        ? 'Imaginativa (${v.toStringAsFixed(1)})'
+                        : 'Equilibrada (${v.toStringAsFixed(1)})'),
+              onChange: (value) => AppSingleton().setCreatividad = value,
             ),
 
             const SizedBox(height: 40),

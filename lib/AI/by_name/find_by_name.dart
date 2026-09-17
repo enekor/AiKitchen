@@ -1,15 +1,18 @@
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
-import 'package:aikitchen/widgets/content_shell.dart';
-import 'package:aikitchen/widgets/lottie_animation_widget.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:flutter/material.dart';
 
+/// Modo "por nombre" del centro de búsqueda. No lleva `Scaffold` propio:
+/// vive embebido en `SearchHub`.
 class FindByName extends StatefulWidget {
   const FindByName({super.key});
 
@@ -21,8 +24,9 @@ class _FindByNameState extends State<FindByName> {
   List<Recipe>? _recetas;
   List<String> _historial = [];
   bool _searching = false;
-  bool _showHistory = false;
   final TextEditingController _nameController = TextEditingController();
+
+  static const _suggestions = ['Pizza', 'Tacos', 'Ensalada César', 'Lasaña'];
 
   @override
   void initState() {
@@ -36,25 +40,18 @@ class _FindByNameState extends State<FindByName> {
     super.dispose();
   }
 
-  void _loadHistory() async {
+  Future<void> _loadHistory() async {
     final history = await SharedPreferencesService.getStringListValue(
       SharedPreferencesKeys.historialBusquedaNombres,
     );
-    setState(() {
-      _historial = history;
-    });
-  }
-
-  void _toggleHistory() {
-    setState(() {
-      _showHistory = !_showHistory;
-    });
+    if (mounted) setState(() => _historial = history);
   }
 
   String _cleanJsonResponse(String response) {
-    response = response.replaceAll(RegExp(r'```json\s*'), '');
-    response = response.replaceAll(RegExp(r'\s*```'), '');
-    return response.trim();
+    return response
+        .replaceAll(RegExp(r'```json\s*'), '')
+        .replaceAll(RegExp(r'\s*```'), '')
+        .trim();
   }
 
   Future<void> _searchByName(String name) async {
@@ -66,7 +63,6 @@ class _FindByNameState extends State<FindByName> {
     setState(() {
       _recetas = [];
       _searching = true;
-      _showHistory = false;
     });
 
     try {
@@ -111,18 +107,12 @@ class _FindByNameState extends State<FindByName> {
     Toaster.showError('Error al generar recetas: ${error.split(":").last}');
   }
 
-  void _shareRecipe(Recipe receta) async {
-    await ShareRecipeService().shareRecipe([receta]);
-  }
-
   void _onFavRecipe(Recipe recipe) {
-    bool isFav = AppSingleton().recetasFavoritas.any(
+    final isFav = AppSingleton().recetasFavoritas.any(
       (r) => r.nombre == recipe.nombre,
     );
     if (isFav) {
-      AppSingleton().recetasFavoritas.removeWhere(
-        (r) => r.nombre == recipe.nombre,
-      );
+      AppSingleton().recetasFavoritas.removeWhere((r) => r.nombre == recipe.nombre);
       Toaster.showWarning('Eliminado de favoritos');
       if (recipe.id != null) JsonDocumentsService().removeFavRecipe(recipe.id!);
     } else {
@@ -133,274 +123,89 @@ class _FindByNameState extends State<FindByName> {
     setState(() {});
   }
 
+  void _openRecipe(Recipe recipe) {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.recipe,
+      arguments: RecipeScreenArguments(recipe: recipe),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (_searching) {
-      return const Scaffold(
-        body: Center(
-          child: LottieAnimationWidget(type: LottieAnimationType.loading),
-        ),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: ContentShell(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      padding: const EdgeInsets.all(Spacing.lg),
+      children: [
+        AppSearchField(
+          controller: _nameController,
+          hintText: '¿Qué te apetece hoy?',
+          onSubmitted: _searchByName,
+        ),
+        const SizedBox(height: Spacing.md),
+        if (_historial.isNotEmpty) ...[
+          Wrap(
+            spacing: Spacing.sm,
+            runSpacing: Spacing.sm,
             children: [
-              _buildSearchField(theme),
-              const SizedBox(height: 12),
-              _buildHistoryAndSuggestions(theme),
-
-              if (_recetas != null) ...[
-                const SizedBox(height: 40),
-                _buildRecipeResults(theme),
-              ],
-              const SizedBox(height: 60),
+              for (final item in _historial)
+                RemovableChip(
+                  label: item,
+                  onRemove: () {
+                    setState(() => _historial.remove(item));
+                    SharedPreferencesService.setStringListValue(
+                      SharedPreferencesKeys.historialBusquedaNombres,
+                      _historial,
+                    );
+                  },
+                ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchField(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Icon(Icons.search_rounded, color: theme.colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                hintText: '¿Qué te apetece hoy?',
-                border: InputBorder.none,
-              ),
-              onSubmitted: _searchByName,
-            ),
-          ),
-          IconButton(
-            icon: Icon(
-              _showHistory ? Icons.expand_less_rounded : Icons.history_rounded,
-              color: theme.colorScheme.primary.withValues(alpha: 0.7),
-            ),
-            onPressed: _toggleHistory,
-          ),
-          IconButton.filledTonal(
-            icon: const Icon(Icons.auto_awesome_rounded),
-            onPressed: () => _searchByName(_nameController.text),
-          ),
+          const SizedBox(height: Spacing.md),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryAndSuggestions(ThemeData theme) {
-    if (_showHistory && _historial.isNotEmpty) {
-      return Container(
-        margin: const EdgeInsets.only(top: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
-        ),
-        child: ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _historial.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.history_rounded, size: 18),
-              title: Text(_historial[index]),
-              onTap: () {
-                _nameController.text = _historial[index];
-                _searchByName(_historial[index]);
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+        Wrap(
+          spacing: Spacing.sm,
+          runSpacing: Spacing.sm,
+          children: [
+            for (final s in _suggestions)
+              ActionChip(
+                label: Text(s),
+                onPressed: () {
+                  _nameController.text = s;
+                  _searchByName(s);
+                },
               ),
-            );
-          },
+          ],
         ),
-      );
-    }
-
-    final suggestions = ['Pizza', 'Tacos', 'Ensalada Cesar', 'Lasaña'];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: suggestions
-            .map(
-              (s) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ActionChip(
-                  label: Text(s),
-                  onPressed: () {
-                    _nameController.text = s;
-                    _searchByName(s);
-                  },
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  backgroundColor: theme.colorScheme.primaryContainer
-                      .withValues(alpha: 0.3),
-                  side: BorderSide.none,
+        if (_recetas != null) ...[
+          const SizedBox(height: Spacing.xl),
+          if (_recetas!.isEmpty)
+            const EmptyState(
+              icon: Icons.search_off_rounded,
+              title: 'No se han encontrado recetas',
+            )
+          else
+            for (final receta in _recetas!) ...[
+              RecipeCard(
+                recipe: receta,
+                onTap: () => _openRecipe(receta),
+                isFavorite: AppSingleton().recetasFavoritas.any(
+                  (r) => r.nombre == receta.nombre,
+                ),
+                onToggleFavorite: () => _onFavRecipe(receta),
+                trailing: IconButton(
+                  icon: const Icon(Icons.share_outlined),
+                  tooltip: 'Compartir',
+                  onPressed: () => ShareRecipeService().shareRecipe([receta]),
                 ),
               ),
-            )
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildRecipeResults(ThemeData theme) {
-    if (_recetas!.isEmpty) {
-      return Center(
-        child: Text(
-          'No se han encontrado recetas.',
-          style: theme.textTheme.bodyLarge,
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'RESULTADOS',
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2,
-            color: theme.colorScheme.secondary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ..._recetas!.map((receta) => _recipeCard(theme, receta)),
-      ],
-    );
-  }
-
-  Widget _recipeCard(ThemeData theme, Recipe receta) {
-    bool isFav = AppSingleton().recetasFavoritas.any(
-      (r) => r.nombre == receta.nombre,
-    );
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(32),
-        onTap: () => Navigator.pushNamed(
-          context,
-          '/recipe',
-          arguments: RecipeScreenArguments(recipe: receta),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          receta.nombre,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          receta.descripcion,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  IconButton.filledTonal(
-                    icon: Icon(
-                      isFav
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                    ),
-                    color: isFav ? Colors.redAccent : null,
-                    onPressed: () => _onFavRecipe(receta),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _infoBadge(theme, Icons.timer_rounded, receta.tiempoEstimado),
-                  _infoBadge(
-                    theme,
-                    Icons.local_fire_department_rounded,
-                    receta.calorias,
-                  ),
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.share_rounded, size: 20),
-                    onPressed: () => _shareRecipe(receta),
-                    style: IconButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: Spacing.md),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _infoBadge(ThemeData theme, IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ],
-      ),
+      ],
     );
   }
 }

@@ -15,6 +15,9 @@ enum SharedPreferencesKeys {
   selectedModel,
   themeMode,
   corsProxy,
+  velocidadVoz,
+  creatividad,
+  densidadCompacta,
 }
 
 class SharedPreferencesService {

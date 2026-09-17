@@ -1,14 +1,18 @@
 import 'dart:convert';
+
 import 'package:aikitchen/models/cart_item.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
-import 'package:aikitchen/widgets/responsive_card_list.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
+/// Destino "Lista de la compra" del armazón de navegación.
 class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
 
@@ -17,364 +21,363 @@ class ShoppingList extends StatefulWidget {
 }
 
 class _ShoppingListState extends State<ShoppingList> {
-  List<CartItem> _shoppingList = [];
+  List<CartItem> _items = [];
   bool _isGenerating = false;
+  CartCategory? _filter;
   final TextEditingController _itemController = TextEditingController();
-
-  final TextEditingController _personasController = TextEditingController();
-  final TextEditingController _presupuestoIniController = TextEditingController();
-  final TextEditingController _presupuestoFinController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadShoppingList();
+    _load();
   }
 
   @override
   void dispose() {
     _itemController.dispose();
-    _personasController.dispose();
-    _presupuestoIniController.dispose();
-    _presupuestoFinController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadShoppingList() async {
-    _shoppingList = await JsonDocumentsService().getCartItems();
-    setState(() {});
+  Future<void> _load() async {
+    final items = await JsonDocumentsService().getCartItems();
+    if (mounted) setState(() => _items = items);
   }
 
   Future<void> _addItem(String name) async {
     if (name.trim().isEmpty) return;
-    await WidgetService.handleWidgetAction('add_shopping_item', {'item_name': name});
+    await JsonDocumentsService().addCartItem(CartItem(name: name.trim()));
     _itemController.clear();
-    await _loadShoppingList();
+    await WidgetService.updateShoppingListWidget();
+    await _load();
   }
 
-  Future<void> _togglePurchased(int index) async {
-    final item = _shoppingList[index];
-    await WidgetService.handleWidgetAction('toggle_shopping_item', {'item_name': item.name});
-    await _loadShoppingList();
+  Future<void> _togglePurchased(CartItem item) async {
+    item.isPurchased = !item.isPurchased;
+    await JsonDocumentsService().updateCartItem(item);
+    await WidgetService.updateShoppingListWidget();
+    await _load();
   }
 
-  Future<void> _removeItem(int index) async {
-    final item = _shoppingList[index];
-    if (item.id != null) {
-      await JsonDocumentsService().removeCartItem(item.id!);
-      await WidgetService.updateShoppingListWidget();
-      await _loadShoppingList();
+  Future<void> _removeItem(CartItem item) async {
+    if (item.id == null) return;
+    await JsonDocumentsService().removeCartItem(item.id!);
+    await WidgetService.updateShoppingListWidget();
+    await _load();
+  }
+
+  Future<void> _clearCompleted() async {
+    final completed = _items.where((i) => i.isPurchased).toList();
+    for (final item in completed) {
+      if (item.id != null) await JsonDocumentsService().removeCartItem(item.id!);
     }
+    await WidgetService.updateShoppingListWidget();
+    await _load();
   }
 
-  void _showAIGeneratorModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildAIGeneratorModal(),
+  void _shareList() {
+    final pending = _items.where((i) => !i.isPurchased).toList();
+    if (pending.isEmpty) {
+      Toaster.showWarning('No hay artículos pendientes que compartir');
+      return;
+    }
+    final text = pending.map((i) => '- ${i.name}').join('\n');
+    SharePlus.instance.share(
+      ShareParams(text: 'Lista de la compra:\n$text', subject: 'Lista de la compra'),
     );
   }
 
   String _cleanJsonResponse(String response) {
-    response = response.replaceAll(RegExp(r'```json\s*'), '');
-    response = response.replaceAll(RegExp(r'\s*```'), '');
-    return response.trim();
+    return response.replaceAll(RegExp(r'```json\s*'), '').replaceAll(RegExp(r'\s*```'), '').trim();
   }
 
-  Future<void> _generateShoppingListWithAI(Map<String, String> formData) async {
-    setState(() {
-      _isGenerating = true;
-    });
+  List<CartItem> _parseCategorizedList(String response) {
+    final jsonData = jsonDecode(_cleanJsonResponse(response));
+    final lista = jsonData['lista'];
+    if (lista is! List) return [];
+    return lista.map((e) {
+      if (e is Map) {
+        return CartItem(
+          name: (e['nombre'] ?? '').toString(),
+          categoria: CartCategory.fromName(e['categoria']?.toString()),
+        );
+      }
+      return CartItem(name: e.toString());
+    }).where((item) => item.name.isNotEmpty).toList();
+  }
 
+  Future<void> _generateMonthlyList() async {
+    setState(() => _isGenerating = true);
     try {
       final prompt = Prompt.shoppingListPrompt(
         tipoReceta: AppSingleton().tipoReceta,
-        personas: formData['personas'] ?? '2',
-        presupuesto: formData['presupuesto'] ?? '',
+        personas: '2',
       );
-
-      final response = await AppSingleton().generateContent(
-        prompt,
-        context,
-      );
-      final cleanedResponse = _cleanJsonResponse(response);
-      final jsonData = jsonDecode(cleanedResponse);
-
-      if (jsonData['lista'] != null && jsonData['lista'] is List) {
-        final List<String> names = (jsonData['lista'] as List).map((e) => e.toString()).toList();
-        await JsonDocumentsService().addCartItemsFromNames(names);
-        await WidgetService.updateShoppingListWidget();
-        await _loadShoppingList();
-        Toaster.showSuccess('Lista generada con ${names.length} artículos');
-      }
+      final response = await AppSingleton().generateContent(prompt, context);
+      final items = _parseCategorizedList(response);
+      await JsonDocumentsService().addCategorizedCartItems(items);
+      await WidgetService.updateShoppingListWidget();
+      await _load();
+      Toaster.showSuccess('Lista generada con ${items.length} artículos');
     } catch (e) {
       Toaster.showError('Error al generar la lista: $e');
     } finally {
-      setState(() {
-        _isGenerating = false;
-      });
+      if (mounted) setState(() => _isGenerating = false);
+    }
+  }
+
+  Future<void> _generateFromWeeklyMenu() async {
+    final menu = await JsonDocumentsService().loadWeeklyMenu();
+    final ingredientes = <String>{};
+    for (final recetas in menu.values) {
+      for (final receta in recetas) {
+        ingredientes.addAll(receta.ingredientes);
+      }
+    }
+    if (ingredientes.isEmpty) {
+      Toaster.showWarning('No hay un menú semanal generado todavía');
+      return;
+    }
+
+    // El menú se ha leído de forma asíncrona antes de esto: comprobamos que la
+    // pantalla siga viva antes de usar el contexto.
+    if (!mounted) return;
+
+    setState(() => _isGenerating = true);
+    try {
+      final response = await AppSingleton().generateContent(
+        Prompt.categorizeIngredientsPrompt(ingredientes.toList()),
+        context,
+      );
+      final items = _parseCategorizedList(response);
+      await JsonDocumentsService().addCategorizedCartItems(items);
+      await WidgetService.updateShoppingListWidget();
+      await _load();
+      Toaster.showSuccess('${items.length} ingredientes añadidos desde el menú');
+    } catch (e) {
+      Toaster.showError('Error al exportar el menú: $e');
+    } finally {
+      if (mounted) setState(() => _isGenerating = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final pendingItems = _shoppingList.where((item) => !item.isPurchased).toList();
-    final completedItems = _shoppingList.where((item) => item.isPurchased).toList();
+    final pending = _items.where((i) => !i.isPurchased).toList();
+    final completed = _items.where((i) => i.isPurchased).toList();
+
+    final visiblePending = _filter == null
+        ? pending
+        : pending.where((i) => i.categoriaEfectiva == _filter).toList();
+
+    final byCategory = <CartCategory, List<CartItem>>{};
+    for (final item in visiblePending) {
+      byCategory.putIfAbsent(item.categoriaEfectiva, () => []).add(item);
+    }
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Stats Row
-          ContentShell.wide(
-            child: Row(
-              children: [
-                _buildStatCard(theme, '${pendingItems.length}', 'Pendientes', theme.colorScheme.primaryContainer, theme.colorScheme.onPrimaryContainer),
-                const SizedBox(width: 16),
-                _buildStatCard(theme, '${completedItems.length}', 'Listos', theme.colorScheme.secondaryContainer, theme.colorScheme.onSecondaryContainer),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Add Item Field
-          ContentShell.wide(
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      appBar: AppBar(title: const Text('Lista de la compra')),
+      body: ContentShell.wide(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: Spacing.md),
               child: Row(
                 children: [
-                  Icon(Icons.add_shopping_cart_rounded, color: theme.colorScheme.primary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _itemController,
-                      decoration: const InputDecoration(
-                        hintText: 'Añadir artículo...',
-                        border: InputBorder.none,
-                      ),
-                      onSubmitted: _addItem,
-                    ),
-                  ),
-                  IconButton.filledTonal(
-                    onPressed: () => _addItem(_itemController.text),
-                    icon: const Icon(Icons.add_rounded),
-                  ),
+                  Expanded(child: _StatCard(count: pending.length, label: 'Pendientes')),
+                  const SizedBox(width: Spacing.md),
+                  Expanded(child: _StatCard(count: completed.length, label: 'Comprados')),
                 ],
               ),
             ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Items List
-          Expanded(
-            child: _shoppingList.isEmpty
-                ? _buildEmptyState(theme)
-                : ContentShell.wide(
-                    child: ResponsiveCardList(
-                      padding: EdgeInsets.zero,
+            AiButton(
+              label: _isGenerating ? 'Generando...' : 'Generar desde el menú semanal',
+              expand: true,
+              loading: _isGenerating,
+              onPressed: _generateFromWeeklyMenu,
+            ),
+            const SizedBox(height: Spacing.sm),
+            OutlinedButton.icon(
+              onPressed: _isGenerating ? null : _generateMonthlyList,
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: const Text('Generar lista mensual con IA'),
+            ),
+            const SizedBox(height: Spacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _itemController,
+                    decoration: const InputDecoration(
+                      hintText: 'Añadir artículo...',
+                      prefixIcon: Icon(Icons.add_shopping_cart_outlined),
+                    ),
+                    onSubmitted: _addItem,
+                  ),
+                ),
+                const SizedBox(width: Spacing.sm),
+                IconButton.filledTonal(
+                  onPressed: () => _addItem(_itemController.text),
+                  icon: const Icon(Icons.add_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.md),
+            FilterChipBar<CartCategory?>(
+              options: [null, ...CartCategory.values],
+              labelOf: (c) => c?.displayName ?? 'Todas',
+              selected: _filter,
+              onChanged: (c) => setState(() => _filter = c),
+            ),
+            const SizedBox(height: Spacing.md),
+            Expanded(
+              child: _items.isEmpty
+                  ? const EmptyState(
+                      icon: Icons.shopping_cart_outlined,
+                      title: 'Lista vacía',
+                      description: 'Añade artículos o genera una lista con IA.',
+                    )
+                  : ListView(
                       children: [
-                        for (var index = 0; index < _shoppingList.length; index++)
-                          _buildShoppingItem(
-                            theme,
-                            _shoppingList[index],
-                            index,
+                        for (final category in byCategory.keys) ...[
+                          SectionHeader(title: category.displayName),
+                          const SizedBox(height: Spacing.sm),
+                          for (final item in byCategory[category]!) ...[
+                            _ShoppingRow(
+                              item: item,
+                              onToggle: () => _togglePurchased(item),
+                              onDelete: () => _removeItem(item),
+                            ),
+                            const SizedBox(height: Spacing.sm),
+                          ],
+                          const SizedBox(height: Spacing.md),
+                        ],
+                        if (completed.isNotEmpty)
+                          _CompletedSection(
+                            items: completed,
+                            onToggle: _togglePurchased,
+                            onClear: _clearCompleted,
                           ),
                       ],
                     ),
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAIGeneratorModal,
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: theme.colorScheme.onPrimary,
-        elevation: 0,
-        icon: _isGenerating 
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : const Icon(Icons.auto_awesome_rounded),
-        label: Text(_isGenerating ? 'GENERANDO...' : 'GENERAR CON IA', style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(ThemeData theme, String count, String label, Color bgColor, Color textColor) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Column(
-          children: [
-            Text(count, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: textColor)),
-            Text(label, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor.withValues(alpha: 0.8))),
+            ),
+            if (_items.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: Spacing.md),
+                child: OutlinedButton.icon(
+                  onPressed: _shareList,
+                  icon: const Icon(Icons.share_outlined),
+                  label: const Text('Compartir lista'),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildShoppingItem(ThemeData theme, CartItem item, int index) {
-    return Container(
-      decoration: BoxDecoration(
-        color: item.isPurchased
-            ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2)
-            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: item.isPurchased ? Colors.transparent : theme.colorScheme.outline.withValues(alpha: 0.1),
-        ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Checkbox(
-          value: item.isPurchased,
-          onChanged: (_) => _togglePurchased(index),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        ),
-        title: Text(
-          item.name,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: item.isPurchased ? FontWeight.normal : FontWeight.bold,
-            decoration: item.isPurchased ? TextDecoration.lineThrough : null,
-            color: item.isPurchased ? theme.colorScheme.onSurface.withValues(alpha: 0.4) : theme.colorScheme.onSurface,
-          ),
-        ),
-        trailing: IconButton(
-          onPressed: () => _removeItem(index),
-          icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error.withValues(alpha: 0.7)),
-        ),
-      ),
-    );
-  }
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.count, required this.label});
 
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.shopping_bag_rounded, size: 64, color: theme.colorScheme.primary),
-          ),
-          const SizedBox(height: 24),
-          Text('¡Lista vacía!', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          Text('Añade artículos o usa la IA para generar una.', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
-        ],
-      ),
-    );
-  }
+  final int count;
+  final String label;
 
-  Widget _buildAIGeneratorModal() {
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+    return AppCard(
+      child: Column(
+        children: [
+          Text(count.toString(), style: theme.textTheme.headlineMedium),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(color: theme.colorScheme.outline.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+    );
+  }
+}
+
+class _ShoppingRow extends StatelessWidget {
+  const _ShoppingRow({required this.item, required this.onToggle, this.onDelete});
+
+  final CartItem item;
+  final VoidCallback onToggle;
+  final VoidCallback? onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+      child: Row(
+        children: [
+          Checkbox(value: item.isPurchased, onChanged: (_) => onToggle()),
+          Expanded(
+            child: Text(
+              item.name,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                decoration: item.isPurchased ? TextDecoration.lineThrough : null,
+                color: item.isPurchased ? theme.colorScheme.onSurfaceVariant : null,
               ),
             ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Icon(Icons.auto_awesome_rounded, color: theme.colorScheme.primary),
-                const SizedBox(width: 12),
-                Text('Generar con IA', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
-              ],
+          ),
+          if (onDelete != null)
+            IconButton(
+              onPressed: onDelete,
+              icon: const Icon(Icons.delete_outline_rounded),
+              tooltip: 'Eliminar',
             ),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _personasController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Número de personas',
-                filled: true,
-                fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                prefixIcon: const Icon(Icons.people_rounded),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _presupuestoIniController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'P. Mín (€)',
-                      filled: true,
-                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _presupuestoFinController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'P. Máx (€)',
-                      filled: true,
-                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  final formData = {
-                    'personas': _personasController.text,
-                    'presupuesto': '${_presupuestoIniController.text} - ${_presupuestoFinController.text}',
-                  };
-                  _generateShoppingListWithAI(formData);
-                  Navigator.pop(context);
-                },
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                ),
-                child: const Text('GENERAR LISTA', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-              ),
-            ),
-          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CompletedSection extends StatefulWidget {
+  const _CompletedSection({required this.items, required this.onToggle, required this.onClear});
+
+  final List<CartItem> items;
+  final ValueChanged<CartItem> onToggle;
+  final VoidCallback onClear;
+
+  @override
+  State<_CompletedSection> createState() => _CompletedSectionState();
+}
+
+class _CompletedSectionState extends State<_CompletedSection> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: Row(
+            children: [
+              Icon(_expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
+              const SizedBox(width: Spacing.sm),
+              Text('Comprados (${widget.items.length})', style: theme.textTheme.titleMedium),
+              const Spacer(),
+              TextButton(onPressed: widget.onClear, child: const Text('Vaciar')),
+            ],
+          ),
         ),
-      ),
+        if (_expanded) ...[
+          const SizedBox(height: Spacing.sm),
+          for (final item in widget.items) ...[
+            _ShoppingRow(item: item, onToggle: () => widget.onToggle(item)),
+            const SizedBox(height: Spacing.sm),
+          ],
+        ],
+      ],
     );
   }
 }

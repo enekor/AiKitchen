@@ -23,6 +23,9 @@ class AppSingleton {
   // ese es el valor que se guarda y se vuelve a leer.
   String _tipoReceta = 'omnivora';
   bool _useTTS = false;
+  double _velocidadVoz = 1.0;
+  double _creatividad = 0.1;
+  bool _densidadCompacta = false;
 
   factory AppSingleton() {
     return _instance;
@@ -37,6 +40,9 @@ class AppSingleton {
   String get idioma => _idioma;
   String get tipoReceta => _tipoReceta;
   String get selectedModel => _selectedModel;
+  double get velocidadVoz => _velocidadVoz;
+  double get creatividad => _creatividad;
+  bool get densidadCompacta => _densidadCompacta;
 
   set setNumRecetas(int value) {
     _numRecetas = value;
@@ -86,6 +92,30 @@ class AppSingleton {
     );
   }
 
+  set setVelocidadVoz(double value) {
+    _velocidadVoz = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.velocidadVoz,
+      value.toString(),
+    );
+  }
+
+  set setCreatividad(double value) {
+    _creatividad = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.creatividad,
+      value.toString(),
+    );
+  }
+
+  set setDensidadCompacta(bool value) {
+    _densidadCompacta = value;
+    SharedPreferencesService.setBoolValue(
+      SharedPreferencesKeys.densidadCompacta,
+      value,
+    );
+  }
+
   Future<void> initializeWithStoredKey() async {
     _numRecetas = int.parse(
       await SharedPreferencesService.getStringValue(
@@ -123,6 +153,24 @@ class AppSingleton {
 
     _useTTS = await SharedPreferencesService.getBoolValue(
       SharedPreferencesKeys.useTTS,
+    );
+
+    _velocidadVoz = double.tryParse(
+          await SharedPreferencesService.getStringValue(
+                SharedPreferencesKeys.velocidadVoz,
+              ) ??
+              '',
+        ) ??
+        1.0;
+    _creatividad = double.tryParse(
+          await SharedPreferencesService.getStringValue(
+                SharedPreferencesKeys.creatividad,
+              ) ??
+              '',
+        ) ??
+        0.1;
+    _densidadCompacta = await SharedPreferencesService.getBoolValue(
+      SharedPreferencesKeys.densidadCompacta,
     );
 
     _groqService = GroqService();
@@ -163,6 +211,7 @@ class AppSingleton {
         _apiKey!,
         model: _selectedModel,
         maxTokens: maxTokens,
+        temperature: _creatividad,
         context: context,
       );
     }

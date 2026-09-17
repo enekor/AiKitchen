@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-/// Escala de espaciado de la app. Un único juego de valores en lugar de
-/// paddings inventados pantalla a pantalla.
+/// Escala de espaciado de la app, en múltiplos de 4.
 abstract class Spacing {
   static const double xs = 4;
   static const double sm = 8;
@@ -12,15 +10,19 @@ abstract class Spacing {
   static const double xxl = 32;
 }
 
-/// Escala de radios. Tres valores en lugar de los catorce que había.
+/// Escala de radios del sistema de diseño.
 abstract class AppRadius {
+  static const double xs = 4;
   static const double sm = 8;
-  static const double md = 16;
-  static const double lg = 28;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double full = 9999;
 
+  static BorderRadius get extraSmall => BorderRadius.circular(xs);
   static BorderRadius get small => BorderRadius.circular(sm);
   static BorderRadius get medium => BorderRadius.circular(md);
   static BorderRadius get large => BorderRadius.circular(lg);
+  static BorderRadius get capsule => BorderRadius.circular(full);
 }
 
 /// Anchos máximos de contenido.
@@ -43,47 +45,76 @@ abstract class ContentWidth {
 abstract class Breakpoints {
   static const double medium = 600;
   static const double expanded = 1000;
+  static const double railExtended = 1240;
 
   static bool isCompact(double width) => width < medium;
   static bool isExpanded(double width) => width >= expanded;
 }
 
+/// Acento reservado exclusivamente para flujos de generación por IA: el botón
+/// de modificar receta, generar menú, generar lista y las insignias de
+/// "generado con IA". No forma parte del [ColorScheme] porque Material no
+/// tiene un rol semántico para "esto lo hace la IA".
+@immutable
+class AiAccent extends ThemeExtension<AiAccent> {
+  const AiAccent({
+    required this.color,
+    required this.container,
+    required this.onContainer,
+  });
+
+  final Color color;
+  final Color container;
+  final Color onContainer;
+
+  static const light = AiAccent(
+    color: Color(0xFF6366F1),
+    container: Color(0xFFEEF2FF),
+    onContainer: Color(0xFF6366F1),
+  );
+
+  static const dark = AiAccent(
+    color: Color(0xFF38BDF8),
+    container: Color(0xFF1E1B4B),
+    onContainer: Color(0xFF38BDF8),
+  );
+
+  @override
+  AiAccent copyWith({Color? color, Color? container, Color? onContainer}) {
+    return AiAccent(
+      color: color ?? this.color,
+      container: container ?? this.container,
+      onContainer: onContainer ?? this.onContainer,
+    );
+  }
+
+  @override
+  AiAccent lerp(ThemeExtension<AiAccent>? other, double t) {
+    if (other is! AiAccent) return this;
+    return AiAccent(
+      color: Color.lerp(color, other.color, t)!,
+      container: Color.lerp(container, other.container, t)!,
+      onContainer: Color.lerp(onContainer, other.onContainer, t)!,
+    );
+  }
+}
+
+extension AiAccentContext on BuildContext {
+  /// Acceso corto al acento de IA del tema actual.
+  AiAccent get aiAccent => Theme.of(this).extension<AiAccent>()!;
+}
+
 class CookingTheme {
-  static const Color primaryBlue = Color(0xFF005AC1);
+  static ThemeData lightTheme() => _build(Brightness.light);
 
-  /// Permite construir el tema sin la tipografía de Google.
-  ///
-  /// Solo se pone a `false` en las pruebas: esa librería descarga la fuente por
-  /// red al construir el tema, lo que en un test no funciona y además no tiene
-  /// nada que ver con lo que se quiere comprobar, que son tamaños y colores.
-  @visibleForTesting
-  static bool useGoogleFonts = true;
+  static ThemeData darkTheme() => _build(Brightness.dark);
 
-  static ThemeData lightTheme([ColorScheme? dynamicColorScheme]) =>
-      _build(Brightness.light, dynamicColorScheme);
-
-  static ThemeData darkTheme([ColorScheme? dynamicColorScheme]) =>
-      _build(Brightness.dark, dynamicColorScheme);
-
-  /// Claro y oscuro comparten construcción para que no se separen con el
-  /// tiempo. Antes eran dos copias y ya diferían en detalles como el color
-  /// del botón flotante.
-  static ThemeData _build(Brightness brightness, ColorScheme? dynamicScheme) {
+  static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
+    final colorScheme = isDark ? _darkScheme : _lightScheme;
+    final aiAccent = isDark ? AiAccent.dark : AiAccent.light;
 
-    // El esquema dinámico del sistema puede venir con el brillo contrario;
-    // en ese caso se descarta para no mezclar un tema claro con colores
-    // pensados para fondo oscuro.
-    final ColorScheme colorScheme =
-        (dynamicScheme != null && dynamicScheme.brightness == brightness)
-        ? dynamicScheme
-        : ColorScheme.fromSeed(seedColor: primaryBlue, brightness: brightness);
-
-    // El color hay que aplicarlo aquí y no dejarlo para después. Un TextStyle
-    // sin color se pinta negro, y estos estilos se reparten tal cual por los
-    // subtemas de diálogo, barra y listas: en modo oscuro salía texto negro
-    // sobre fondo oscuro, es decir, invisible.
-    final textTheme = _textTheme(brightness).apply(
+    final textTheme = _textTheme().apply(
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
     );
@@ -93,7 +124,9 @@ class CookingTheme {
       brightness: brightness,
       colorScheme: colorScheme,
       textTheme: textTheme,
+      fontFamily: 'Inter',
       scaffoldBackgroundColor: colorScheme.surface,
+      extensions: [aiAccent],
 
       // Reduce la altura de filas y controles, pensada para dedo, cuando el
       // dispositivo se maneja con ratón.
@@ -111,7 +144,7 @@ class CookingTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         clipBehavior: Clip.antiAlias,
-        color: colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainerLowest,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.medium,
@@ -137,8 +170,10 @@ class CookingTheme {
 
       chipTheme: ChipThemeData(
         labelStyle: textTheme.labelLarge,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.small),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.capsule),
         side: BorderSide(color: colorScheme.outlineVariant),
+        backgroundColor: Colors.transparent,
+        selectedColor: colorScheme.primary,
       ),
 
       sliderTheme: SliderThemeData(
@@ -146,7 +181,6 @@ class CookingTheme {
         activeTrackColor: colorScheme.primary,
         inactiveTrackColor: colorScheme.surfaceContainerHighest,
         // Un pulgar visible es lo que dice al usuario que se puede arrastrar.
-        // Con radio cero el control no se entendía con el ratón.
         thumbColor: colorScheme.primary,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
         overlayColor: colorScheme.primary.withValues(alpha: 0.12),
@@ -158,23 +192,20 @@ class CookingTheme {
 
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Spacing.xl,
-            vertical: Spacing.md,
-          ),
+          minimumSize: const Size.fromHeight(44),
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
           textStyle: textTheme.labelLarge,
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.large),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.small),
         ),
       ),
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Spacing.xl,
-            vertical: Spacing.md,
-          ),
+          minimumSize: const Size.fromHeight(44),
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
           textStyle: textTheme.labelLarge,
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.large),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.small),
+          side: BorderSide(color: colorScheme.primary),
         ),
       ),
 
@@ -184,9 +215,7 @@ class CookingTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withValues(
-          alpha: isDark ? 0.4 : 0.6,
-        ),
+        fillColor: colorScheme.surfaceContainerLowest,
         hintStyle: textTheme.bodyMedium?.copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
@@ -195,15 +224,15 @@ class CookingTheme {
           vertical: Spacing.md,
         ),
         border: OutlineInputBorder(
-          borderRadius: AppRadius.medium,
-          borderSide: BorderSide.none,
+          borderRadius: AppRadius.small,
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppRadius.medium,
+          borderRadius: AppRadius.small,
           borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppRadius.medium,
+          borderRadius: AppRadius.small,
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
       ),
@@ -218,6 +247,7 @@ class CookingTheme {
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: colorScheme.surface,
         labelType: NavigationRailLabelType.all,
+        selectedIconTheme: IconThemeData(color: colorScheme.onSecondaryContainer),
         selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
           color: colorScheme.onSecondaryContainer,
         ),
@@ -229,7 +259,8 @@ class CookingTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         elevation: 1,
-        labelTextStyle: WidgetStatePropertyAll(textTheme.labelMedium),
+        height: 64,
+        labelTextStyle: WidgetStatePropertyAll(textTheme.labelSmall),
       ),
 
       dialogTheme: DialogThemeData(
@@ -242,13 +273,11 @@ class CookingTheme {
         // Sin tirador automático: las hojas de esta app dibujan el suyo, y
         // activarlo aquí pintaría dos.
         showDragHandle: false,
-        backgroundColor: colorScheme.surfaceContainerLow,
+        backgroundColor: colorScheme.surfaceContainerLowest,
         // En apaisado una hoja a todo lo ancho de un monitor es inmanejable.
         constraints: const BoxConstraints(maxWidth: 640),
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppRadius.lg),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
         ),
       ),
 
@@ -265,59 +294,132 @@ class CookingTheme {
     );
   }
 
-  /// Escala tipográfica explícita.
-  ///
-  /// Antes solo se fijaban pesos y se heredaban los tamaños por defecto, así
-  /// que no había escalones intermedios entre un título muy grueso y un cuerpo
-  /// normal. Aquí se fijan tamaño, peso y espaciado entre letras de cada nivel.
-  static TextTheme _textTheme(Brightness brightness) {
-    final base = brightness == Brightness.dark
-        ? ThemeData.dark().textTheme
-        : ThemeData.light().textTheme;
+  static const ColorScheme _lightScheme = ColorScheme(
+    brightness: Brightness.light,
+    primary: Color(0xFF0059AC),
+    onPrimary: Color(0xFFFFFFFF),
+    primaryContainer: Color(0xFF1972D2),
+    onPrimaryContainer: Color(0xFFF8F8FF),
+    secondary: Color(0xFF4648D4),
+    onSecondary: Color(0xFFFFFFFF),
+    secondaryContainer: Color(0xFF6063EE),
+    onSecondaryContainer: Color(0xFFFFFBFF),
+    tertiary: Color(0xFF006184),
+    onTertiary: Color(0xFFFFFFFF),
+    tertiaryContainer: Color(0xFF007BA6),
+    onTertiaryContainer: Color(0xFFF4FAFF),
+    error: Color(0xFFBA1A1A),
+    onError: Color(0xFFFFFFFF),
+    errorContainer: Color(0xFFFFDAD6),
+    onErrorContainer: Color(0xFF93000A),
+    surface: Color(0xFFF8F9FF),
+    onSurface: Color(0xFF0B1C30),
+    onSurfaceVariant: Color(0xFF414752),
+    surfaceContainerLowest: Color(0xFFFFFFFF),
+    surfaceContainerLow: Color(0xFFEFF4FF),
+    surfaceContainer: Color(0xFFE5EEFF),
+    surfaceContainerHigh: Color(0xFFDCE9FF),
+    surfaceContainerHighest: Color(0xFFD3E4FE),
+    outline: Color(0xFF717784),
+    outlineVariant: Color(0xFFC1C6D4),
+    inverseSurface: Color(0xFF213145),
+    onInverseSurface: Color(0xFFEAF1FF),
+    inversePrimary: Color(0xFFA8C8FF),
+    shadow: Color(0xFF000000),
+    scrim: Color(0xFF000000),
+    surfaceTint: Color(0xFF005EB4),
+  );
 
+  static const ColorScheme _darkScheme = ColorScheme(
+    brightness: Brightness.dark,
+    primary: Color(0xFFA8C8FF),
+    onPrimary: Color(0xFF00315F),
+    primaryContainer: Color(0xFF1972D2),
+    onPrimaryContainer: Color(0xFFFFFFFF),
+    secondary: Color(0xFFC0C1FF),
+    onSecondary: Color(0xFF16179E),
+    secondaryContainer: Color(0xFF6063EE),
+    onSecondaryContainer: Color(0xFFFFFFFF),
+    tertiary: Color(0xFF7BD0FF),
+    onTertiary: Color(0xFF003549),
+    tertiaryContainer: Color(0xFF007BA6),
+    onTertiaryContainer: Color(0xFFFFFFFF),
+    error: Color(0xFFFFB4AB),
+    onError: Color(0xFF690005),
+    errorContainer: Color(0xFF93000A),
+    onErrorContainer: Color(0xFFFFDAD6),
+    surface: Color(0xFF0F172A),
+    onSurface: Color(0xFFF1F5F9),
+    onSurfaceVariant: Color(0xFFC1C6D4),
+    surfaceContainerLowest: Color(0xFF0B1220),
+    surfaceContainerLow: Color(0xFF161F33),
+    surfaceContainer: Color(0xFF1E293B),
+    surfaceContainerHigh: Color(0xFF26334A),
+    surfaceContainerHighest: Color(0xFF334155),
+    outline: Color(0xFF8A91A0),
+    outlineVariant: Color(0xFF334155),
+    inverseSurface: Color(0xFFEAF1FF),
+    onInverseSurface: Color(0xFF0B1C30),
+    inversePrimary: Color(0xFF0059AC),
+    shadow: Color(0xFF000000),
+    scrim: Color(0xFF000000),
+    surfaceTint: Color(0xFFA8C8FF),
+  );
+
+  /// Escala tipográfica explícita en Inter.
+  ///
+  /// El color se aplica en [_build] con [TextTheme.apply], no aquí: un
+  /// [TextStyle] sin color se pinta negro, y ya causó una regresión real en
+  /// modo oscuro cuando el color se dejó para "más adelante".
+  static TextTheme _textTheme() {
     TextStyle style({
       required double size,
+      required double height,
       required FontWeight weight,
       double spacing = 0,
-      double height = 1.35,
-    }) {
-      final plain = TextStyle(
-        fontSize: size,
-        fontWeight: weight,
-        letterSpacing: spacing,
-        height: height,
-      );
-      return useGoogleFonts ? GoogleFonts.robotoFlex(textStyle: plain) : plain;
-    }
+    }) => TextStyle(
+      fontFamily: 'Inter',
+      fontSize: size,
+      height: height / size,
+      fontWeight: weight,
+      letterSpacing: spacing,
+    );
 
-    final scaled = useGoogleFonts
-        ? GoogleFonts.robotoFlexTextTheme(base)
-        : base;
+    return TextTheme(
+      displayLarge: style(size: 32, height: 40, weight: FontWeight.w700),
+      displayMedium: style(size: 28, height: 36, weight: FontWeight.w700),
+      displaySmall: style(size: 24, height: 32, weight: FontWeight.w700),
+      headlineLarge: style(size: 32, height: 40, weight: FontWeight.w700),
+      headlineMedium: style(size: 22, height: 28, weight: FontWeight.w600),
+      headlineSmall: style(size: 18, height: 24, weight: FontWeight.w600),
+      titleLarge: style(size: 18, height: 24, weight: FontWeight.w600),
+      titleMedium: style(size: 16, height: 24, weight: FontWeight.w600),
+      titleSmall: style(size: 14, height: 20, weight: FontWeight.w600),
+      bodyLarge: style(size: 16, height: 24, weight: FontWeight.w400),
+      bodyMedium: style(size: 14, height: 20, weight: FontWeight.w400),
+      bodySmall: style(size: 12, height: 16, weight: FontWeight.w400),
+      labelLarge: style(size: 14, height: 20, weight: FontWeight.w600),
+      labelMedium: style(size: 12, height: 16, weight: FontWeight.w500),
+      labelSmall: style(
+        size: 11,
+        height: 14,
+        weight: FontWeight.w600,
+        spacing: 0.2,
+      ),
+    );
+  }
 
-    return scaled.copyWith(
-      // Títulos: peso alto pero no extremo. El w900 con tracking -2 que había
-      // apretaba las letras y se leía peor cuanto más grande era.
-      displayLarge: style(size: 44, weight: FontWeight.w700, spacing: -0.5, height: 1.15),
-      displayMedium: style(size: 36, weight: FontWeight.w700, spacing: -0.5, height: 1.2),
-      displaySmall: style(size: 30, weight: FontWeight.w700, height: 1.2),
-      headlineLarge: style(size: 28, weight: FontWeight.w600, height: 1.25),
-      headlineMedium: style(size: 24, weight: FontWeight.w600, height: 1.25),
-      headlineSmall: style(size: 20, weight: FontWeight.w600, height: 1.3),
-      titleLarge: style(size: 20, weight: FontWeight.w600, height: 1.3),
-      titleMedium: style(size: 16, weight: FontWeight.w600, spacing: 0.1),
-      titleSmall: style(size: 14, weight: FontWeight.w600, spacing: 0.1),
-
-      // Cuerpo: interlineado generoso, que es lo que más ayuda a leer párrafos
-      // largos como los pasos de una receta.
-      bodyLarge: style(size: 16, weight: FontWeight.w400, height: 1.55),
-      bodyMedium: style(size: 14, weight: FontWeight.w400, height: 1.55),
-      bodySmall: style(size: 12, weight: FontWeight.w400, height: 1.5),
-
-      // Etiquetas: tracking positivo, que es donde sí hace falta, sobre todo
-      // en los rótulos en mayúsculas.
-      labelLarge: style(size: 14, weight: FontWeight.w600, spacing: 0.3),
-      labelMedium: style(size: 12, weight: FontWeight.w600, spacing: 0.4),
-      labelSmall: style(size: 11, weight: FontWeight.w600, spacing: 0.8),
+  /// `headlineLarge` reducido para pantallas de menos de 600 px, según el
+  /// sistema de diseño. Se usa explícitamente donde haga falta, en vez de
+  /// sustituir el estilo global, porque solo afecta a un puñado de títulos.
+  static TextStyle compactHeadlineLarge(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface;
+    return TextStyle(
+      fontFamily: 'Inter',
+      fontSize: 26,
+      height: 32 / 26,
+      fontWeight: FontWeight.w700,
+      color: color,
     );
   }
 }

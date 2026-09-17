@@ -1,5 +1,19 @@
 import 'dart:convert';
 
+/// Cómo se obtuvo una receta. Determina el filtro y la insignia de origen en
+/// Favoritos. `null` (recetas guardadas antes de este campo) se trata como
+/// [ia], por ser el caso mayoritario.
+enum RecipeOrigin {
+  manual,
+  ia,
+  web;
+
+  static RecipeOrigin? fromName(String? name) {
+    if (name == null) return null;
+    return RecipeOrigin.values.where((o) => o.name == name).firstOrNull;
+  }
+}
+
 class Recipe {
   int? id;
   final String nombre;
@@ -10,6 +24,9 @@ class Recipe {
   final String calorias;
   final String raciones;
 
+  /// Opcional para no romper las recetas guardadas antes de este campo.
+  final RecipeOrigin? origen;
+
   Recipe({
     this.id,
     required this.nombre,
@@ -19,7 +36,11 @@ class Recipe {
     required this.preparacion,
     required this.calorias,
     required this.raciones,
+    this.origen,
   });
+
+  /// Origen a efectos de mostrar, con las recetas antiguas cayendo en "IA".
+  RecipeOrigin get origenEfectivo => origen ?? RecipeOrigin.ia;
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
     return Recipe(
@@ -31,6 +52,7 @@ class Recipe {
       preparacion: List<String>.from(json['preparacion']),
       calorias: json['calorias'].toString(),
       raciones: json['raciones'].toString(),
+      origen: RecipeOrigin.fromName(json['origen'] as String?),
     );
   }
 
@@ -44,6 +66,7 @@ class Recipe {
       'preparacion': preparacion,
       'calorias': calorias,
       'raciones': raciones,
+      if (origen != null) 'origen': origen!.name,
     };
   }
 
@@ -58,6 +81,7 @@ class Recipe {
       'preparacion': jsonEncode(preparacion),
       'calorias': calorias,
       'raciones': raciones,
+      'origen': origen?.name,
     };
   }
 
@@ -71,6 +95,9 @@ class Recipe {
       preparacion: List<String>.from(jsonDecode(map['preparacion'])),
       calorias: map['calorias'].toString(),
       raciones: map['raciones'].toString(),
+      // Columna añadida en la versión 3 de la base de datos: puede faltar en
+      // filas migradas de una versión anterior.
+      origen: RecipeOrigin.fromName(map['origen'] as String?),
     );
   }
 

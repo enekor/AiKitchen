@@ -3,13 +3,15 @@ import 'package:aikitchen/screens/weekly_menu_widgets.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/models/prompt.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
-import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/ui/ai_button.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../services/log_file_service.dart';
 
+/// Destino "Menú" del armazón de navegación.
 class WeeklyMenu extends StatefulWidget {
   const WeeklyMenu({super.key});
 
@@ -60,7 +62,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         await logService.appendLog('INFO WeeklyMenu: Descargando prompt externo...');
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         final url = Uri.parse(
-          'https://raw.githubusercontent.com/enekor/AiKitchen/main/prompt?t=$timestamp'
+          'https://raw.githubusercontent.com/enekor/AiKitchen/main/prompt?t=$timestamp',
         );
 
         final responseExternal = await http.get(
@@ -84,7 +86,9 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
           throw Exception('Status ${responseExternal.statusCode}');
         }
       } catch (e) {
-        await logService.appendLog('WARNING WeeklyMenu: No se pudo cargar el prompt externo ($e). Usando prompt local.');
+        await logService.appendLog(
+          'WARNING WeeklyMenu: No se pudo cargar el prompt externo ($e). Usando prompt local.',
+        );
         finalPrompt = Prompt.weeklyMenuPrompt(
           AppSingleton().tipoReceta,
           AppSingleton().personality,
@@ -92,8 +96,6 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         );
       }
 
-      // El prompt se descarga de la red antes de esto, así que el contexto
-      // puede haber dejado de ser válido.
       if (!mounted) return;
 
       final response = await AppSingleton().generateContent(
@@ -111,7 +113,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         for (var i = 0; i < _diasSemana.length; i++) {
           final dayStartIndex = i * 2;
           final dayEndIndex = dayStartIndex + 2;
-          
+
           if (dayStartIndex < menuData.length) {
             newMenu[_diasSemana[i]] = menuData.sublist(
               dayStartIndex,
@@ -135,6 +137,54 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
     }
   }
 
+  /// Sustituye una sola comida sin tocar el resto de la semana.
+  Future<void> _regenerateMeal(String dia, int mealIndex) async {
+    final tipoComida = mealIndex == 0 ? 'Comida' : 'Cena';
+    final otrasRecetas = _weeklyMenu.values
+        .expand((recetas) => recetas)
+        .map((r) => r.nombre)
+        .toList();
+
+    setState(() => _isLoading = true);
+    try {
+      final response = await AppSingleton().generateContent(
+        Prompt.regenerateSingleMealPrompt(
+          dia: dia,
+          tipoComida: tipoComida,
+          recetasExistentes: otrasRecetas,
+          tipoReceta: AppSingleton().tipoReceta,
+          tono: AppSingleton().personality,
+          idioma: AppSingleton().idioma,
+        ),
+        context,
+      );
+
+      if (response.isNotEmpty && !response.contains('error')) {
+        final nuevas = Recipe.fromJsonList(_cleanJsonResponse(response));
+        if (nuevas.isNotEmpty) {
+          setState(() {
+            final dayMeals = List<Recipe>.from(_weeklyMenu[dia] ?? []);
+            if (mealIndex < dayMeals.length) {
+              dayMeals[mealIndex] = nuevas.first;
+            } else {
+              dayMeals.add(nuevas.first);
+            }
+            _weeklyMenu[dia] = dayMeals;
+            _isLoading = false;
+          });
+          await JsonDocumentsService().saveWeeklyMenu(_weeklyMenu);
+          Toaster.showSuccess('$tipoComida del $dia actualizada');
+        } else {
+          _handleError('La IA no devolvió una receta válida.');
+        }
+      } else {
+        _handleError(response);
+      }
+    } catch (e) {
+      _handleError(e.toString());
+    }
+  }
+
   String _cleanJsonResponse(String response) {
     String cleaned = response;
     cleaned = cleaned.replaceAll(RegExp(r'^```json\s*', multiLine: true), '');
@@ -150,35 +200,32 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: LottieAnimationWidget(type: LottieAnimationType.loading),
-        ),
-      );
-    }
-
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          Expanded(
-            child: _weeklyMenu.isEmpty
-                ? ContentShell(
-                    child: EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu),
-                  )
-                : ContentShell.wide(
-                    child: WeeklyMenuList(
-                      diasSemana: _diasSemana,
-                      weeklyMenu: _weeklyMenu,
-                      onRegenerate: _generateWeeklyMenu,
-                    ),
-                  ),
-          ),
+      appBar: AppBar(
+        title: const Text('Menú semanal'),
+        actions: [
+          if (_weeklyMenu.isNotEmpty && !_isLoading)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+              child: AiButton(
+                label: 'Regenerar',
+                icon: Icons.refresh_rounded,
+                onPressed: _generateWeeklyMenu,
+              ),
+            ),
         ],
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _weeklyMenu.isEmpty
+          ? ContentShell(child: EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu))
+          : ContentShell.wide(
+              child: WeeklyMenuList(
+                diasSemana: _diasSemana,
+                weeklyMenu: _weeklyMenu,
+                onRegenerateMeal: _regenerateMeal,
+              ),
+            ),
     );
   }
 }

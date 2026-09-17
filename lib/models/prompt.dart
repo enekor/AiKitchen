@@ -39,6 +39,12 @@ Estructura obligatoria:
   ) =>
       '$basePrompt numero de recetas: $numRecetas, idioma de las recetas: $idioma, tipo de cocina especifica: $tipoReceta, tono de los pasos de la receta: $tono, nombre de la receta que quiere el usuario: $nombreReceta';
 
+  /// Categorías permitidas para agrupar la lista de la compra por pasillo.
+  /// Deben coincidir exactamente con los nombres de [CartCategory].
+  static const String categoriasPermitidas =
+      'frutasVerduras, carnesPescados, lacteosHuevos, despensa, congelados, '
+      'bebidas, otros';
+
   static String shoppingListPrompt({
     required String tipoReceta,
     required String personas,
@@ -49,11 +55,12 @@ Necesito que me generes una lista de la compra mensual. Responde únicamente con
 
 {
   "lista": [
-    "ingrediente 1",
-    "ingrediente 2",
-    "ingrediente 3"
+    {"nombre": "ingrediente 1", "categoria": "frutasVerduras"},
+    {"nombre": "ingrediente 2", "categoria": "carnesPescados"}
   ]
 }
+
+La categoría debe ser exactamente una de estas: $categoriasPermitidas.
 
 Información sobre mi hogar:
 - Número de personas: $personas
@@ -61,6 +68,26 @@ ${presupuesto.isNotEmpty ? '- Presupuesto mensual: $presupuesto' : ''}
 - Tipo de cocina preferida: $tipoReceta
 
 Genera una lista completa y equilibrada de ingredientes básicos y productos esenciales para un mes, teniendo en cuenta el número de personas y las preferencias indicadas.
+''';
+
+  /// Categoriza una lista de nombres de ingredientes ya existente, por
+  /// ejemplo al exportar el menú semanal a la lista de la compra.
+  static String categorizeIngredientsPrompt(List<String> ingredientes) =>
+      '''
+Clasifica cada uno de estos ingredientes en una categoría de supermercado.
+Responde únicamente con un JSON en este formato:
+
+{
+  "lista": [
+    {"nombre": "ingrediente 1", "categoria": "frutasVerduras"}
+  ]
+}
+
+La categoría debe ser exactamente una de estas: $categoriasPermitidas.
+No cambies el texto de "nombre", devuélvelo tal cual se te ha dado.
+
+Ingredientes a clasificar:
+${ingredientes.map((i) => '- $i').join('\n')}
 ''';
 
   static String UpdateRecipePrompt(String recipeJson, int numPlates) =>
@@ -87,6 +114,26 @@ Genera una lista completa y equilibrada de ingredientes básicos y productos ese
   static String UpdateRecipePromptTono(String recipeJson, String tono) =>
       '''Necesito que adaptes la explicación de la receta al siguiente tono: "$tono". No te preocupes, no me voy a ofender si el tono es negativo. Responde únicamente con el json de la receta adaptada, sin ningún texto adicional. Aquí tienes el json de la receta: $recipeJson''';
 
+  /// Combina en una sola petición los ajustes elegidos en el panel de
+  /// "Modificar con IA", en vez de encadenar una llamada por cada opción.
+  /// [instrucciones] son frases ya construidas por la pantalla, una por cada
+  /// ajuste activo (incluida, si la hay, la petición libre del usuario).
+  static String combinedUpdatePrompt(
+    String recipeJson,
+    List<String> instrucciones,
+  ) {
+    final lista = instrucciones.map((i) => '- $i').join('\n');
+    return '''
+Necesito que actualices la siguiente receta aplicando TODOS estos cambios a la vez:
+$lista
+
+Responde únicamente con el JSON de la receta adaptada, respetando los mismos
+campos y tipos del JSON original (nombre, descripcion y tiempoEstimado como
+texto; calorias y raciones numéricos; ingredientes y preparacion como listas de
+texto). Sin texto adicional. Aquí tienes el JSON de la receta: $recipeJson
+''';
+  }
+
   static String weeklyMenuPrompt(
     String tipoReceta,
     String tono,
@@ -109,6 +156,32 @@ Importante:
 - Asegúrate de que el conjunto de recetas forme un menú coherente y saludable
 
 El formato debe ser el mismo JSON que el base, generando una lista con las 14 recetas.
+''';
+
+  /// Regenera una sola comida del menú semanal, sin tocar el resto de días.
+  /// [recetasExistentes] son los nombres ya usados esa semana, para pedir a
+  /// la IA que no repita plato.
+  static String regenerateSingleMealPrompt({
+    required String dia,
+    required String tipoComida,
+    required List<String> recetasExistentes,
+    required String tipoReceta,
+    required String tono,
+    required String idioma,
+  }) =>
+      '''
+$basePrompt
+Necesito una única receta nueva para sustituir la de "$tipoComida" del día $dia
+en mi menú semanal.
+
+Parámetros:
+- Idioma de la receta: $idioma
+- Tipo de cocina específica: $tipoReceta
+- Tono de los pasos: $tono
+- No repitas ninguna de estas recetas, que ya están en el menú de esta semana:
+  ${recetasExistentes.isEmpty ? '(ninguna)' : recetasExistentes.join(', ')}
+
+El formato debe ser el mismo JSON base, con una lista de una sola receta.
 ''';
 
   static String recipeFromUrlPrompt(

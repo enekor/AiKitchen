@@ -1,10 +1,12 @@
 import 'package:aikitchen/theme/cooking_theme.dart';
+import 'package:aikitchen/widgets/ui/app_card.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+/// Ajuste de interruptor, dentro de una `AppCard`.
 class SwitchSetting extends StatefulWidget {
   final bool initialValue;
   final String text;
+  final String? subtitle;
   final ValueChanged<bool> onChange;
 
   const SwitchSetting({
@@ -12,6 +14,7 @@ class SwitchSetting extends StatefulWidget {
     required this.initialValue,
     required this.text,
     required this.onChange,
+    this.subtitle,
   });
 
   @override
@@ -30,35 +33,28 @@ class _SwitchSettingState extends State<SwitchSetting> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        // Forma asimétrica asimétrica característica de M3 Expressive
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(36),
-          topRight: Radius.circular(12),
-          bottomLeft: Radius.circular(12),
-          bottomRight: Radius.circular(36),
-        ),
-      ),
+    return AppCard(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Text(
-              widget.text,
-              style: GoogleFonts.robotoFlex(
-                textStyle: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
-                ),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.text, style: theme.textTheme.titleMedium),
+                if (widget.subtitle != null)
+                  Text(
+                    widget.subtitle!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
             ),
           ),
           Switch(
             value: currentValue,
-            onChanged: (bool value) {
+            onChanged: (value) {
               setState(() => currentValue = value);
               widget.onChange(value);
             },
@@ -69,12 +65,14 @@ class _SwitchSettingState extends State<SwitchSetting> {
   }
 }
 
+/// Ajuste numérico entero mediante un deslizador, con el valor a la vista.
 class ScrollbarSetting extends StatefulWidget {
   final int initialValue;
   final String text;
   final ValueChanged<int> onChange;
   final int divisions;
   final int maxValue;
+  final int minValue;
 
   const ScrollbarSetting({
     super.key,
@@ -83,6 +81,7 @@ class ScrollbarSetting extends StatefulWidget {
     required this.onChange,
     required this.maxValue,
     required this.divisions,
+    this.minValue = 1,
   });
 
   @override
@@ -101,64 +100,111 @@ class _ScrollbarSettingState extends State<ScrollbarSetting> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(42),
-          bottomLeft: Radius.circular(42),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            widget.text,
-            style: GoogleFonts.robotoFlex(
-              textStyle: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.primary,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(widget.text, style: theme.textTheme.titleMedium),
+              Text(
+                currentValue.toString(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 24),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 24, // Barra gruesa M3 Expressive (estilo imagen 2)
-              activeTrackColor: theme.colorScheme.primary,
-              inactiveTrackColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-              thumbColor: theme.colorScheme.onPrimary,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0), // Pulgar invisible o integrado
-              overlayColor: Colors.transparent,
-              trackShape: const RoundedRectSliderTrackShape(),
-            ),
-            child: Slider(
-              value: currentValue.toDouble(),
-              min: 1,
-              max: widget.maxValue.toDouble(),
-              divisions: widget.divisions,
-              onChanged: (double value) {
-                setState(() => currentValue = value.toInt());
-                widget.onChange(value.toInt());
-              },
-            ),
+          Slider(
+            value: currentValue.toDouble(),
+            min: widget.minValue.toDouble(),
+            max: widget.maxValue.toDouble(),
+            divisions: widget.divisions,
+            onChanged: (value) {
+              setState(() => currentValue = value.toInt());
+              widget.onChange(value.toInt());
+            },
           ),
-          const SizedBox(height: 8),
-          Center(
-            child: Text(
-              currentValue.toString(),
-              style: GoogleFonts.robotoFlex(fontWeight: FontWeight.w900, color: theme.colorScheme.primary),
-            ),
-          )
         ],
       ),
     );
   }
 }
 
+/// Ajuste numérico decimal, para velocidad de voz o creatividad de la IA.
+class DecimalSliderSetting extends StatefulWidget {
+  const DecimalSliderSetting({
+    super.key,
+    required this.initialValue,
+    required this.text,
+    required this.onChange,
+    required this.min,
+    required this.max,
+    this.divisions,
+    this.labelBuilder,
+  });
+
+  final double initialValue;
+  final String text;
+  final double min;
+  final double max;
+  final int? divisions;
+  final ValueChanged<double> onChange;
+  final String Function(double value)? labelBuilder;
+
+  @override
+  State<DecimalSliderSetting> createState() => _DecimalSliderSettingState();
+}
+
+class _DecimalSliderSettingState extends State<DecimalSliderSetting> {
+  late double currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    currentValue = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final label = widget.labelBuilder?.call(currentValue) ??
+        currentValue.toStringAsFixed(1);
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(widget.text, style: theme.textTheme.titleMedium),
+              Text(
+                label,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: currentValue,
+            min: widget.min,
+            max: widget.max,
+            divisions: widget.divisions,
+            onChanged: (value) {
+              setState(() => currentValue = value);
+              widget.onChange(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Ajuste de selección múltiple mediante una hoja inferior.
 class MultiListSetting extends StatefulWidget {
   final List<String> initialValues;
   final String text;
@@ -189,40 +235,29 @@ class _MultiListSettingState extends State<MultiListSetting> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
+    return AppCard(
       onTap: _showSelectionModal,
-      borderRadius: BorderRadius.circular(32),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
-          borderRadius: const BorderRadius.all(Radius.circular(42)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.text,
-                    style: GoogleFonts.robotoFlex(
-                      textStyle: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                    ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.text, style: theme.textTheme.titleMedium),
+                const SizedBox(height: Spacing.xs),
+                Text(
+                  selectedValues.isEmpty ? 'Sin seleccionar' : selectedValues.join(', '),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    selectedValues.isEmpty ? 'Seleccionar' : selectedValues.join(', '),
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            Icon(Icons.unfold_more_rounded, color: theme.colorScheme.secondary),
-          ],
-        ),
+          ),
+          Icon(Icons.unfold_more_rounded, color: theme.colorScheme.onSurfaceVariant),
+        ],
       ),
     );
   }
@@ -231,8 +266,7 @@ class _MultiListSettingState extends State<MultiListSetting> {
     final result = await showModalBottomSheet<List<String>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _ExpressiveSelectionModal(
+      builder: (context) => _SelectionSheet(
         text: widget.text,
         options: widget.options,
         initialSelected: selectedValues,
@@ -245,6 +279,7 @@ class _MultiListSettingState extends State<MultiListSetting> {
   }
 }
 
+/// Ajuste de selección única mediante una hoja inferior.
 class SingleListSetting extends StatefulWidget {
   final String initialValue;
   final String text;
@@ -275,40 +310,29 @@ class _SingleListSettingState extends State<SingleListSetting> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
+    return AppCard(
       onTap: _showSelectionModal,
-      borderRadius: BorderRadius.circular(32),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
-          borderRadius: const BorderRadius.all(Radius.circular(42)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.text,
-                    style: GoogleFonts.robotoFlex(
-                      textStyle: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                    ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.text, style: theme.textTheme.titleMedium),
+                const SizedBox(height: Spacing.xs),
+                Text(
+                  selectedValue,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    selectedValue,
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            Icon(Icons.unfold_more_rounded, color: theme.colorScheme.primary),
-          ],
-        ),
+          ),
+          Icon(Icons.unfold_more_rounded, color: theme.colorScheme.onSurfaceVariant),
+        ],
       ),
     );
   }
@@ -317,11 +341,11 @@ class _SingleListSettingState extends State<SingleListSetting> {
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _ExpressiveSingleSelectionModal(
+      builder: (context) => _SelectionSheet(
         text: widget.text,
         options: widget.options,
-        initialSelected: selectedValue,
+        initialSelected: [selectedValue],
+        singleChoice: true,
       ),
     );
     if (result != null) {
@@ -331,166 +355,115 @@ class _SingleListSettingState extends State<SingleListSetting> {
   }
 }
 
-class _ExpressiveSingleSelectionModal extends StatelessWidget {
-  final String text;
-  final List<String> options;
-  final String initialSelected;
+/// Hoja de selección compartida por [SingleListSetting] y [MultiListSetting].
+///
+/// Si [singleChoice] es `true`, tocar una opción cierra la hoja y devuelve un
+/// `String`; si no, hay que confirmar y devuelve un `List<String>`.
+class _SelectionSheet extends StatefulWidget {
+  const _SelectionSheet({
+    required this.text,
+    required this.options,
+    required this.initialSelected,
+    this.singleChoice = false,
+  });
 
-  const _ExpressiveSingleSelectionModal({required this.text, required this.options, required this.initialSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      // Alto máximo en vez de fijo: en apaisado la pantalla es baja y una
-      // altura proporcional dejaba la hoja ocupando casi todo.
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppRadius.lg),
-        ),
-      ),
-      padding: const EdgeInsets.all(Spacing.xl),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(width: 48, height: 6, decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(3))),
-          ),
-          const SizedBox(height: Spacing.lg),
-          Text(text, style: GoogleFonts.robotoFlex(textStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900))),
-          const SizedBox(height: 24),
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: options.length,
-              itemBuilder: (context, index) {
-                final option = options[index];
-                final isSelected = initialSelected == option;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: InkWell(
-                    onTap: () => Navigator.pop(context, option),
-                    borderRadius: BorderRadius.circular(24),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded, color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.primary),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(option, style: TextStyle(color: isSelected ? theme.colorScheme.onPrimary : null, fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ExpressiveSelectionModal extends StatefulWidget {
   final String text;
   final List<String> options;
   final List<String> initialSelected;
-
-  const _ExpressiveSelectionModal({required this.text, required this.options, required this.initialSelected});
+  final bool singleChoice;
 
   @override
-  State<_ExpressiveSelectionModal> createState() => _ExpressiveSelectionModalState();
+  State<_SelectionSheet> createState() => _SelectionSheetState();
 }
 
-class _ExpressiveSelectionModalState extends State<_ExpressiveSelectionModal> {
-  late List<String> tempSelected;
+class _SelectionSheetState extends State<_SelectionSheet> {
+  late List<String> _selected;
 
   @override
   void initState() {
     super.initState();
-    tempSelected = List<String>.from(widget.initialSelected);
+    _selected = List<String>.from(widget.initialSelected);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
-      // Alto máximo en vez de fijo: en apaisado la pantalla es baja y una
-      // altura proporcional dejaba la hoja ocupando casi todo.
       constraints: BoxConstraints(
+        // Alto máximo en vez de fijo: en apaisado la pantalla es baja y una
+        // altura proporcional dejaba la hoja ocupando casi todo.
         maxHeight: MediaQuery.of(context).size.height * 0.85,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppRadius.lg),
-        ),
       ),
       padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Container(width: 48, height: 6, decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(3))),
-          ),
+          Text(widget.text, style: theme.textTheme.headlineSmall),
           const SizedBox(height: Spacing.lg),
-          Text(widget.text, style: GoogleFonts.robotoFlex(textStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900))),
-          const SizedBox(height: 24),
           Flexible(
-            child: ListView.builder(
+            child: ListView.separated(
               shrinkWrap: true,
               itemCount: widget.options.length,
+              separatorBuilder: (_, _) => const SizedBox(height: Spacing.sm),
               itemBuilder: (context, index) {
                 final option = widget.options[index];
-                final isSelected = tempSelected.contains(option);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: InkWell(
-                    onTap: () => setState(() => isSelected ? tempSelected.remove(option) : tempSelected.add(option)),
-                    borderRadius: BorderRadius.circular(24),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(28),
+                final isSelected = _selected.contains(option);
+                return AppCard(
+                  color: isSelected
+                      ? theme.colorScheme.primaryContainer
+                      : theme.colorScheme.surfaceContainerLowest,
+                  onTap: () {
+                    if (widget.singleChoice) {
+                      Navigator.pop(context, option);
+                      return;
+                    }
+                    setState(() {
+                      isSelected ? _selected.remove(option) : _selected.add(option);
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        widget.singleChoice
+                            ? (isSelected
+                                  ? Icons.radio_button_checked_rounded
+                                  : Icons.radio_button_off_rounded)
+                            : (isSelected
+                                  ? Icons.check_circle_rounded
+                                  : Icons.circle_outlined),
+                        color: isSelected
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
                       ),
-                      child: Row(
-                        children: [
-                          Icon(isSelected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded, color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.primary),
-                          const SizedBox(width: 16),
-                          Text(option, style: TextStyle(color: isSelected ? theme.colorScheme.onPrimary : null, fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal)),
-                        ],
+                      const SizedBox(width: Spacing.md),
+                      Expanded(
+                        child: Text(
+                          option,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: isSelected
+                                ? theme.colorScheme.onPrimaryContainer
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 );
               },
             ),
           ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => Navigator.pop(context, tempSelected),
-              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
-              child: const Text('CONFIRMAR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+          if (!widget.singleChoice) ...[
+            const SizedBox(height: Spacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, _selected),
+                child: const Text('Confirmar'),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -547,12 +520,7 @@ class _TextFieldSettingState extends State<TextFieldSetting> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(Spacing.lg),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: AppRadius.medium,
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -578,9 +546,7 @@ class _TextFieldSettingState extends State<TextFieldSetting> {
               suffixIcon: widget.obscure
                   ? IconButton(
                       icon: Icon(
-                        _hidden
-                            ? Icons.visibility_rounded
-                            : Icons.visibility_off_rounded,
+                        _hidden ? Icons.visibility_rounded : Icons.visibility_off_rounded,
                       ),
                       tooltip: _hidden ? 'Mostrar' : 'Ocultar',
                       onPressed: () => setState(() => _hidden = !_hidden),
