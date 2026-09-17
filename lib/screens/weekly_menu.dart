@@ -3,6 +3,7 @@ import 'package:aikitchen/screens/weekly_menu_widgets.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/models/prompt.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -91,6 +92,10 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         );
       }
 
+      // El prompt se descarga de la red antes de esto, así que el contexto
+      // puede haber dejado de ser válido.
+      if (!mounted) return;
+
       final response = await AppSingleton().generateContent(
         finalPrompt,
         context,
@@ -145,8 +150,6 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (_isLoading) {
       return const Scaffold(
         body: Center(
@@ -163,11 +166,15 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
           Expanded(
             child: _weeklyMenu.isEmpty
-                ? EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu)
-                : WeeklyMenuList(
-                    diasSemana: _diasSemana,
-                    weeklyMenu: _weeklyMenu,
-                    onRegenerate: _generateWeeklyMenu,
+                ? ContentShell(
+                    child: EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu),
+                  )
+                : ContentShell.wide(
+                    child: WeeklyMenuList(
+                      diasSemana: _diasSemana,
+                      weeklyMenu: _weeklyMenu,
+                      onRegenerate: _generateWeeklyMenu,
+                    ),
                   ),
           ),
         ],

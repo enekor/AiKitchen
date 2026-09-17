@@ -5,6 +5,7 @@ import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -147,20 +148,22 @@ class _FindByNameState extends State<FindByName> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSearchField(theme),
-            const SizedBox(height: 12),
-            _buildHistoryAndSuggestions(theme),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: ContentShell(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSearchField(theme),
+              const SizedBox(height: 12),
+              _buildHistoryAndSuggestions(theme),
 
-            if (_recetas != null) ...[
-              const SizedBox(height: 40),
-              _buildRecipeResults(theme),
+              if (_recetas != null) ...[
+                const SizedBox(height: 40),
+                _buildRecipeResults(theme),
+              ],
+              const SizedBox(height: 60),
             ],
-            const SizedBox(height: 60),
-          ],
+          ),
         ),
       ),
     );
@@ -169,9 +172,9 @@ class _FindByNameState extends State<FindByName> {
   Widget _buildSearchField(ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -191,7 +194,7 @@ class _FindByNameState extends State<FindByName> {
           IconButton(
             icon: Icon(
               _showHistory ? Icons.expand_less_rounded : Icons.history_rounded,
-              color: theme.colorScheme.primary.withOpacity(0.7),
+              color: theme.colorScheme.primary.withValues(alpha: 0.7),
             ),
             onPressed: _toggleHistory,
           ),
@@ -211,7 +214,7 @@ class _FindByNameState extends State<FindByName> {
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+          border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
         ),
         child: ListView.builder(
           shrinkWrap: true,
@@ -252,7 +255,7 @@ class _FindByNameState extends State<FindByName> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   backgroundColor: theme.colorScheme.primaryContainer
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                   side: BorderSide.none,
                 ),
               ),
@@ -297,9 +300,9 @@ class _FindByNameState extends State<FindByName> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(32),
@@ -332,7 +335,7 @@ class _FindByNameState extends State<FindByName> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                       ],

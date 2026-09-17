@@ -1,4 +1,5 @@
 import 'package:aikitchen/services/log_file_service.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:flutter/material.dart';
 
 class LogsScreen extends StatefulWidget {
@@ -62,9 +63,9 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: ContentShell(
           child: SelectableText(
             _logs,
             style: const TextStyle(fontFamily: 'monospace', fontSize: 12),

@@ -1,18 +1,25 @@
 import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:aikitchen/models/cart_item.dart';
-import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/platform/platform_info.dart' as platform;
 import 'package:home_widget/home_widget.dart';
 
 class WidgetService {
+  /// Los widgets de pantalla de inicio solo existen en Android. En navegador
+  /// el plugin no tiene implementación y cada llamada lanzaría una excepción,
+  /// así que se comprueba aquí una vez en lugar de en cada pantalla.
+  static bool get isAvailable => platform.supportsHomeWidgets;
+
   static const String _shoppingListGroupId = 'shopping_list_group';
-  static const String _favoritesGroupId = 'favorites_group';
 
   /// Inicializa los widgets de Android
   static Future<void> initializeWidgets() async {
+    if (!isAvailable) return;
     try {
-      print('Initializing Android widgets...');
+      debugPrint('Initializing Android widgets...');
 
       // Configurar app group si es necesario
       await HomeWidget.setAppGroupId(_shoppingListGroupId);
@@ -21,18 +28,19 @@ class WidgetService {
       await updateShoppingListWidget();
       await updateFavoritesWidget();
 
-      print('Android widgets initialized successfully');
+      debugPrint('Android widgets initialized successfully');
     } catch (e) {
-      print('Error initializing widgets: $e');
+      debugPrint('Error initializing widgets: $e');
     }
   }
 
   /// Actualiza el widget de la lista de compra
   static Future<void> updateShoppingListWidget() async {
+    if (!isAvailable) return;
     try {
       final cartItems = await JsonDocumentsService().getCartItems();
 
-      print(
+      debugPrint(
         'Updating shopping list widget with ${cartItems.length} items',
       ); // Debug
 
@@ -67,7 +75,7 @@ class WidgetService {
         DateTime.now().toIso8601String(),
       );
 
-      print('Shopping list data saved: ${jsonEncode(itemsData)}'); // Debug
+      debugPrint('Shopping list data saved: ${jsonEncode(itemsData)}'); // Debug
 
       // Actualizar el widget
       await HomeWidget.updateWidget(
@@ -75,18 +83,19 @@ class WidgetService {
         androidName: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
       );
 
-      print('Shopping list widget update triggered'); // Debug
+      debugPrint('Shopping list widget update triggered'); // Debug
     } catch (e) {
-      print('Error updating shopping list widget: $e');
+      debugPrint('Error updating shopping list widget: $e');
     }
   }
 
   /// Actualiza el widget de recetas favoritas
   static Future<void> updateFavoritesWidget() async {
+    if (!isAvailable) return;
     try {
       final favoriteRecipes = await JsonDocumentsService().getFavRecipes();
 
-      print(
+      debugPrint(
         'Updating favorites widget with ${favoriteRecipes.length} recipes',
       ); // Debug
 
@@ -118,7 +127,7 @@ class WidgetService {
         DateTime.now().toIso8601String(),
       );
 
-      print('Favorites data saved: ${jsonEncode(widgetData)}'); // Debug
+      debugPrint('Favorites data saved: ${jsonEncode(widgetData)}'); // Debug
 
       // Actualizar el widget
       await HomeWidget.updateWidget(
@@ -126,9 +135,9 @@ class WidgetService {
         androidName: 'com.N3k0chan.aikitchen.FavoritesWidgetProvider',
       );
 
-      print('Favorites widget update triggered'); // Debug
+      debugPrint('Favorites widget update triggered'); // Debug
     } catch (e) {
-      print('Error updating favorites widget: $e');
+      debugPrint('Error updating favorites widget: $e');
     }
   }
 
@@ -137,6 +146,7 @@ class WidgetService {
     String action,
     Map<String, dynamic> data,
   ) async {
+    if (!isAvailable) return;
     try {
       switch (action) {
         case 'toggle_shopping_item':
@@ -152,10 +162,10 @@ class WidgetService {
           // Esta acción será manejada por el MainActivity de Android
           break;
         default:
-          print('Unknown widget action: $action');
+          debugPrint('Unknown widget action: $action');
       }
     } catch (e) {
-      print('Error handling widget action: $e');
+      debugPrint('Error handling widget action: $e');
     }
   }
 
@@ -189,12 +199,17 @@ class WidgetService {
     await updateShoppingListWidget();
   }
 
-  /// Registra callbacks para manejar acciones desde widgets
+  /// Registra el manejador de acciones lanzadas desde los widgets.
   static void registerCallbacks() {
-    HomeWidget.registerBackgroundCallback(_backgroundCallback);
+    if (!isAvailable) return;
+    HomeWidget.registerInteractivityCallback(_backgroundCallback);
   }
 
-  /// Callback para manejar acciones en segundo plano
+  /// Se ejecuta en un contexto aparte cuando el usuario toca el widget.
+  ///
+  /// La anotación es obligatoria: sin ella el compilador de release descarta
+  /// esta función, porque nada del código Dart la llama directamente.
+  @pragma('vm:entry-point')
   static void _backgroundCallback(Uri? uri) {
     if (uri != null) {
       final action = uri.queryParameters['action'];
@@ -203,7 +218,7 @@ class WidgetService {
       if (action != null) {
         // Ejecutar la acción de forma asíncrona sin esperar
         handleWidgetAction(action, data).catchError((error) {
-          print('Error in background callback: $error');
+          debugPrint('Error in background callback: $error');
         });
       }
     }
@@ -211,15 +226,17 @@ class WidgetService {
 
   /// Fuerza la actualización de todos los widgets
   static Future<void> refreshAllWidgets() async {
-    print('Forcing refresh of all widgets...');
+    if (!isAvailable) return;
+    debugPrint('Forcing refresh of all widgets...');
     await updateShoppingListWidget();
     await updateFavoritesWidget();
-    print('All widgets refreshed');
+    debugPrint('All widgets refreshed');
   }
 
   /// Añade datos de prueba simples para debugging
   static Future<void> addSimpleTestData() async {
-    print('Adding simple test data...');
+    if (!isAvailable) return;
+    debugPrint('Adding simple test data...');
 
     // Crear datos de prueba muy simples
     final testData = [
@@ -240,7 +257,7 @@ class WidgetService {
       DateTime.now().toIso8601String(),
     );
 
-    print('Simple test data saved: ${jsonEncode(testData)}');
+    debugPrint('Simple test data saved: ${jsonEncode(testData)}');
 
     // Actualizar el widget
     await HomeWidget.updateWidget(
@@ -248,12 +265,13 @@ class WidgetService {
       androidName: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
     );
 
-    print('Simple test widget update triggered');
+    debugPrint('Simple test widget update triggered');
   }
 
   /// Método de depuración mejorado con logging detallado
   static Future<void> addDebugTestData() async {
-    print('=== DEBUG: Adding test data with detailed logging ===');
+    if (!isAvailable) return;
+    debugPrint('=== DEBUG: Adding test data with detailed logging ===');
 
     try {
       // Crear datos de prueba
@@ -264,35 +282,35 @@ class WidgetService {
         {'name': 'Debug Item 4', 'isPurchased': false},
       ];
 
-      print('DEBUG: Test data created: ${jsonEncode(testData)}');
+      debugPrint('DEBUG: Test data created: ${jsonEncode(testData)}');
 
       // Guardar datos usando HomeWidget
-      print('DEBUG: Saving shopping_list_items...');
+      debugPrint('DEBUG: Saving shopping_list_items...');
       await HomeWidget.saveWidgetData<String>(
         'shopping_list_items',
         jsonEncode(testData),
       );
 
-      print('DEBUG: Saving counts...');
+      debugPrint('DEBUG: Saving counts...');
       await HomeWidget.saveWidgetData<int>('pending_count', 3);
       await HomeWidget.saveWidgetData<int>('completed_count', 1);
 
-      print('DEBUG: Saving timestamp...');
+      debugPrint('DEBUG: Saving timestamp...');
       await HomeWidget.saveWidgetData<String>(
         'last_updated',
         DateTime.now().toIso8601String(),
       );
 
       // Verificar que los datos se guardaron
-      print('DEBUG: Verifying saved data...');
+      debugPrint('DEBUG: Verifying saved data...');
       final savedData = await HomeWidget.getWidgetData<String>(
         'shopping_list_items',
         defaultValue: '[]',
       );
-      print('DEBUG: Retrieved data: $savedData');
+      debugPrint('DEBUG: Retrieved data: $savedData');
 
       // Forzar actualización del widget con múltiples intentos
-      print('DEBUG: Updating widget (attempt 1)...');
+      debugPrint('DEBUG: Updating widget (attempt 1)...');
       await HomeWidget.updateWidget(
         name: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
         androidName: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
@@ -301,16 +319,16 @@ class WidgetService {
       // Esperar un momento y actualizar de nuevo
       await Future.delayed(Duration(milliseconds: 500));
 
-      print('DEBUG: Updating widget (attempt 2)...');
+      debugPrint('DEBUG: Updating widget (attempt 2)...');
       await HomeWidget.updateWidget(
         name: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
         androidName: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
       );
 
-      print('=== DEBUG: Test data setup completed ===');
+      debugPrint('=== DEBUG: Test data setup completed ===');
     } catch (e, stackTrace) {
-      print('DEBUG ERROR: $e');
-      print('DEBUG STACKTRACE: $stackTrace');
+      debugPrint('DEBUG ERROR: $e');
+      debugPrint('DEBUG STACKTRACE: $stackTrace');
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
@@ -130,23 +131,25 @@ class _FindByIngredientsState extends State<FindByIngredients> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInputSection(theme),
-            const SizedBox(height: 16),
-            _buildIngredientChips(theme),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: ContentShell(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInputSection(theme),
+              const SizedBox(height: 16),
+              _buildIngredientChips(theme),
 
-            const SizedBox(height: 32),
-            _buildActionButtons(theme),
+              const SizedBox(height: 32),
+              _buildActionButtons(theme),
 
-            if (recetas != null) ...[
-              const SizedBox(height: 40),
-              _buildResults(theme),
+              if (recetas != null) ...[
+                const SizedBox(height: 40),
+                _buildResults(theme),
+              ],
+              const SizedBox(height: 60),
             ],
-            const SizedBox(height: 60),
-          ],
+          ),
         ),
       ),
     );
@@ -155,9 +158,9 @@ class _FindByIngredientsState extends State<FindByIngredients> {
   Widget _buildInputSection(ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -200,9 +203,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              backgroundColor: theme.colorScheme.secondaryContainer.withOpacity(
-                0.5,
-              ),
+              backgroundColor: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5,),
               side: BorderSide.none,
             ),
           )
@@ -276,9 +277,9 @@ class _FindByIngredientsState extends State<FindByIngredients> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(32),
@@ -311,7 +312,7 @@ class _FindByIngredientsState extends State<FindByIngredients> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                       ],

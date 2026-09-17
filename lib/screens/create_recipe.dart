@@ -1,8 +1,8 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class CreateRecipe extends StatefulWidget {
   final Recipe? recipe;
@@ -110,8 +110,9 @@ class _CreateRecipeState extends State<CreateRecipe> {
           ),*/
 
           // Formulario
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 120),
+          SliverContentShell(
+            sliver: SliverPadding(
+            padding: const EdgeInsets.only(top: 16, bottom: 120),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _sectionHeader(
@@ -195,6 +196,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                 ),
               ]),
             ),
+            ),
           ),
         ],
       ),
@@ -247,9 +249,9 @@ class _CreateRecipeState extends State<CreateRecipe> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.05)),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.05)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
@@ -260,12 +262,12 @@ class _CreateRecipeState extends State<CreateRecipe> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-            color: theme.colorScheme.onSurface.withOpacity(0.4),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           prefixIcon: Icon(
             icon,
             size: 20,
-            color: theme.colorScheme.primary.withOpacity(0.7),
+            color: theme.colorScheme.primary.withValues(alpha: 0.7),
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 20),
@@ -289,7 +291,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(12),
@@ -311,7 +313,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                   prefixIcon: Icon(
                     icon,
                     size: 18,
-                    color: theme.colorScheme.secondary.withOpacity(0.6),
+                    color: theme.colorScheme.secondary.withValues(alpha: 0.6),
                   ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 18),

@@ -15,14 +15,14 @@ class IngredientsList extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+          color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(28),
             topRight: Radius.circular(12),
             bottomLeft: Radius.circular(12),
             bottomRight: Radius.circular(28),
           ),
-          border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.1)),
+          border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [

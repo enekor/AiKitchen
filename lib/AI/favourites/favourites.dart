@@ -3,15 +3,18 @@ import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/platform/platform_info.dart' as platform;
+import 'package:aikitchen/services/recipe_from_file_service.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
+import 'package:aikitchen/widgets/responsive_card_list.dart';
 import 'package:aikitchen/widgets/toaster.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Favourites extends StatefulWidget {
   const Favourites({super.key});
@@ -102,43 +105,57 @@ class _FavouritesState extends State<Favourites> {
 
   Future<void> _openSharedRecipe() async {
     try {
-      if (Platform.isAndroid) {
+      if (platform.isAndroid) {
         final plugin = DeviceInfoPlugin();
         final androidInfo = await plugin.androidInfo;
-        
-        // En Android 13+ (API 33+), el FilePicker utiliza el Storage Access Framework (SAF)
-        // que NO requiere pedir permisos de lectura generales (READ_EXTERNAL_STORAGE)
-        // ni permisos multimedia (READ_MEDIA_*) para los archivos que el usuario selecciona
-        // explícitamente a través de la interfaz nativa.
+
+        // Desde Android 13 el selector usa el Storage Access Framework, que no
+        // necesita permisos de lectura para los ficheros que el usuario elige.
         if (androidInfo.version.sdkInt < 33) {
           final status = await Permission.storage.request();
           if (!status.isGranted) {
-            Toaster.showWarning('Se requiere permiso para leer archivos en esta versión de Android');
+            Toaster.showWarning(
+              'Se requiere permiso para leer archivos en esta versión de Android',
+            );
             return;
           }
         }
       }
 
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.any, // Usamos any para evitar problemas de filtrado por extensión en Android
+        type: FileType.any,
+        // En navegador los bytes solo llegan si se piden explícitamente.
+        withData: kIsWeb,
       );
-      
-      if (result != null && result.files.single.path != null) {
-        final path = result.files.single.path!;
-        if (!path.toLowerCase().endsWith('.aikr')) {
-          Toaster.showWarning('Por favor, selecciona un archivo .aikr');
-          return;
-        }
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PreviewSharedFiles(recipeUri: path),
-            ),
-          ).then((_) {
-            _loadFavorites();
-          });
-        }
+      if (result == null || result.files.isEmpty) return;
+
+      final picked = result.files.single;
+      if (!picked.name.toLowerCase().endsWith('.aikr')) {
+        Toaster.showWarning('Por favor, selecciona un archivo .aikr');
+        return;
+      }
+
+      // En navegador no existe `path`: el selector devuelve solo los bytes.
+      // Antes se comprobaba `path != null` y en web fallaba en silencio.
+      Widget preview;
+      if (picked.path != null) {
+        preview = PreviewSharedFiles(recipeUri: picked.path!);
+      } else if (picked.bytes != null) {
+        preview = PreviewSharedFiles(
+          recipes: RecipeFromFileService().loadRecipesFromBytes(picked.bytes!),
+        );
+      } else {
+        Toaster.showError('No se ha podido leer el archivo');
+        return;
+      }
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => preview),
+        ).then((_) {
+          _loadFavorites();
+        });
       }
     } catch (e) {
       debugPrint('Error al abrir el archivo: $e');
@@ -155,8 +172,9 @@ class _FavouritesState extends State<Favourites> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          ContentShell.wide(
+            child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -165,7 +183,7 @@ class _FavouritesState extends State<Favourites> {
                       hintText: 'Buscar recetas...',
                       prefixIcon: const Icon(Icons.search_rounded),
                       filled: true,
-                      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
@@ -187,6 +205,7 @@ class _FavouritesState extends State<Favourites> {
                   ),
                 ),
               ],
+            ),
             ),
           ),
           SizedBox(height: 16),
@@ -224,7 +243,7 @@ class _FavouritesState extends State<Favourites> {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -245,7 +264,7 @@ class _FavouritesState extends State<Favourites> {
             'Las recetas que guardes aparecerán aquí.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -254,24 +273,22 @@ class _FavouritesState extends State<Favourites> {
   }
 
   Widget _buildRecipeList(ThemeData theme, List<Recipe> recipes) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      itemCount: recipes.length,
-      itemBuilder: (context, index) {
-        final recipe = recipes[index];
+    return ContentShell.wide(
+      child: ResponsiveCardList(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        children: recipes.map((recipe) {
         final isSelected = _selectedRecipes.contains(recipe);
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: isSelected
                 ? theme.colorScheme.primaryContainer
-                : theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
               color: isSelected
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.outline.withOpacity(0.1),
+                  : theme.colorScheme.outline.withValues(alpha: 0.1),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -317,7 +334,7 @@ class _FavouritesState extends State<Favourites> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   if (!_isSelectionMode) ...[
@@ -366,7 +383,8 @@ class _FavouritesState extends State<Favourites> {
             ),
           ),
         );
-      },
+        }).toList(),
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,7 +15,7 @@ class SwitchSetting extends StatefulWidget {
   });
 
   @override
-  _SwitchSettingState createState() => _SwitchSettingState();
+  State<SwitchSetting> createState() => _SwitchSettingState();
 }
 
 class _SwitchSettingState extends State<SwitchSetting> {
@@ -85,7 +86,7 @@ class ScrollbarSetting extends StatefulWidget {
   });
 
   @override
-  _ScrollbarSettingState createState() => _ScrollbarSettingState();
+  State<ScrollbarSetting> createState() => _ScrollbarSettingState();
 }
 
 class _ScrollbarSettingState extends State<ScrollbarSetting> {
@@ -103,7 +104,7 @@ class _ScrollbarSettingState extends State<ScrollbarSetting> {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(42),
@@ -128,7 +129,7 @@ class _ScrollbarSettingState extends State<ScrollbarSetting> {
             data: SliderTheme.of(context).copyWith(
               trackHeight: 24, // Barra gruesa M3 Expressive (estilo imagen 2)
               activeTrackColor: theme.colorScheme.primary,
-              inactiveTrackColor: theme.colorScheme.primary.withOpacity(0.1),
+              inactiveTrackColor: theme.colorScheme.primary.withValues(alpha: 0.1),
               thumbColor: theme.colorScheme.onPrimary,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0), // Pulgar invisible o integrado
               overlayColor: Colors.transparent,
@@ -173,7 +174,7 @@ class MultiListSetting extends StatefulWidget {
   });
 
   @override
-  _MultiListSettingState createState() => _MultiListSettingState();
+  State<MultiListSetting> createState() => _MultiListSettingState();
 }
 
 class _MultiListSettingState extends State<MultiListSetting> {
@@ -194,7 +195,7 @@ class _MultiListSettingState extends State<MultiListSetting> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.secondaryContainer.withOpacity(0.4),
+          color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
           borderRadius: const BorderRadius.all(Radius.circular(42)),
         ),
         child: Row(
@@ -227,7 +228,6 @@ class _MultiListSettingState extends State<MultiListSetting> {
   }
 
   void _showSelectionModal() async {
-    final theme = Theme.of(context);
     final result = await showModalBottomSheet<List<String>>(
       context: context,
       isScrollControlled: true,
@@ -260,7 +260,7 @@ class SingleListSetting extends StatefulWidget {
   });
 
   @override
-  _SingleListSettingState createState() => _SingleListSettingState();
+  State<SingleListSetting> createState() => _SingleListSettingState();
 }
 
 class _SingleListSettingState extends State<SingleListSetting> {
@@ -281,7 +281,7 @@ class _SingleListSettingState extends State<SingleListSetting> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer.withOpacity(0.2),
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
           borderRadius: const BorderRadius.all(Radius.circular(42)),
         ),
         child: Row(
@@ -342,23 +342,31 @@ class _ExpressiveSingleSelectionModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
+      // Alto máximo en vez de fijo: en apaisado la pantalla es baja y una
+      // altura proporcional dejaba la hoja ocupando casi todo.
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(42)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.lg),
+        ),
       ),
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(width: 48, height: 6, decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(3))),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.lg),
           Text(text, style: GoogleFonts.robotoFlex(textStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900))),
           const SizedBox(height: 24),
-          Expanded(
+          Flexible(
             child: ListView.builder(
+              shrinkWrap: true,
               itemCount: options.length,
               itemBuilder: (context, index) {
                 final option = options[index];
@@ -420,23 +428,31 @@ class _ExpressiveSelectionModalState extends State<_ExpressiveSelectionModal> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      // Alto máximo en vez de fijo: en apaisado la pantalla es baja y una
+      // altura proporcional dejaba la hoja ocupando casi todo.
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(42)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.lg),
+        ),
       ),
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(width: 48, height: 6, decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(3))),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.lg),
           Text(widget.text, style: GoogleFonts.robotoFlex(textStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900))),
           const SizedBox(height: 24),
-          Expanded(
+          Flexible(
             child: ListView.builder(
+              shrinkWrap: true,
               itemCount: widget.options.length,
               itemBuilder: (context, index) {
                 final option = widget.options[index];
@@ -473,6 +489,119 @@ class _ExpressiveSelectionModalState extends State<_ExpressiveSelectionModal> {
               onPressed: () => Navigator.pop(context, tempSelected),
               style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
               child: const Text('CONFIRMAR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Ajuste de texto libre, con guardado explícito.
+///
+/// Se usa para valores que el usuario teclea y conviene revisar antes de
+/// aplicar, como la clave de API o la dirección del proxy.
+class TextFieldSetting extends StatefulWidget {
+  const TextFieldSetting({
+    super.key,
+    required this.initialValue,
+    required this.text,
+    required this.onSave,
+    this.hint,
+    this.helper,
+    this.obscure = false,
+  });
+
+  final String initialValue;
+  final String text;
+  final String? hint;
+  final String? helper;
+  final bool obscure;
+  final ValueChanged<String> onSave;
+
+  @override
+  State<TextFieldSetting> createState() => _TextFieldSettingState();
+}
+
+class _TextFieldSettingState extends State<TextFieldSetting> {
+  late final TextEditingController _controller;
+  late String _saved;
+  bool _hidden = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _saved = widget.initialValue;
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  bool get _dirty => _controller.text != _saved;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: AppRadius.medium,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(widget.text, style: theme.textTheme.titleMedium),
+          if (widget.helper != null) ...[
+            const SizedBox(height: Spacing.xs),
+            Text(
+              widget.helper!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          const SizedBox(height: Spacing.md),
+          TextField(
+            controller: _controller,
+            obscureText: widget.obscure && _hidden,
+            autocorrect: false,
+            enableSuggestions: false,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: widget.hint,
+              suffixIcon: widget.obscure
+                  ? IconButton(
+                      icon: Icon(
+                        _hidden
+                            ? Icons.visibility_rounded
+                            : Icons.visibility_off_rounded,
+                      ),
+                      tooltip: _hidden ? 'Mostrar' : 'Ocultar',
+                      onPressed: () => setState(() => _hidden = !_hidden),
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              // Deshabilitado mientras no haya cambios, para que se vea de un
+              // vistazo si queda algo por guardar.
+              onPressed: _dirty
+                  ? () {
+                      final value = _controller.text.trim();
+                      widget.onSave(value);
+                      setState(() => _saved = value);
+                    }
+                  : null,
+              child: const Text('Guardar'),
             ),
           ),
         ],

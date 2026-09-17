@@ -47,7 +47,7 @@ class _StepsListState extends State<StepsList> {
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.restaurant_menu_rounded, size: 48, color: theme.colorScheme.primary),
@@ -86,7 +86,7 @@ class _StepsListState extends State<StepsList> {
           decoration: BoxDecoration(
             color: isCurrent 
               ? theme.colorScheme.primaryContainer 
-              : (isDone ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : theme.colorScheme.surface),
+              : (isDone ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3) : theme.colorScheme.surface),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(12),
               topRight: Radius.circular(42),
@@ -94,7 +94,7 @@ class _StepsListState extends State<StepsList> {
               bottomRight: Radius.circular(12),
             ),
             border: Border.all(
-              color: isCurrent ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.1),
+              color: isCurrent ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.1),
               width: isCurrent ? 2 : 1,
             ),
           ),
@@ -108,7 +108,7 @@ class _StepsListState extends State<StepsList> {
                     style: GoogleFonts.robotoFlex(
                       textStyle: theme.textTheme.displaySmall?.copyWith(
                         fontWeight: FontWeight.w900,
-                        color: isCurrent ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.5),
+                        color: isCurrent ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -122,7 +122,7 @@ class _StepsListState extends State<StepsList> {
                 style: theme.textTheme.bodyLarge?.copyWith(
                   height: 1.6,
                   fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                  color: isDone ? theme.colorScheme.onSurface.withOpacity(0.4) : theme.colorScheme.onSurface,
+                  color: isDone ? theme.colorScheme.onSurface.withValues(alpha: 0.4) : theme.colorScheme.onSurface,
                 ),
               ),
               if (isCurrent) ...[

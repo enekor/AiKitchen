@@ -1,18 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/services/gemini_service.dart';
 import 'package:aikitchen/services/groq_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
-import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/warning_modal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:properties/properties.dart';
-import 'package:share_plus/share_plus.dart';
 
 class AppSingleton {
   static final AppSingleton _instance = AppSingleton._internal();
@@ -25,10 +17,11 @@ class AppSingleton {
   String _selectedModel = 'llama-3.3-70b-versatile';
   List<Recipe> recetasFavoritas = [];
   
-  GeminiService? _geminiService;
   GroqService? _groqService;
   
-  String _tipoReceta = 'omnívora';
+  // Debe coincidir con el nombre de la constante del enum, sin acento, porque
+  // ese es el valor que se guarda y se vuelve a leer.
+  String _tipoReceta = 'omnivora';
   bool _useTTS = false;
 
   factory AppSingleton() {
@@ -121,33 +114,17 @@ class AppSingleton {
         ) ??
         'llama-3.3-70b-versatile';
 
-    // Primero intentamos cargar la API Key del archivo de configuración
-    try {
-      final propertiesContent = await rootBundle.loadString('config.properties');
-      Properties p = Properties.fromString(propertiesContent);
-
-      _apiKey = p.get('GROQ_API_KEY');
-
-      if (_apiKey != null && (_apiKey!.isEmpty || _apiKey == 'tu_api_key_aqui')) {
-        _apiKey = null;
-      }
-    } catch (e) {
-      debugPrint('Error cargando config.properties: $e');
-      _apiKey = null;
-    }
-
-    // Si no se encontró en config.properties, miramos en SQLite (via wrapper)
-    if (_apiKey == null) {
-      _apiKey = await SharedPreferencesService.getStringValue(
-        SharedPreferencesKeys.geminiApiKey,
-      );
-    }
+    // La clave la introduce el usuario en Ajustes y se guarda solo en su
+    // dispositivo. Antes se leía también de un fichero de recursos, pero en
+    // web ese fichero queda descargable por cualquiera.
+    _apiKey = await SharedPreferencesService.getStringValue(
+      SharedPreferencesKeys.geminiApiKey,
+    );
 
     _useTTS = await SharedPreferencesService.getBoolValue(
       SharedPreferencesKeys.useTTS,
     );
 
-    _geminiService = GeminiService();
     _groqService = GroqService();
 
     recetasFavoritas = await JsonDocumentsService().getFavRecipes();
@@ -192,19 +169,7 @@ class AppSingleton {
   }
 
   Future<void> shareRecipe(Recipe recipe, BuildContext context) async {
-    try {
-      final directory = await getExternalStorageDirectory();
-      if (directory != null) {
-        final file = File('${directory.path}/${recipe.nombre}.aikr');
-        await file.writeAsString(jsonEncode(recipe.toJson()));
-        final xFile = XFile(file.path);
-        await SharePlus.instance.share(
-          ShareParams(files: [xFile], text: 'Mira esta receta:'),
-        );
-      }
-    } catch (e) {
-      Toaster.showError('Error al guardar o compartir la receta: $e');
-    }
+    await ShareRecipeService().shareRecipe([recipe]);
   }
 }
 

@@ -1,4 +1,4 @@
-import 'package:aikitchen/services/sqlite_service.dart';
+import 'package:aikitchen/services/storage/app_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum SharedPreferencesKeys {
@@ -12,23 +12,26 @@ enum SharedPreferencesKeys {
   useTTS,
   termsAccepted,
   firstStart,
-  selectedModel
+  selectedModel,
+  themeMode,
+  corsProxy,
 }
 
 class SharedPreferencesService {
-  // Solo estas claves se mantienen en SharedPreferences. 
-  // El resto van a SQLite tabla 'preferences'.
-  static bool _isSqliteKey(SharedPreferencesKeys key) {
+  /// `firstStart` y `termsAccepted` viven en SharedPreferences puro porque se
+  /// leen antes de que el almacenamiento principal esté listo. El resto pasa
+  /// por [appStorage], que en web es localStorage y en móvil es SQLite.
+  static bool _isStorageKey(SharedPreferencesKeys key) {
     return key != SharedPreferencesKeys.firstStart &&
-           key != SharedPreferencesKeys.termsAccepted;
+        key != SharedPreferencesKeys.termsAccepted;
   }
 
   static Future<void> setStringValue(
     SharedPreferencesKeys key,
     String value,
   ) async {
-    if (_isSqliteKey(key)) {
-      await SqliteService().editPreference(key.toString(), value);
+    if (_isStorageKey(key)) {
+      await appStorage.setPreference(key.toString(), value);
     } else {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(key.toString(), value);
@@ -36,8 +39,8 @@ class SharedPreferencesService {
   }
 
   static Future<String?> getStringValue(SharedPreferencesKeys key) async {
-    if (_isSqliteKey(key)) {
-      return await SqliteService().getByPreference(key.toString());
+    if (_isStorageKey(key)) {
+      return await appStorage.getPreference(key.toString());
     } else {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(key.toString());
@@ -47,8 +50,8 @@ class SharedPreferencesService {
   static Future<List<String>> getStringListValue(
     SharedPreferencesKeys key,
   ) async {
-    if (_isSqliteKey(key)) {
-      String? val = await SqliteService().getByPreference(key.toString());
+    if (_isStorageKey(key)) {
+      final val = await appStorage.getPreference(key.toString());
       return val != null && val.isNotEmpty ? val.split(',') : [];
     } else {
       final prefs = await SharedPreferences.getInstance();
@@ -60,8 +63,8 @@ class SharedPreferencesService {
     SharedPreferencesKeys key,
     List<String> value,
   ) async {
-    if (_isSqliteKey(key)) {
-      await SqliteService().editPreference(key.toString(), value.join(','));
+    if (_isStorageKey(key)) {
+      await appStorage.setPreference(key.toString(), value.join(','));
     } else {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(key.toString(), value);
@@ -72,8 +75,8 @@ class SharedPreferencesService {
     SharedPreferencesKeys key,
     bool value,
   ) async {
-    if (_isSqliteKey(key)) {
-      await SqliteService().editPreference(key.toString(), value.toString());
+    if (_isStorageKey(key)) {
+      await appStorage.setPreference(key.toString(), value.toString());
     } else {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(key.toString(), value);
@@ -81,8 +84,8 @@ class SharedPreferencesService {
   }
 
   static Future<bool> getBoolValue(SharedPreferencesKeys key) async {
-    if (_isSqliteKey(key)) {
-      String? val = await SqliteService().getByPreference(key.toString());
+    if (_isStorageKey(key)) {
+      final val = await appStorage.getPreference(key.toString());
       return val == 'true';
     } else {
       final prefs = await SharedPreferences.getInstance();
@@ -90,8 +93,11 @@ class SharedPreferencesService {
     }
   }
 
-  static void removeValue(SharedPreferencesKeys key) async{
+  static Future<void> removeValue(SharedPreferencesKeys key) async {
+    if (_isStorageKey(key)) {
+      await appStorage.deletePreference(key.toString());
+    }
     final prefs = await SharedPreferences.getInstance();
-    prefs.remove(key.toString());
+    await prefs.remove(key.toString());
   }
 }

@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/services/cors_proxy.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -83,10 +86,14 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
     });
 
     try {
-      // Fetch URL content
+      // En navegador la petición va por el proxy: leer otra web directamente
+      // desde el cliente lo impide CORS.
       final httpResponse = await http
-          .get(Uri.parse(url), headers: {'User-Agent': 'Mozilla/5.0'})
-          .timeout(const Duration(seconds: 15));
+          .get(
+            CorsProxy.wrap(Uri.parse(url)),
+            headers: kIsWeb ? const {} : const {'User-Agent': 'Mozilla/5.0'},
+          )
+          .timeout(const Duration(seconds: 20));
 
       if (httpResponse.statusCode != 200) {
         _handleError(
@@ -101,7 +108,10 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
           ? rawText.substring(0, 7000)
           : rawText;
 
-      // Call AI
+      // Si el usuario ha salido mientras se descargaba la web, no hay
+      // contexto válido con el que seguir.
+      if (!mounted) return;
+
       final aiResponse = await AppSingleton().generateContent(
         Prompt.recipeFromUrlPrompt(
           content,
@@ -135,14 +145,22 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
           _loading = false;
         });
       }
+    } on http.ClientException catch (e) {
+      // En navegador esto es casi siempre CORS, no una web caída.
+      debugPrint('Error de red leyendo la URL: $e');
+      _handleError(CorsProxy.failureHint);
     } catch (e) {
       _handleError(e.toString());
     }
   }
 
   void _handleError(String error) {
-    setState(() => _loading = false);
-    Toaster.showError('Error: ${error.split(":").last.trim()}');
+    final message = error.replaceFirst(RegExp(r'^\w*Exception:\s*'), '').trim();
+    setState(() {
+      _loading = false;
+      _errorMessage = message;
+    });
+    Toaster.showError(message);
   }
 
   void _onFavRecipe(Recipe recipe) {
@@ -178,25 +196,27 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildUrlInput(theme),
-            const SizedBox(height: 20),
-            _buildGenerateButton(theme),
-            if (_errorMessage != null) ...[
-              const SizedBox(height: 32),
-              _buildErrorCard(theme),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: ContentShell(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildUrlInput(theme),
+              const SizedBox(height: 20),
+              _buildGenerateButton(theme),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 32),
+                _buildErrorCard(theme),
+              ],
+              if (_recipe != null) ...[
+                const SizedBox(height: 40),
+                _buildResultHeader(theme),
+                const SizedBox(height: 16),
+                _recipeCard(theme, _recipe!),
+              ],
+              const SizedBox(height: 60),
             ],
-            if (_recipe != null) ...[
-              const SizedBox(height: 40),
-              _buildResultHeader(theme),
-              const SizedBox(height: 16),
-              _recipeCard(theme, _recipe!),
-            ],
-            const SizedBox(height: 60),
-          ],
+          ),
         ),
       ),
     );
@@ -205,9 +225,9 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
   Widget _buildUrlInput(ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -230,7 +250,7 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
             IconButton(
               onPressed: () => setState(() => _urlController.clear()),
               icon: const Icon(Icons.close_rounded),
-              color: theme.colorScheme.onSurface.withOpacity(0.4),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
             ),
         ],
       ),
@@ -259,9 +279,9 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.errorContainer.withOpacity(0.5),
+        color: theme.colorScheme.errorContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
+        border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,9 +322,9 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
     );
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(32),
@@ -337,7 +357,7 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                       ],

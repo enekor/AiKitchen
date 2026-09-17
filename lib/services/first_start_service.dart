@@ -1,7 +1,10 @@
-import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
-import 'package:aikitchen/services/sqlite_service.dart';
+import 'package:aikitchen/services/storage/app_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+/// Migración única desde el almacenamiento antiguo (SharedPreferences puro)
+/// al almacenamiento actual ([appStorage]).
 class FirstStartService {
   static final FirstStartService _instance = FirstStartService._internal();
 
@@ -12,73 +15,39 @@ class FirstStartService {
   }
 
   Future<void> firstStart() async {
-    // Si 'firstStart' es false (valor por defecto), significa que es la primera vez
-    // que ejecutamos esta versión con SQLite y debemos migrar los datos.
-    bool alreadyStarted = await SharedPreferencesService.getBoolValue(
+    final alreadyStarted = await SharedPreferencesService.getBoolValue(
       SharedPreferencesKeys.firstStart,
     );
+    if (alreadyStarted) return;
 
-    if (!alreadyStarted) {
-      final sqlite = SqliteService();
-      final jsonService = JsonDocumentsService();
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-      // 1. Migrar todas las SharedPreferences a la tabla 'preferences' de SQLite
-      for (var key in SharedPreferencesKeys.values) {
+      // Se leen los valores heredados directamente de SharedPreferences y se
+      // vuelcan al almacenamiento actual. Leerlos vía SharedPreferencesService
+      // no serviría: ese ya apunta al destino de la migración.
+      for (final key in SharedPreferencesKeys.values) {
         if (key == SharedPreferencesKeys.firstStart) continue;
         if (key == SharedPreferencesKeys.termsAccepted) continue;
 
-        // Intentamos obtener el valor como String (la mayoría lo son o se pueden tratar como tal)
-        String? value;
-        if (key == SharedPreferencesKeys.useTTS ||
-            key == SharedPreferencesKeys.termsAccepted) {
-          bool boolVal = await SharedPreferencesService.getBoolValue(key);
-          value = boolVal.toString();
-        } else if (key == SharedPreferencesKeys.historialBusquedaNombres) {
-          List<String> listVal = await SharedPreferencesService.getStringListValue(
-            key,
-          );
-          value = listVal.join(',');
-        } else {
-          value = await SharedPreferencesService.getStringValue(key);
+        final name = key.toString();
+        final legacy = prefs.get(name);
+        if (legacy == null) continue;
+
+        final value = legacy is List<String> ? legacy.join(',') : '$legacy';
+        if (value.isNotEmpty) {
+          await appStorage.setPreference(name, value);
         }
-
-        if (value != null) {
-          await sqlite.editPreference(key.toString(), value);
-        }
-
-        SharedPreferencesService.removeValue(key);
+        await prefs.remove(name);
       }
-
-      // 2. Migrar recetas favoritas
-      final favRecipes = await jsonService.getFavRecipes();
-      for (var recipe in favRecipes) {
-        await sqlite.insertFavRecipe(recipe);
-      }
-
-      // 3. Migrar lista de la compra
-      final cartItems = await jsonService.getCartItems();
-      for (var item in cartItems) {
-        await sqlite.insertCartItem(item);
-      }
-
-      // 4. Migrar menú semanal
-      final weeklyMenu = await jsonService.loadWeeklyMenu();
-      if (weeklyMenu.isNotEmpty) {
-        await sqlite.clearMenu(); // Limpiar por si acaso
-        weeklyMenu.forEach((dia, recetas) {
-          for (var i = 0; i < recetas.length; i++) {
-            // Asumimos el orden basado en la lógica de WeeklyMenu (Comida, Cena)
-            String tipoComida = i == 0 ? 'Comida' : 'Cena';
-            sqlite.insertMenuRecipe(recetas[i], dia, tipoComida);
-          }
-        });
-      }
-
-      // Marcar que la migración se ha completado
-      await SharedPreferencesService.setBoolValue(
-        SharedPreferencesKeys.firstStart,
-        true,
-      );
+    } catch (e) {
+      // La migración nunca debe impedir que la app arranque.
+      debugPrint('Error migrando preferencias heredadas: $e');
     }
+
+    await SharedPreferencesService.setBoolValue(
+      SharedPreferencesKeys.firstStart,
+      true,
+    );
   }
 }

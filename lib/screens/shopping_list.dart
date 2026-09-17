@@ -4,6 +4,8 @@ import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
+import 'package:aikitchen/widgets/responsive_card_list.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +13,7 @@ class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
 
   @override
-  _ShoppingListState createState() => _ShoppingListState();
+  State<ShoppingList> createState() => _ShoppingListState();
 }
 
 class _ShoppingListState extends State<ShoppingList> {
@@ -63,11 +65,6 @@ class _ShoppingListState extends State<ShoppingList> {
       await WidgetService.updateShoppingListWidget();
       await _loadShoppingList();
     }
-  }
-
-  Future<void> _clearCompleted() async {
-    await WidgetService.handleWidgetAction('clear_completed', {});
-    await _loadShoppingList();
   }
 
   void _showAIGeneratorModal() {
@@ -132,8 +129,7 @@ class _ShoppingListState extends State<ShoppingList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Stats Row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+          ContentShell.wide(
             child: Row(
               children: [
                 _buildStatCard(theme, '${pendingItems.length}', 'Pendientes', theme.colorScheme.primaryContainer, theme.colorScheme.onPrimaryContainer),
@@ -146,13 +142,12 @@ class _ShoppingListState extends State<ShoppingList> {
           const SizedBox(height: 24),
 
           // Add Item Field
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+          ContentShell.wide(
             child: Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(32),
-                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Row(
@@ -184,13 +179,18 @@ class _ShoppingListState extends State<ShoppingList> {
           Expanded(
             child: _shoppingList.isEmpty
                 ? _buildEmptyState(theme)
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: _shoppingList.length,
-                    itemBuilder: (context, index) {
-                      final item = _shoppingList[index];
-                      return _buildShoppingItem(theme, item, index);
-                    },
+                : ContentShell.wide(
+                    child: ResponsiveCardList(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        for (var index = 0; index < _shoppingList.length; index++)
+                          _buildShoppingItem(
+                            theme,
+                            _shoppingList[index],
+                            index,
+                          ),
+                      ],
+                    ),
                   ),
           ),
         ],
@@ -220,7 +220,7 @@ class _ShoppingListState extends State<ShoppingList> {
         child: Column(
           children: [
             Text(count, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: textColor)),
-            Text(label, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor.withOpacity(0.8))),
+            Text(label, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor.withValues(alpha: 0.8))),
           ],
         ),
       ),
@@ -229,14 +229,13 @@ class _ShoppingListState extends State<ShoppingList> {
 
   Widget _buildShoppingItem(ThemeData theme, CartItem item, int index) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: item.isPurchased 
-            ? theme.colorScheme.surfaceVariant.withOpacity(0.2)
-            : theme.colorScheme.surfaceVariant.withOpacity(0.5),
+        color: item.isPurchased
+            ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2)
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: item.isPurchased ? Colors.transparent : theme.colorScheme.outline.withOpacity(0.1),
+          color: item.isPurchased ? Colors.transparent : theme.colorScheme.outline.withValues(alpha: 0.1),
         ),
       ),
       child: ListTile(
@@ -251,12 +250,12 @@ class _ShoppingListState extends State<ShoppingList> {
           style: theme.textTheme.bodyLarge?.copyWith(
             fontWeight: item.isPurchased ? FontWeight.normal : FontWeight.bold,
             decoration: item.isPurchased ? TextDecoration.lineThrough : null,
-            color: item.isPurchased ? theme.colorScheme.onSurface.withOpacity(0.4) : theme.colorScheme.onSurface,
+            color: item.isPurchased ? theme.colorScheme.onSurface.withValues(alpha: 0.4) : theme.colorScheme.onSurface,
           ),
         ),
         trailing: IconButton(
           onPressed: () => _removeItem(index),
-          icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error.withOpacity(0.7)),
+          icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error.withValues(alpha: 0.7)),
         ),
       ),
     );
@@ -270,7 +269,7 @@ class _ShoppingListState extends State<ShoppingList> {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.shopping_bag_rounded, size: 64, color: theme.colorScheme.primary),
@@ -278,7 +277,7 @@ class _ShoppingListState extends State<ShoppingList> {
           const SizedBox(height: 24),
           Text('¡Lista vacía!', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          Text('Añade artículos o usa la IA para generar una.', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
+          Text('Añade artículos o usa la IA para generar una.', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
         ],
       ),
     );
@@ -301,7 +300,7 @@ class _ShoppingListState extends State<ShoppingList> {
             Center(
               child: Container(
                 width: 40, height: 4,
-                decoration: BoxDecoration(color: theme.colorScheme.outline.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(color: theme.colorScheme.outline.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
               ),
             ),
             const SizedBox(height: 24),
@@ -319,7 +318,7 @@ class _ShoppingListState extends State<ShoppingList> {
               decoration: InputDecoration(
                 labelText: 'Número de personas',
                 filled: true,
-                fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 prefixIcon: const Icon(Icons.people_rounded),
               ),
@@ -334,7 +333,7 @@ class _ShoppingListState extends State<ShoppingList> {
                     decoration: InputDecoration(
                       labelText: 'P. Mín (€)',
                       filled: true,
-                      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                     ),
                   ),
@@ -347,7 +346,7 @@ class _ShoppingListState extends State<ShoppingList> {
                     decoration: InputDecoration(
                       labelText: 'P. Máx (€)',
                       filled: true,
-                      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                     ),
                   ),

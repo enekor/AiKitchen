@@ -12,11 +12,9 @@ dependencies:
   dynamic_color: ^1.6.8
   flutter:
     sdk: flutter
-  flutter_inset_shadow: ^2.0.3
   flutter_tts: ^4.2.3
   fluttertoast: ^9.0.0
   google_fonts: ^6.2.1
-  google_generative_ai: ^0.4.6
   home_widget: ^0.8.0
   html: ^0.15.4
   lottie: ^3.1.2
@@ -26,7 +24,6 @@ dependencies:
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.5
   http: ^1.2.0
-  properties: ^2.1.1
   intl: ^0.20.2
   sqflite: ^2.3.0
   path: ^1.9.0
@@ -43,10 +40,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/buscando.json
-    - assets/guide/step1.jpg
-    - assets/guide/step2.jpg
-    - assets/guide/step3.jpg
-    - assets/guide/step4.jpg
-    - assets/guide/step5.jpg
-    - assets/guide/step6.jpg
-    - config.properties

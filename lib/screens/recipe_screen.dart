@@ -1,21 +1,23 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:aikitchen/models/recipe.dart';
-import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/models/prompt.dart';
+import 'package:aikitchen/services/external_link_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/widgets/ingredients_list.dart';
 import 'package:aikitchen/widgets/steps_list.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/lottie_animation_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class RecipeScreen extends StatefulWidget {
+  static const String routeName = '/recipe';
+
   const RecipeScreen({super.key, required this.recipe, this.url});
   final Recipe recipe;
   final String? url;
@@ -59,16 +61,13 @@ class _RecipeScreenState extends State<RecipeScreen> {
     }
 
     await JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
-    if (Platform.isAndroid) await WidgetService.updateFavoritesWidget();
+    await WidgetService.updateFavoritesWidget();
     _checkIfFavorite();
   }
 
   Future<void> _launchUrl() async {
     if (widget.url != null) {
-      if (!await launchUrl(
-        Uri.parse(widget.url!),
-        mode: LaunchMode.externalApplication,
-      )) {
+      if (!await openExternalUrl(widget.url!)) {
         Toaster.showError('No se pudo abrir la web original');
       }
     }
@@ -96,120 +95,130 @@ class _RecipeScreenState extends State<RecipeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final viewport = MediaQuery.sizeOf(context);
 
+    // Con ancho de sobra no tiene sentido esconder la mitad de la receta tras
+    // una pestaña: se cocina mirando ingredientes y pasos a la vez.
+    final sideBySide = viewport.width >= Breakpoints.expanded;
+
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      body: sideBySide
+          ? _buildSideBySide(theme, viewport)
+          : _buildTabbed(theme, viewport),
+    );
+  }
+
+  /// Cabecera común a las dos disposiciones.
+  Widget _buildAppBar(ThemeData theme, Size viewport) {
+    // En apaisado la pantalla es baja, y una cabecera de 240 se comería un
+    // tercio de la vista antes de mostrar nada útil.
+    final expandedHeight = viewport.height < 700 ? 150.0 : 240.0;
+
+    return SliverAppBar.large(
+      backgroundColor: theme.colorScheme.surface,
+      expandedHeight: expandedHeight,
+      collapsedHeight: kToolbarHeight + MediaQuery.of(context).padding.top,
+      pinned: true,
+      stretch: true,
+      leading: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: IconButton.filledTonal(
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Volver',
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      actions: [
+        if (widget.url != null)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton.filledTonal(
+              onPressed: _launchUrl,
+              icon: const Icon(Icons.language_rounded),
+              tooltip: 'Abrir en la web',
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: IconButton.filledTonal(
+            onPressed: _showAiEditOptions,
+            icon: const Icon(Icons.auto_awesome_rounded),
+            tooltip: 'Modificar con IA',
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: IconButton.filledTonal(
+            onPressed: _toggleFavorite,
+            tooltip: _isFavorite ? 'Quitar de favoritos' : 'Guardar receta',
+            icon: Icon(
+              _isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+            ),
+            color: _isFavorite ? Colors.redAccent : null,
+          ),
+        ),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [
+          StretchMode.zoomBackground,
+          StretchMode.fadeTitle,
+        ],
+        titlePadding: const EdgeInsets.symmetric(
+          horizontal: Spacing.xl,
+          vertical: Spacing.lg,
+        ),
+        centerTitle: false,
+        title: Text(
+          showingRecipe.nombre,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Disposición estrecha: dos pestañas, una para cada mitad.
+  Widget _buildTabbed(ThemeData theme, Size viewport) {
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        backgroundColor: theme.colorScheme.surface,
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverAppBar.large(
-              backgroundColor: theme.colorScheme.surface,
-              expandedHeight: 240,
-              collapsedHeight:
-                  kToolbarHeight + MediaQuery.of(context).padding.top,
-              pinned: true,
-              stretch: true,
-              leading: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: IconButton.filledTonal(
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              actions: [
-                if (widget.url != null)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: IconButton.filledTonal(
-                      onPressed: _launchUrl,
-                      icon: const Icon(Icons.language_rounded),
-                      tooltip: 'Abrir en la web',
-                    ),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: IconButton.filledTonal(
-                    onPressed: _showAiEditOptions,
-                    icon: const Icon(Icons.auto_awesome_rounded),
-                    tooltip: 'Modificar con IA',
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: IconButton.filledTonal(
-                    onPressed: _toggleFavorite,
-                    icon: Icon(
-                      _isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                    ),
-                    color: _isFavorite ? Colors.redAccent : null,
-                  ),
-                ),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                stretchModes: const [
-                  StretchMode.zoomBackground,
-                  StretchMode.fadeTitle,
-                ],
-                titlePadding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                centerTitle: false,
-                title: Text(
-                  showingRecipe.nombre,
-                  style: GoogleFonts.robotoFlex(
-                    textStyle: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: theme.colorScheme.primary,
-                      letterSpacing: -1.2,
-                    ),
-                  ),
-                ),
-              ),
+      child: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          _buildAppBar(theme, viewport),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+              child: ContentShell(child: _buildInfoBadges(theme)),
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 8,
-                ),
-                child: _buildInfoBadges(theme),
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _StickyTabBarDelegate(
-                child: Container(
-                  color: theme.colorScheme.surface,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _StickyTabBarDelegate(
+              child: Container(
+                color: theme.colorScheme.surface,
+                padding: const EdgeInsets.symmetric(vertical: Spacing.md),
+                child: ContentShell(
                   child: Container(
-                    height: 56,
+                    height: 48,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withOpacity(
-                        0.3,
+                      color: theme.colorScheme.primaryContainer.withValues(
+                        alpha: 0.35,
                       ),
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: AppRadius.large,
                     ),
                     child: TabBar(
                       indicator: BoxDecoration(
                         color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: AppRadius.large,
                       ),
                       indicatorSize: TabBarIndicatorSize.tab,
                       dividerColor: Colors.transparent,
                       labelColor: theme.colorScheme.onPrimary,
                       unselectedLabelColor: theme.colorScheme.primary,
-                      labelStyle: GoogleFonts.robotoFlex(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1,
-                        fontSize: 12,
-                      ),
+                      labelStyle: theme.textTheme.labelLarge,
                       tabs: const [
                         Tab(text: 'INGREDIENTES'),
                         Tab(text: 'PREPARACIÓN'),
@@ -219,26 +228,91 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 ),
               ),
             ),
+          ),
+        ],
+        body: TabBarView(
+          children: [
+            _ScrollableSlide(
+              child: _IngredientsSlideContent(
+                key: ValueKey('ingredientes_${showingRecipe.nombre}_${showingRecipe.calorias}'),
+              ),
+            ),
+            _ScrollableSlide(
+              child: _StepsSlideContent(
+                key: ValueKey('pasos_${showingRecipe.nombre}_${showingRecipe.calorias}'),
+              ),
+            ),
           ],
-          body: TabBarView(
-            children: [
-              _ScrollableSlide(
-                child: _IngredientsSlideContent(
-                  key: ValueKey(
-                    'ingredients_${showingRecipe.nombre}_${showingRecipe.calorias}',
-                  ),
-                ),
-              ),
-              _ScrollableSlide(
-                child: _StepsSlideContent(
-                  key: ValueKey(
-                    'steps_${showingRecipe.nombre}_${showingRecipe.calorias}',
-                  ),
-                ),
-              ),
-            ],
+        ),
+      ),
+    );
+  }
+
+  /// Disposición ancha: las dos columnas a la vez dentro de un único
+  /// desplazamiento. Ninguna de las dos listas desplaza por su cuenta, así que
+  /// no hay controladores que se estorben.
+  Widget _buildSideBySide(ThemeData theme, Size viewport) {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        _buildAppBar(theme, viewport),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+            child: ContentShell.wide(child: _buildInfoBadges(theme)),
           ),
         ),
+        SliverToBoxAdapter(
+          child: ContentShell.wide(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                top: Spacing.xl,
+                bottom: Spacing.xxl,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _columnLabel(theme, 'INGREDIENTES'),
+                        const SizedBox(height: Spacing.lg),
+                        _IngredientsSlideContent(
+                          key: ValueKey('ingredientes_${showingRecipe.nombre}_${showingRecipe.calorias}'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.xxl),
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _columnLabel(theme, 'PREPARACIÓN'),
+                        const SizedBox(height: Spacing.lg),
+                        _StepsSlideContent(
+                          key: ValueKey('pasos_${showingRecipe.nombre}_${showingRecipe.calorias}'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _columnLabel(ThemeData theme, String text) {
+    return Text(
+      text,
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.primary,
       ),
     );
   }
@@ -283,7 +357,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.4),
+        color: color.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -456,7 +530,7 @@ class _AiEditBottomSheetState extends State<_AiEditBottomSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -547,16 +621,16 @@ class _EditOption extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withOpacity(0.2)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -575,7 +649,7 @@ class _EditOption extends StatelessWidget {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],

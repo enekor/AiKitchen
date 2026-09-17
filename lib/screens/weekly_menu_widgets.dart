@@ -1,7 +1,6 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
-import 'package:aikitchen/screens/feature_selector.dart'; // To use _PageWrapper or similar if needed, but here we just need styling
-import 'package:aikitchen/screens/recipe_screen.dart';
+import 'package:aikitchen/widgets/responsive_card_list.dart';
 import 'package:flutter/material.dart';
 
 class EmptyWeeklyMenu extends StatelessWidget {
@@ -20,7 +19,7 @@ class EmptyWeeklyMenu extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -43,7 +42,7 @@ class EmptyWeeklyMenu extends StatelessWidget {
             'Genera un menú semanal inteligente basado en tus gustos y preferencias configuradas.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               height: 1.5,
             ),
           ),
@@ -87,7 +86,7 @@ class WeeklyMenuList extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -99,7 +98,7 @@ class WeeklyMenuList extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: theme.colorScheme.outline.withOpacity(0.3),
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -151,7 +150,7 @@ class WeeklyMenuList extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.zero,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -172,14 +171,13 @@ class WeeklyMenuList extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            itemCount: diasSemana.length,
-            itemBuilder: (context, index) {
-              final dia = diasSemana[index];
-              final recetas = weeklyMenu[dia] ?? [];
-              return _DayCard(dia: dia, recetas: recetas);
-            },
+          child: ResponsiveCardList(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            children: diasSemana
+                .map(
+                  (dia) => _DayCard(dia: dia, recetas: weeklyMenu[dia] ?? []),
+                )
+                .toList(),
           ),
         ),
       ],
@@ -197,11 +195,10 @@ class _DayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -243,7 +240,7 @@ class _DayCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+                        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

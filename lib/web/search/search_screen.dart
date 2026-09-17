@@ -2,11 +2,13 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/web/search/search_service.dart';
 import 'package:aikitchen/web/search/search_widgets.dart';
 import 'package:aikitchen/models/web_recipe_result.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:aikitchen/services/external_link_service.dart';
 
 class LidSearchScreen extends StatefulWidget {
   final String? initialUrl;
@@ -61,12 +63,19 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
       _results = results;
     });
     if (results.isEmpty) {
-      Toaster.showWarning('No se han encontrado recetas para "$query"');
+      // Distinguir "no hay resultados" de "la peticion fallo" evita que un
+      // bloqueo del navegador parezca una busqueda sin coincidencias.
+      final error = _service.lastError;
+      if (error != null) {
+        Toaster.showError(error);
+      } else {
+        Toaster.showWarning('No se han encontrado recetas para "$query"');
+      }
     }
   }
 
   Future<void> _launchUrl(String url) async {
-    if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+    if (!await openExternalUrl(url)) {
       Toaster.showError('No se pudo abrir la web original');
     }
   }
@@ -116,9 +125,10 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               if (widget.initialUrl == null)
-                SliverToBoxAdapter(
+                SliverContentShell(
+                  sliver: SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.symmetric(vertical: 24.0),
                       child: Column(
                       children: [
                         SearchInput(
@@ -156,6 +166,7 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
                       ],
                     ),
                   ),
+                  ),
                 ),
 
               if (_isSearching)
@@ -168,18 +179,32 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
                   child: Welcome(),
                 )
               else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final recipeResult = _results[index];
-                        return WebRecipeCard(
-                          result: recipeResult,
-                          onTap: () => _handleRecipeTap(recipeResult),
-                        );
-                      },
-                      childCount: _results.length,
+                SliverContentShell(
+                  maxWidth: ContentWidth.wide,
+                  sliver: SliverPadding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 420,
+                            mainAxisSpacing: Spacing.md,
+                            crossAxisSpacing: Spacing.md,
+                            // Altura fija en lugar de proporción: la tarjeta
+                            // lleva una imagen de 200 px más texto, así que con
+                            // una proporción la celda se queda corta en cuanto
+                            // la columna se estrecha.
+                            mainAxisExtent: 400,
+                          ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final recipeResult = _results[index];
+                          return WebRecipeCard(
+                            result: recipeResult,
+                            onTap: () => _handleRecipeTap(recipeResult),
+                          );
+                        },
+                        childCount: _results.length,
+                      ),
                     ),
                   ),
                 ),
@@ -190,7 +215,7 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
           
           if (_isFetchingRecipe)
             Container(
-              color: theme.colorScheme.surface.withOpacity(0.8),
+              color: theme.colorScheme.surface.withValues(alpha: 0.8),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

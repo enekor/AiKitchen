@@ -1,15 +1,25 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/recipe_from_file_service.dart';
+import 'package:aikitchen/theme/cooking_theme.dart';
+import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class PreviewSharedFiles extends StatefulWidget {
-  const PreviewSharedFiles({Key? key, required this.recipeUri})
-    : super(key: key);
+  const PreviewSharedFiles({super.key, this.recipeUri, this.recipes})
+    : assert(
+        recipeUri != null || recipes != null,
+        'Hace falta una ruta de fichero o las recetas ya leídas',
+      );
 
-  final String recipeUri;
+  /// Ruta del fichero. Solo en móvil: en navegador no hay rutas.
+  final String? recipeUri;
+
+  /// Recetas ya leídas en memoria. Es la vía del navegador, donde el selector
+  /// de ficheros entrega los bytes y nunca una ruta.
+  final List<Recipe>? recipes;
 
   @override
   State<PreviewSharedFiles> createState() => _PreviewSharedFilesState();
@@ -27,15 +37,15 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
 
   Future<List<Recipe>?> _loadRecipe() async {
     try {
-      final recipes = await RecipeFromFileService().loadRecipes(
-        widget.recipeUri,
-      );
+      final recipes =
+          widget.recipes ??
+          await RecipeFromFileService().loadRecipes(widget.recipeUri!);
       if (mounted) {
         setState(() => _recipe = recipes);
       }
       return recipes;
     } catch (e) {
-      debugPrint('Error loading recipe: $e');
+      debugPrint('Error cargando la receta: $e');
       return null;
     }
   }
@@ -94,29 +104,31 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
             },
           ),
 
-          // Back Button Floating (Material Expressive style)
-          Positioned(
-            top: 45,
-            left: 20,
-            child: IconButton.filledTonal(
-              icon: const Icon(Icons.close_rounded, size: 28),
-              onPressed: () => Navigator.of(context).pop(),
-              style: IconButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+          // Botón de cerrar flotante. Va dentro de SafeArea en vez de a una
+          // distancia fija del borde, que en apaisado caía donde no debía.
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(Spacing.md),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: IconButton.filledTonal(
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Cerrar',
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-                padding: const EdgeInsets.all(12),
               ),
             ),
           ),
 
-          // Save FAB
+          // Botón de guardar. Se centra y se topa el ancho: estirado de lado a
+          // lado de un monitor quedaba desproporcionado.
           if (_recipe != null && _recipe!.isNotEmpty)
             Positioned(
-              bottom: 32,
-              left: 24,
-              right: 24,
-              child: FloatingActionButton.extended(
+              bottom: Spacing.xxl,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: FloatingActionButton.extended(
                 onPressed: () async {
                   await JsonDocumentsService().addFavRecipe(
                     _recipe![_showingRecipe],
@@ -128,16 +140,8 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                 elevation: 0,
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
-                label: const Text(
-                  'GUARDAR RECETA',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1,
-                  ),
-                ),
-                icon: const Icon(Icons.favorite_rounded),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  label: const Text('Guardar receta'),
+                  icon: const Icon(Icons.favorite_rounded),
                 ),
               ),
             ),
@@ -148,8 +152,9 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
 
   Widget _recipePreview(Recipe recipe, ThemeData theme) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 110, 24, 110),
-      child: Column(
+      padding: const EdgeInsets.only(top: 110, bottom: 110),
+      child: ContentShell(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -180,7 +185,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
           Text(
             recipe.descripcion,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               height: 1.6,
             ),
           ),
@@ -209,7 +214,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                   theme,
                   Icons.group_rounded,
                   '${recipe.raciones}',
-                  theme.colorScheme.surfaceVariant,
+                  theme.colorScheme.surfaceContainerHighest,
                 ),
               ],
             ),
@@ -227,6 +232,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
             (entry) => _stepBubble(theme, entry.key + 1, entry.value),
           ),
         ],
+        ),
       ),
     );
   }
@@ -240,7 +246,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: bgColor.withOpacity(0.6),
+        color: bgColor.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -281,16 +287,16 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.05)),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
           Icon(
             Icons.check_circle_rounded,
             size: 20,
-            color: theme.colorScheme.primary.withOpacity(0.5),
+            color: theme.colorScheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(width: 14),
           Expanded(

@@ -22,7 +22,6 @@ class Toaster {
         textColor = Colors.black87;
         break;
       case ToastType.info:
-      default:
         backgroundColor = const Color(0xFF5C6BC0); // Purple-blue
         break;
     }
