@@ -133,7 +133,7 @@ class _MyAppState extends State<MyApp> {
               }
               return MaterialPageRoute(
                 settings: settings,
-                builder: (_) => RecipeScreen(recipe: args.recipe),
+                builder: (_) => RecipeScreen(recipe: args.recipe, url: args.url),
               );
             }
             return null;

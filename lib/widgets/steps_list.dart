@@ -3,25 +3,60 @@ import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+/// Punto de partida en curso de la preparación, para poder arrancarlo desde
+/// fuera de la lista, por ejemplo desde la tarjeta de "Lectura en voz alta"
+/// de la cabecera de la receta.
+class StepsController extends ChangeNotifier {
+  int _currentStep = -1;
+  int _startToken = 0;
+
+  int get currentStep => _currentStep;
+  bool get started => _currentStep != -1;
+
+  /// Cambia en cada pulsación de "Iniciar". Sirve para que volver a pulsarlo
+  /// vuelva a leer el primer paso en voz alta, aunque ya estuviéramos en él y
+  /// por tanto el número de paso no cambie.
+  int get startToken => _startToken;
+
+  void start() {
+    _currentStep = 0;
+    _startToken++;
+    notifyListeners();
+  }
+
+  void goTo(int step) {
+    _currentStep = step;
+    notifyListeners();
+  }
+}
+
 /// Pasos de preparación numerados, con el actual resaltado y los anteriores
 /// marcados como hechos. Si la lectura por voz está activa en Ajustes, cada
 /// paso se lee al mostrarse, a la velocidad configurada.
 class StepsList extends StatefulWidget {
   final List<String> steps;
+  final StepsController? controller;
 
-  const StepsList({super.key, required this.steps});
+  const StepsList({super.key, required this.steps, this.controller});
 
   @override
   State<StepsList> createState() => _StepsListState();
 }
 
 class _StepsListState extends State<StepsList> {
-  int _currentStep = -1;
+  late final StepsController _controller;
+  late final bool _ownsController;
   late FlutterTts _flutterTts;
+  int _lastSpoken = -2;
+  int _lastStartToken = -1;
 
   @override
   void initState() {
     super.initState();
+    _ownsController = widget.controller == null;
+    _controller = widget.controller ?? StepsController();
+    _controller.addListener(_onControllerChanged);
+
     _flutterTts = FlutterTts();
     _flutterTts.setLanguage('es-ES');
     _flutterTts.setSpeechRate(AppSingleton().velocidadVoz * 0.5);
@@ -29,8 +64,27 @@ class _StepsListState extends State<StepsList> {
 
   @override
   void dispose() {
+    _controller.removeListener(_onControllerChanged);
+    if (_ownsController) _controller.dispose();
     _flutterTts.stop();
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (!mounted) return;
+    setState(() {});
+
+    final step = _controller.currentStep;
+    if (step < 0 || step >= widget.steps.length) return;
+
+    // Se lee al cambiar de paso, y también al volver a pulsar "Iniciar"
+    // aunque sea sobre el mismo paso.
+    final restarted = _controller.startToken != _lastStartToken;
+    if (step != _lastSpoken || restarted) {
+      _lastSpoken = step;
+      _lastStartToken = _controller.startToken;
+      _speak(widget.steps[step]);
+    }
   }
 
   void _speak(String text) async {
@@ -42,8 +96,9 @@ class _StepsListState extends State<StepsList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final currentStep = _controller.currentStep;
 
-    if (_currentStep == -1) {
+    if (currentStep == -1) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(Spacing.xxl),
@@ -57,10 +112,7 @@ class _StepsListState extends State<StepsList> {
               ),
               const SizedBox(height: Spacing.xl),
               FilledButton.icon(
-                onPressed: () {
-                  setState(() => _currentStep = 0);
-                  _speak(widget.steps[0]);
-                },
+                onPressed: _controller.start,
                 icon: const Icon(Icons.play_arrow_rounded),
                 label: const Text('Comenzar a cocinar'),
               ),
@@ -77,21 +129,11 @@ class _StepsListState extends State<StepsList> {
           _StepCard(
             number: index + 1,
             text: widget.steps[index],
-            isCurrent: _currentStep == index,
-            isDone: _currentStep > index,
+            isCurrent: currentStep == index,
+            isDone: currentStep > index,
             isLast: index == widget.steps.length - 1,
-            onPrevious: index > 0
-                ? () {
-                    setState(() => _currentStep--);
-                    _speak(widget.steps[_currentStep]);
-                  }
-                : null,
-            onNext: () {
-              setState(() => _currentStep++);
-              if (_currentStep < widget.steps.length) {
-                _speak(widget.steps[_currentStep]);
-              }
-            },
+            onPrevious: index > 0 ? () => _controller.goTo(index - 1) : null,
+            onNext: () => _controller.goTo(index + 1),
             onFinish: () => Navigator.pop(context),
           ),
         ],

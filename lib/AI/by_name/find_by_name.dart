@@ -154,6 +154,10 @@ class _FindByNameState extends State<FindByName> {
               for (final item in _historial)
                 RemovableChip(
                   label: item,
+                  onTap: () {
+                    _nameController.text = item;
+                    _searchByName(item);
+                  },
                   onRemove: () {
                     setState(() => _historial.remove(item));
                     SharedPreferencesService.setStringListValue(

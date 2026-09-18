@@ -1,37 +1,70 @@
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:flutter/material.dart';
 
-/// Lista de ingredientes con casilla para marcar mientras se cocina.
+/// Estado de marcado de una lista de ingredientes, compartido entre la lista
+/// y cualquier cabecera externa que quiera mostrar un contador o un botón de
+/// "desmarcar todos" (como hace la cabecera de la pantalla de receta).
 ///
-/// El marcado es efímero a propósito: vive solo en este widget y se pierde al
-/// salir de la receta. Persistirlo exigiría una tabla por receta y no aporta
-/// lo suficiente para el coste.
+/// El marcado es efímero a propósito: vive solo en este controlador y se
+/// pierde al salir. Persistirlo exigiría una tabla por receta y no aporta lo
+/// suficiente para el coste.
+class IngredientsController extends ChangeNotifier {
+  IngredientsController(this.total);
+
+  final int total;
+  final Set<int> _marked = {};
+
+  int get markedCount => _marked.length;
+
+  bool isMarked(int index) => _marked.contains(index);
+
+  void toggle(int index) {
+    if (!_marked.remove(index)) _marked.add(index);
+    notifyListeners();
+  }
+
+  void clearAll() {
+    if (_marked.isEmpty) return;
+    _marked.clear();
+    notifyListeners();
+  }
+}
+
+/// Lista de ingredientes con casilla para marcar mientras se cocina.
 class IngredientsList extends StatefulWidget {
-  const IngredientsList({
-    super.key,
-    required this.ingredients,
-    this.onMarkedCountChanged,
-  });
+  const IngredientsList({super.key, required this.ingredients, this.controller});
 
   final List<String> ingredients;
 
-  /// Se avisa cada vez que cambia cuántos están marcados, para que la
-  /// pantalla pueda mostrar un contador tipo "3 de 8 marcados".
-  final ValueChanged<int>? onMarkedCountChanged;
+  /// Si no se da uno, la lista crea el suyo propio. Se expone para que la
+  /// cabecera de la pantalla de receta pueda mostrar el contador y el botón
+  /// de desmarcar todos sin duplicar el estado.
+  final IngredientsController? controller;
 
   @override
   State<IngredientsList> createState() => _IngredientsListState();
 }
 
 class _IngredientsListState extends State<IngredientsList> {
-  final Set<int> _marked = {};
+  late final IngredientsController _controller;
+  late final bool _ownsController;
 
-  void _toggle(int index) {
-    setState(() {
-      if (!_marked.remove(index)) _marked.add(index);
-    });
-    widget.onMarkedCountChanged?.call(_marked.length);
+  @override
+  void initState() {
+    super.initState();
+    _ownsController = widget.controller == null;
+    _controller = widget.controller ?? IngredientsController(widget.ingredients.length);
+    _controller.addListener(_onChanged);
   }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onChanged);
+    if (_ownsController) _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChanged() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +74,8 @@ class _IngredientsListState extends State<IngredientsList> {
           if (i > 0) const SizedBox(height: Spacing.sm),
           _IngredientRow(
             text: widget.ingredients[i],
-            marked: _marked.contains(i),
-            onTap: () => _toggle(i),
+            marked: _controller.isMarked(i),
+            onTap: () => _controller.toggle(i),
           ),
         ],
       ],
