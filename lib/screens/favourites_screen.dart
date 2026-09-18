@@ -92,6 +92,22 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     }
   }
 
+  void _toggleSelectAll(List<Recipe> visibleRecipes) {
+    setState(() {
+      final allVisibleSelected = visibleRecipes.every((r) => _selectedRecipes.contains(r));
+
+      if (allVisibleSelected) {
+        for (final r in visibleRecipes) {
+          _selectedRecipes.remove(r);
+        }
+        if (_selectedRecipes.isEmpty) _isSelectionMode = false;
+      } else {
+        _selectedRecipes.addAll(visibleRecipes);
+        _isSelectionMode = true;
+      }
+    });
+  }
+
   void _toggleSelection(Recipe receta) {
     setState(() {
       if (_selectedRecipes.contains(receta)) {
@@ -99,6 +115,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
         if (_selectedRecipes.isEmpty) _isSelectionMode = false;
       } else {
         _selectedRecipes.add(receta);
+        _isSelectionMode = true;
       }
     });
   }
@@ -173,19 +190,43 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
   @override
   Widget build(BuildContext context) {
     final recipes = _visibleRecipes;
+    final allVisibleSelected = recipes.isNotEmpty && recipes.every((r) => _selectedRecipes.contains(r));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Favoritos (${_allRecipes.length})'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.file_upload_outlined),
-            tooltip: 'Importar receta (.aikr)',
-            onPressed: _openSharedRecipe,
-          ),
-          const SizedBox(width: Spacing.sm),
-        ],
-      ),
+      appBar: _isSelectionMode
+          ? AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(() {
+                  _isSelectionMode = false;
+                  _selectedRecipes.clear();
+                }),
+              ),
+              title: Text('${_selectedRecipes.length} seleccionadas'),
+              actions: [
+                TextButton(
+                  onPressed: () => _toggleSelectAll(recipes),
+                  child: Text(allVisibleSelected ? 'Deseleccionar' : 'Seleccionar todas'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.share_outlined),
+                  onPressed: _shareRecipes,
+                  tooltip: 'Compartir seleccionadas',
+                ),
+                const SizedBox(width: Spacing.sm),
+              ],
+            )
+          : AppBar(
+              title: Text('Favoritos (${_allRecipes.length})'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.file_upload_outlined),
+                  tooltip: 'Importar receta (.aikr)',
+                  onPressed: _openSharedRecipe,
+                ),
+                const SizedBox(width: Spacing.sm),
+              ],
+            ),
       body: ContentShell.wide(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,29 +251,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
               onChanged: (f) => setState(() => _filter = f),
             ),
             const SizedBox(height: Spacing.md),
-            if (_isSelectionMode)
-              Padding(
-                padding: const EdgeInsets.only(bottom: Spacing.md),
-                child: Row(
-                  children: [
-                    Text('${_selectedRecipes.length} seleccionadas'),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => setState(() {
-                        _isSelectionMode = false;
-                        _selectedRecipes.clear();
-                      }),
-                      child: const Text('Cancelar'),
-                    ),
-                    const SizedBox(width: Spacing.sm),
-                    FilledButton.icon(
-                      onPressed: _shareRecipes,
-                      icon: const Icon(Icons.share_outlined, size: 18),
-                      label: const Text('Compartir'),
-                    ),
-                  ],
-                ),
-              ),
             Expanded(
               child: recipes.isEmpty
                   ? EmptyState(
