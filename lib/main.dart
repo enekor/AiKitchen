@@ -38,6 +38,7 @@ void main() async {
     await _safely('inicializar los widgets', () async {
       WidgetService.registerCallbacks();
       await WidgetService.initializeWidgets();
+      await WidgetService.listenForLaunchRequests();
     });
   }
   await _safely('inicializar el registro', () => LogFileService().initialize());

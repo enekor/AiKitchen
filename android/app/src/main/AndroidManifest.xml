@@ -72,7 +72,42 @@
         <service android:name=".FavoritesRemoteViewsService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
-        
+
+        <receiver android:name=".ShoppingListWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/shopping_list_widget_info" />
+        </receiver>
+
+        <service android:name=".ShoppingListRemoteViewsService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
+        <!-- Botón del panel de ajustes rápidos, junto a wifi y bluetooth -->
+        <service android:name=".ShoppingListTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_shopping_cart"
+            android:label="@string/qs_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+
+        <!-- Recibe las pulsaciones del widget y las entrega al aislado de Dart.
+             Lo aporta el plugin `home_widget`, pero su manifest no lo declara:
+             sin esta entrada, tachar un artículo desde el widget no hace nada. -->
+        <receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

@@ -2,5 +2,14 @@
 <resources>
     <string name="app_name">aikitchen</string>
     <string name="shopping_list_widget_description">Muestra tu lista de la compra con elementos pendientes y completados</string>
+    <string name="shopping_list_widget_title">Lista de la compra</string>
+    <string name="shopping_list_widget_empty">Lista vacía. Toca para añadir artículos.</string>
+    <string name="shopping_list_widget_refresh">Actualizar</string>
     <string name="favorites_widget_description">Acceso rápido a tus recetas favoritas</string>
+    <string name="qs_tile_label">Lista de la compra</string>
+    <string name="qs_tile_empty">Sin pendientes</string>
+    <plurals name="qs_tile_pending">
+        <item quantity="one">%d pendiente</item>
+        <item quantity="other">%d pendientes</item>
+    </plurals>
 </resources>

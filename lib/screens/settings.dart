@@ -1,10 +1,12 @@
 import 'package:aikitchen/screens/logs_screen.dart';
 import 'package:aikitchen/services/cors_proxy.dart';
+import 'package:aikitchen/services/quick_settings_service.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/theme/theme_controller.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/setting_widget.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/ui/app_card.dart';
 import 'package:flutter/material.dart';
 import '../singleton/app_singleton.dart';
 
@@ -327,6 +329,40 @@ class _SettingsState extends State<Settings> {
               onChange: (value) => AppSingleton().setCreatividad = value,
             ),
 
+            if (QuickSettingsService.isAvailable) ...[
+              const SizedBox(height: 40),
+              _sectionHeader(theme, 'Accesos rápidos'),
+              const SizedBox(height: 16),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Lista de la compra en ajustes rápidos',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: Spacing.xs),
+                    Text(
+                      'Coloca un botón junto al wifi y el bluetooth para abrir '
+                      'la lista y ver cuántos artículos quedan pendientes.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.md),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: FilledButton.icon(
+                        onPressed: _addQuickSettingsTile,
+                        icon: const Icon(Icons.add_rounded),
+                        label: const Text('Añadir'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 40),
             _sectionHeader(theme, 'Sistema'),
             const SizedBox(height: 16),
@@ -348,6 +384,12 @@ class _SettingsState extends State<Settings> {
         ),
       ),
     );
+  }
+
+  Future<void> _addQuickSettingsTile() async {
+    if (await QuickSettingsService.requestAddTile()) {
+      Toaster.showSuccess('Botón añadido a los ajustes rápidos');
+    }
   }
 
   Widget _sectionHeader(ThemeData theme, String title) {
