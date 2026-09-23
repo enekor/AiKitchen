@@ -192,7 +192,7 @@ class CookingTheme {
 
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(44),
+          minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
           textStyle: textTheme.labelLarge,
           shape: RoundedRectangleBorder(borderRadius: AppRadius.small),
@@ -201,7 +201,7 @@ class CookingTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(44),
+          minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
           textStyle: textTheme.labelLarge,
           shape: RoundedRectangleBorder(borderRadius: AppRadius.small),

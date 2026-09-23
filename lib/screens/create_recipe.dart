@@ -27,6 +27,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
   @override
   void initState() {
     super.initState();
+    _nameController.addListener(_onFieldChanged);
+    _descriptionController.addListener(_onFieldChanged);
+    _estimatedTimeController.addListener(_onFieldChanged);
+    _rationsController.addListener(_onFieldChanged);
+
     if (widget.recipe != null) {
       _nameController.text = widget.recipe!.nombre;
       _descriptionController.text = widget.recipe!.descripcion;
@@ -51,6 +56,22 @@ class _CreateRecipeState extends State<CreateRecipe> {
     _caloriesController.dispose();
     _rationsController.dispose();
     super.dispose();
+  }
+
+  void _onFieldChanged() {
+    setState(() {});
+  }
+
+  bool get _isFormValid {
+    final hasName = _nameController.text.trim().isNotEmpty;
+    final hasDescription = _descriptionController.text.trim().isNotEmpty;
+    final hasRations = _rationsController.text.trim().isNotEmpty;
+    final hasTime = _estimatedTimeController.text.trim().isNotEmpty;
+
+    final hasIngredients = _ingredients.any((i) => i.trim().isNotEmpty);
+    final hasSteps = _steps.any((s) => s.trim().isNotEmpty);
+
+    return hasName && hasDescription && hasRations && hasTime && hasIngredients && hasSteps;
   }
 
   void _saveRecipe() {
@@ -93,7 +114,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
           Padding(
             padding: const EdgeInsets.only(right: Spacing.md),
             child: FilledButton.icon(
-              onPressed: _saveRecipe,
+              onPressed: _isFormValid ? _saveRecipe : null,
               icon: const Icon(Icons.save_outlined, size: 18),
               label: const Text('Guardar'),
             ),
@@ -178,6 +199,19 @@ class _CreateRecipeState extends State<CreateRecipe> {
                   onChanged: () => setState(() {}),
                 ),
               const SizedBox(height: Spacing.xxl),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _isFormValid ? _saveRecipe : null,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: Spacing.lg),
+                    shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
+                  ),
+                  icon: const Icon(Icons.save_rounded),
+                  label: const Text('Guardar Receta'),
+                ),
+              ),
+              const SizedBox(height: Spacing.xxl),
             ],
           ),
         ),
@@ -222,7 +256,10 @@ class _DynamicField extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
-              onChanged: (v) => list[index] = v,
+              onChanged: (v) {
+                list[index] = v;
+                onChanged();
+              },
               controller: TextEditingController(text: list[index])
                 ..selection = TextSelection.collapsed(offset: list[index].length),
               maxLines: maxLines,
