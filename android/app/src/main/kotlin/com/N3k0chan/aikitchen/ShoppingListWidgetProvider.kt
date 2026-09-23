@@ -3,6 +3,7 @@ package com.N3k0chan.aikitchen
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -105,5 +106,13 @@ class ShoppingListWidgetProvider : AppWidgetProvider() {
             context,
             Uri.parse("aikitchen://toggle?action=toggle_shopping_item&item_id=$itemId"),
         ).send()
+
+        // Ejecuta el refresco de la interfaz (igual que al pulsar el botón de actualizar)
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val componentName = ComponentName(context, ShoppingListWidgetProvider::class.java)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+        for (appWidgetId in appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
     }
 }

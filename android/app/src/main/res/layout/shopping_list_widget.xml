@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp"
+    android:padding="14dp"
     android:background="@drawable/widget_background">
 
     <!-- Cabecera: tocarla abre la app en la lista de la compra -->
@@ -13,11 +13,11 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingBottom="8dp">
+        android:paddingBottom="10dp">
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:src="@drawable/ic_shopping_cart"
             android:tint="@color/primary_color"
             android:contentDescription="@string/shopping_list_widget_title" />
@@ -44,7 +44,7 @@
             android:textStyle="bold"
             android:textColor="@android:color/white"
             android:padding="4dp"
-            android:minWidth="24dp"
+            android:minWidth="22dp"
             android:gravity="center" />
 
         <ImageView
@@ -65,7 +65,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:divider="@null"
-        android:dividerHeight="4dp" />
+        android:dividerHeight="6dp" />
 
     <LinearLayout
         android:id="@+id/empty_state"

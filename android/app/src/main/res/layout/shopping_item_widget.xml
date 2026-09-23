@@ -6,17 +6,17 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:background="@drawable/item_background"
-    android:paddingStart="8dp"
-    android:paddingEnd="10dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingStart="10dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="9dp"
+    android:paddingBottom="9dp">
 
     <ImageView
         android:id="@+id/item_checkbox"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_check_box_outline"
-        android:tint="@color/secondary_color"
+        android:tint="@color/primary_color"
         android:contentDescription="@null" />
 
     <TextView

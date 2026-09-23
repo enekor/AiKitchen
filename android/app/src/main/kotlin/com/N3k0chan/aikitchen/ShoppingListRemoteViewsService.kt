@@ -62,17 +62,11 @@ private class ShoppingListRemoteViewsFactory(
             if (item.isPurchased) R.drawable.ic_check_box else R.drawable.ic_check_box_outline,
         )
         views.setTextViewText(R.id.item_name, label(item))
-        views.setTextColor(
-            R.id.item_name,
-            context.getColor(
-                if (item.isPurchased) R.color.text_secondary else R.color.text_primary,
-            ),
-        )
+        views.setFloat(R.id.item_name, "setAlpha", if (item.isPurchased) 0.55f else 1.0f)
 
-        views.setOnClickFillInIntent(
-            R.id.shopping_item_root,
-            Intent().putExtra(ShoppingListWidgetProvider.EXTRA_ITEM_ID, item.id),
-        )
+        val fillInIntent = Intent().putExtra(ShoppingListWidgetProvider.EXTRA_ITEM_ID, item.id)
+        views.setOnClickFillInIntent(R.id.shopping_item_root, fillInIntent)
+        views.setOnClickFillInIntent(R.id.item_checkbox, fillInIntent)
 
         return views
     }

@@ -1,22 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Colores principales de la app -->
-    <color name="primary_color">#FFB74D</color>
-    <color name="secondary_color">#66BB6A</color>
-    <color name="tertiary_color">#E57373</color>
+    <!-- Colores principales de la app (basados en CookingTheme) -->
+    <color name="primary_color">#0059AC</color>
+    <color name="primary_container">#1972D2</color>
+    <color name="secondary_color">#4648D4</color>
+    <color name="tertiary_color">#006184</color>
     
     <!-- Colores de texto -->
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
+    <color name="text_primary">#0B1C30</color>
+    <color name="text_secondary">#414752</color>
     
-    <!-- Colores de fondo -->
-    <color name="background_primary">#FFFFFF</color>
-    <color name="background_secondary">#F5F5F5</color>
+    <!-- Colores de fondo y translucidez para widgets -->
+    <color name="background_primary">#D9F8F9FF</color>
+    <color name="background_secondary">#EFF4FF</color>
+    <color name="widget_card_background">#A6FFFFFF</color>
+    <color name="widget_card_border">#33C1C6D4</color>
+    <color name="widget_border">#330059AC</color>
     
-    <!-- Colores neutros -->
-    <color name="cream">#FAF7F2</color>
-    <color name="brown">#8D6E63</color>
-    <color name="light_yellow">#FFF8DC</color>
-    <color name="light_green">#C8E6C9</color>
-    <color name="light_red">#FFCDD2</color>
+    <!-- Colores de apoyo -->
+    <color name="cream">#EFF4FF</color>
+    <color name="brown">#717784</color>
+    <color name="light_yellow">#E5EEFF</color>
+    <color name="light_green">#E0F2FE</color>
+    <color name="light_red">#FFDAD6</color>
 </resources>

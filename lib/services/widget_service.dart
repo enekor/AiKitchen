@@ -5,8 +5,29 @@ import 'package:aikitchen/navigation/app_shell_controller.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/platform/platform_info.dart' as platform;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:home_widget/home_widget.dart';
 
+/// Se ejecuta en un aislado de fondo cuando el usuario toca un elemento del widget.
+///
+/// La anotación y la llamada a `ensureInitialized` son obligatorias: sin ellas
+/// el compilador AOT/Release descarta esta función y los canales de plataforma
+/// (SQLite/HomeWidget) fallan al ejecutarse en segundo plano.
+@pragma('vm:entry-point')
+Future<void> _backgroundCallback(Uri? uri) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (uri == null) return;
+
+  try {
+    if (uri.queryParameters['action'] == 'toggle_shopping_item') {
+      await WidgetService.toggleShoppingItemFromWidget(uri.queryParameters['item_id']);
+    }
+  } catch (e) {
+    debugPrint('Error en el callback de fondo del widget: $e');
+  }
+}
+
+@pragma('vm:entry-point')
 class WidgetService {
   /// Los widgets de pantalla de inicio solo existen en Android. En navegador
   /// el plugin no tiene implementación y cada llamada lanzaría una excepción,
@@ -41,14 +62,10 @@ class WidgetService {
 
       final pendingCount = cartItems.where((i) => !i.isPurchased).length;
 
-      // Los pendientes van primero: son lo que el usuario necesita ver sin
-      // desplazar el widget.
-      final ordered = [
-        ...cartItems.where((i) => !i.isPurchased),
-        ...cartItems.where((i) => i.isPurchased),
-      ];
-
-      final itemsData = ordered
+      // Conserva el orden original para que al marcar o desmarcar un elemento
+      // no salte de posición y se vea el cambio de estado (tachado y checkbox)
+      // directamente en la misma fila.
+      final itemsData = cartItems
           .map(
             (item) => {
               'id': item.id,
@@ -73,8 +90,8 @@ class WidgetService {
       );
 
       await HomeWidget.updateWidget(
-        name: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
-        androidName: 'com.N3k0chan.aikitchen.ShoppingListWidgetProvider',
+        name: 'ShoppingListWidgetProvider',
+        androidName: 'ShoppingListWidgetProvider',
       );
     } catch (e) {
       debugPrint('Error updating shopping list widget: $e');
@@ -114,8 +131,8 @@ class WidgetService {
       );
 
       await HomeWidget.updateWidget(
-        name: 'com.N3k0chan.aikitchen.FavoritesWidgetProvider',
-        androidName: 'com.N3k0chan.aikitchen.FavoritesWidgetProvider',
+        name: 'FavoritesWidgetProvider',
+        androidName: 'FavoritesWidgetProvider',
       );
     } catch (e) {
       debugPrint('Error updating favorites widget: $e');
@@ -125,7 +142,7 @@ class WidgetService {
   /// Alterna el estado de un artículo desde el widget, identificándolo por su
   /// `id`: por nombre se tachaba el artículo equivocado cuando la lista tenía
   /// dos homónimos.
-  static Future<void> _toggleShoppingItem(String? rawId) async {
+  static Future<void> toggleShoppingItemFromWidget(String? rawId) async {
     final id = int.tryParse(rawId ?? '');
     if (id == null) return;
 
@@ -142,23 +159,6 @@ class WidgetService {
   static void registerCallbacks() {
     if (!isAvailable) return;
     HomeWidget.registerInteractivityCallback(_backgroundCallback);
-  }
-
-  /// Se ejecuta en un contexto aparte cuando el usuario toca el widget.
-  ///
-  /// La anotación es obligatoria: sin ella el compilador de release descarta
-  /// esta función, porque nada del código Dart la llama directamente.
-  @pragma('vm:entry-point')
-  static Future<void> _backgroundCallback(Uri? uri) async {
-    if (uri == null) return;
-
-    try {
-      if (uri.queryParameters['action'] == 'toggle_shopping_item') {
-        await _toggleShoppingItem(uri.queryParameters['item_id']);
-      }
-    } catch (e) {
-      debugPrint('Error in background callback: $e');
-    }
   }
 
   /// Lleva la app a la pestaña de la lista de la compra cuando se ha llegado
