@@ -116,6 +116,9 @@ Thumbs.db
 .env
 .env.*
 *.env
+config.properties
+*.properties
+!**/gradle-wrapper.properties
 
 # Logs
 *.log
