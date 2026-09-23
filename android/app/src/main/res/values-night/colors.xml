@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores principales de la app en modo oscuro (basados en CookingTheme) -->
+    <color name="primary_color">#A8C8FF</color>
+    <color name="primary_container">#1972D2</color>
+    <color name="secondary_color">#C0C1FF</color>
+    <color name="tertiary_color">#7BD0FF</color>
+
+    <!-- Colores de texto -->
+    <color name="text_primary">#F1F5F9</color>
+    <color name="text_secondary">#C1C6D4</color>
+
+    <!-- Colores de fondo y translucidez para widgets -->
+    <color name="background_primary">#D90F172A</color>
+    <color name="background_secondary">#161F33</color>
+    <color name="widget_card_background">#801E293B</color>
+    <color name="widget_card_border">#338A91A0</color>
+    <color name="widget_border">#33A8C8FF</color>
+
+    <!-- Colores de apoyo -->
+    <color name="cream">#1E293B</color>
+    <color name="brown">#8A91A0</color>
+    <color name="light_yellow">#1E293B</color>
+    <color name="light_green">#161F33</color>
+    <color name="light_red">#93000A</color>
+</resources>
