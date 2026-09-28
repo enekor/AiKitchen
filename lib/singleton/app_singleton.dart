@@ -142,7 +142,7 @@ class AppSingleton {
         await SharedPreferencesService.getStringValue(
           SharedPreferencesKeys.selectedModel,
         ) ??
-        'llama-3.3-70b-versatile';
+        'openai/gpt-oss-20b';
 
     // La clave la introduce el usuario en Ajustes y se guarda solo en su
     // dispositivo. Antes se leía también de un fichero de recursos, pero en
