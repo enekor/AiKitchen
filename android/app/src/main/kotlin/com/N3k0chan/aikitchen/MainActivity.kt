@@ -3,6 +3,7 @@ package com.N3k0chan.aikitchen
 import android.app.StatusBarManager
 import android.content.ComponentName
 import android.graphics.drawable.Icon
+import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -27,19 +28,23 @@ class MainActivity : FlutterActivity() {
     }
 
     /// Android no deja colocar un botón en los ajustes rápidos sin permiso
-    /// explícito, así que se pide por el diálogo del sistema.
+    /// explícito, así que se pide por el diálogo del sistema (disponible en Android 13+ / API 33).
     private fun requestAddTile(result: MethodChannel.Result) {
-        getSystemService(StatusBarManager::class.java).requestAddTileService(
-            ComponentName(this, ShoppingListTileService::class.java),
-            getString(R.string.qs_tile_label),
-            Icon.createWithResource(this, R.drawable.ic_shopping_cart),
-            mainExecutor,
-            Consumer { code ->
-                result.success(
-                    code == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED ||
-                        code == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED,
-                )
-            },
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getSystemService(StatusBarManager::class.java).requestAddTileService(
+                ComponentName(this, ShoppingListTileService::class.java),
+                getString(R.string.qs_tile_label),
+                Icon.createWithResource(this, R.drawable.ic_shopping_cart),
+                mainExecutor,
+                Consumer { code ->
+                    result.success(
+                        code == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED ||
+                            code == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED,
+                    )
+                },
+            )
+        } else {
+            result.success(false)
+        }
     }
 }

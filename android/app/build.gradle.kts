@@ -32,9 +32,8 @@ android {
         applicationId = "com.N3k0chan.aikitchen"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        // Fijado a 36 en lugar del valor por defecto de Flutter (más bajo):
-        // requisito del proyecto, no una elección de Flutter.
-        minSdk = 36
+        // Compatible desde Android 7.0 (API nivel 24):
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
