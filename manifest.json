@@ -1,12 +1,13 @@
 {
-    "name": "aikitchen",
-    "short_name": "aikitchen",
+    "name": "AI Kitchen — Recetas con IA",
+    "short_name": "AI Kitchen",
+    "lang": "es",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#FDFCFF",
+    "theme_color": "#005AC1",
+    "description": "Descubre recetas con inteligencia artificial a partir de un nombre o de los ingredientes que tengas en casa.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
