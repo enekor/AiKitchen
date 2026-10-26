@@ -20,10 +20,10 @@ class Welcome extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: Spacing.lg),
-            Text('Recetas de internet', style: theme.textTheme.titleMedium),
+            Text('Recetas sin IA', style: theme.textTheme.titleMedium),
             const SizedBox(height: Spacing.xs),
             Text(
-              'Busca en Lidl y Cookpad para encontrar inspiración externa.',
+              'Busca en internet para no consumir la IA.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,

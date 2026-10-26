@@ -20,6 +20,10 @@ class RecipeFromFileService {
     final trimmed = jsonString.trim();
     // Un fichero puede contener una receta suelta o una lista de ellas.
     final normalized = trimmed.startsWith('{') ? '[$trimmed]' : trimmed;
-    return Recipe.fromJsonList(normalized);
+    final recipes = Recipe.fromJsonList(normalized);
+    for (var r in recipes) {
+      r.id = null;
+    }
+    return recipes;
   }
 }

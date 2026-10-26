@@ -3,11 +3,14 @@ class WebRecipeResult {
   final String imageUrl;
   final String time;
   final String url;
+  final String sourceName;
 
   WebRecipeResult({
     required this.title,
     required this.imageUrl,
     required this.time,
     required this.url,
+    this.sourceName = '',
   });
 }
+

@@ -40,6 +40,9 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
       final recipes =
           widget.recipes ??
           await RecipeFromFileService().loadRecipes(widget.recipeUri!);
+      for (final r in recipes) {
+        r.id = null;
+      }
       if (mounted) {
         setState(() => _recipe = recipes);
       }
@@ -125,23 +128,48 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
           if (_recipe != null && _recipe!.isNotEmpty)
             Positioned(
               bottom: Spacing.xxl,
-              left: 0,
-              right: 0,
+              left: Spacing.lg,
+              right: Spacing.lg,
               child: Center(
-                child: FloatingActionButton.extended(
-                onPressed: () async {
-                  await JsonDocumentsService().addFavRecipe(
-                    _recipe![_showingRecipe],
-                  );
-                  Toaster.showSuccess(
-                    '¡${_recipe![_showingRecipe].nombre} guardada!',
-                  );
-                },
-                elevation: 0,
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                  label: const Text('Guardar receta'),
-                  icon: const Icon(Icons.favorite_rounded),
+                child: Wrap(
+                  spacing: Spacing.md,
+                  runSpacing: Spacing.md,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    if (_recipe!.length > 1)
+                      FloatingActionButton.extended(
+                        onPressed: () async {
+                          for (var r in _recipe!) {
+                            await JsonDocumentsService().addFavRecipe(r);
+                          }
+                          Toaster.showSuccess(
+                            '¡Se han guardado las ${_recipe!.length} recetas!',
+                          );
+                        },
+                        elevation: 0,
+                        backgroundColor: theme.colorScheme.secondaryContainer,
+                        foregroundColor: theme.colorScheme.onSecondaryContainer,
+                        label: Text('Guardar todas (${_recipe!.length})'),
+                        icon: const Icon(Icons.done_all_rounded),
+                      ),
+                    FloatingActionButton.extended(
+                      onPressed: () async {
+                        await JsonDocumentsService().addFavRecipe(
+                          _recipe![_showingRecipe],
+                        );
+                        Toaster.showSuccess(
+                          '¡${_recipe![_showingRecipe].nombre} guardada!',
+                        );
+                      },
+                      elevation: 0,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      label: Text(
+                        _recipe!.length > 1 ? 'Guardar esta' : 'Guardar receta',
+                      ),
+                      icon: const Icon(Icons.favorite_rounded),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -213,7 +241,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
                 _buildExpressiveChip(
                   theme,
                   Icons.group_rounded,
-                  '${recipe.raciones}',
+                  recipe.raciones,
                   theme.colorScheme.surfaceContainerHighest,
                 ),
               ],
