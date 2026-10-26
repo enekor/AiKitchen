@@ -36,7 +36,7 @@ class _SearchHubState extends State<SearchHub> {
   static const _labels = {
     SearchMode.byName: 'Por nombre',
     SearchMode.byIngredients: 'Por ingredientes',
-    SearchMode.web: 'De internet',
+    SearchMode.web: 'Sin IA',
     SearchMode.fromUrl: 'Desde una URL',
   };
 

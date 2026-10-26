@@ -26,7 +26,6 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
   List<WebRecipeResult> _results = [];
   bool _isSearching = false;
   bool _isFetchingRecipe = false;
-  RecipeSource _selectedSource = RecipeSource.lidl;
 
   @override
   void dispose() {
@@ -40,7 +39,7 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
       _isSearching = true;
       _results = [];
     });
-    final results = await _service.searchRecipes(query, source: _selectedSource);
+    final results = await _service.searchRecipes(query);
     if (!mounted) return;
     setState(() {
       _isSearching = false;
@@ -66,32 +65,36 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
     setState(() => _isFetchingRecipe = true);
     try {
       final recipe = await _service.getFullRecipe(result.url);
-      if (recipe != null) {
+      if (recipe != null &&
+          (recipe.ingredientes.isNotEmpty || recipe.preparacion.isNotEmpty)) {
         if (!mounted) return;
-        if (recipe.preparacion.isEmpty) {
-          await _launchUrl(result.url);
-        } else {
-          Navigator.pushNamed(
-            context,
-            AppRoutes.recipe,
-            arguments: RecipeScreenArguments(
-              recipe: Recipe(
-                nombre: recipe.nombre,
-                descripcion: recipe.descripcion,
-                tiempoEstimado: recipe.tiempoEstimado,
-                ingredientes: recipe.ingredientes,
-                preparacion: recipe.preparacion,
-                calorias: recipe.calorias,
-                raciones: recipe.raciones,
-                origen: RecipeOrigin.web,
-              ),
+        Navigator.pushNamed(
+          context,
+          AppRoutes.recipe,
+          arguments: RecipeScreenArguments(
+            recipe: Recipe(
+              nombre: recipe.nombre,
+              descripcion: recipe.descripcion,
+              tiempoEstimado: recipe.tiempoEstimado,
+              ingredientes: recipe.ingredientes,
+              preparacion: recipe.preparacion.isEmpty
+                  ? ['Consultar los detalles de preparación en la web original.']
+                  : recipe.preparacion,
+              calorias: recipe.calorias,
+              raciones: recipe.raciones,
+              origen: RecipeOrigin.web,
             ),
-          );
-        }
+            url: result.url,
+          ),
+        );
       } else {
+        if (!mounted) return;
+        Toaster.showWarning('No se pudo extraer la receta completa, abriendo web original');
         await _launchUrl(result.url);
       }
     } catch (_) {
+      if (!mounted) return;
+      Toaster.showError('Error al obtener la receta, abriendo web original');
       await _launchUrl(result.url);
     } finally {
       if (mounted) setState(() => _isFetchingRecipe = false);
@@ -114,29 +117,6 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
                       controller: _searchController,
                       hintText: 'Arroz, curry, merluza...',
                       onSubmitted: _onSearch,
-                    ),
-                    const SizedBox(height: Spacing.md),
-                    SegmentedButton<RecipeSource>(
-                      segments: const [
-                        ButtonSegment(
-                          value: RecipeSource.lidl,
-                          label: Text('Lidl'),
-                          icon: Icon(Icons.shopping_basket_outlined),
-                        ),
-                        ButtonSegment(
-                          value: RecipeSource.cookpad,
-                          label: Text('Cookpad'),
-                          icon: Icon(Icons.restaurant_outlined),
-                        ),
-                      ],
-                      selected: {_selectedSource},
-                      onSelectionChanged: (selection) {
-                        setState(() => _selectedSource = selection.first);
-                        if (_searchController.text.isNotEmpty) {
-                          _onSearch(_searchController.text);
-                        }
-                      },
-                      showSelectedIcon: false,
                     ),
                   ],
                 ),

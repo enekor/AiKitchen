@@ -41,14 +41,21 @@ class SearchService {
         .timeout(const Duration(seconds: 30));
   }
 
-  Future<List<WebRecipeResult>> searchRecipes(
-    String query, {
-    RecipeSource source = RecipeSource.lidl,
-  }) async {
-    final url = source == RecipeSource.lidl
-        ? 'https://recetas.lidl.es/todasrecetas?q=$query'
-        : 'https://cookpad.com/es/buscar/$query';
-    return fetchRecipesFromUrl(url, source: source);
+  Future<List<WebRecipeResult>> searchRecipes(String query) async {
+    lastError = null;
+    final lidlUrl = 'https://recetas.lidl.es/todasrecetas?q=$query';
+    final cookpadUrl = 'https://cookpad.com/es/buscar/$query';
+
+    final resultsList = await Future.wait([
+      fetchRecipesFromUrl(lidlUrl, source: RecipeSource.lidl),
+      fetchRecipesFromUrl(cookpadUrl, source: RecipeSource.cookpad),
+    ]);
+
+    final combined = <WebRecipeResult>[];
+    for (final list in resultsList) {
+      combined.addAll(list);
+    }
+    return combined;
   }
 
   Future<List<WebRecipeResult>> fetchRecipesFromUrl(
@@ -220,7 +227,9 @@ class SearchService {
 
       // 2. INGREDIENTES
       List<String> ingredients = [];
-      var ingredientsList = document.querySelectorAll('div#ingredients ol li');
+      var ingredientsList = document.querySelectorAll(
+        'div#ingredients ol li, div#ingredients ul li, [id*="ingredient"] li, .ingredient',
+      );
       for (var li in ingredientsList) {
         var text = li.text.trim().replaceAll(RegExp(r'\s+'), ' ');
         if (text.isNotEmpty) ingredients.add(text);
@@ -228,10 +237,12 @@ class SearchService {
 
       // 3. PASOS
       List<String> steps = [];
-      var stepsList = document.querySelectorAll('div#steps ol li');
+      var stepsList = document.querySelectorAll(
+        'div#steps ol li, div#steps ul li, [id*="step"] li, .step',
+      );
       for (var li in stepsList) {
         // El texto del paso suele estar en un div o p dentro del li
-        var p = li.querySelector('p');
+        var p = li.querySelector('p') ?? li.querySelector('span');
         var stepText = p?.text.trim() ?? li.text.trim();
         // Limpiamos el número del paso si está al principio
         stepText = stepText.replaceFirst(RegExp(r'^\d+\s*'), '').trim();
@@ -315,6 +326,7 @@ class SearchService {
             imageUrl: imageUrl,
             time: time,
             url: fullUrl,
+            sourceName: 'Cookpad',
           ),
         );
       } catch (e) {
@@ -372,6 +384,7 @@ class SearchService {
             imageUrl: imageUrl,
             time: time,
             url: fullUrl,
+            sourceName: 'Lidl',
           ),
         );
       } catch (e) {

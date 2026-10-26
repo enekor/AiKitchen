@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       _QuickAccessCard(
                         icon: Icons.cloud_outlined,
-                        label: 'De internet',
+                        label: 'Sin IA',
                         onTap: () => AppShellController.instance.goTo(
                           AppShellTab.search,
                           searchMode: SearchMode.web,

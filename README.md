@@ -36,7 +36,7 @@
 Todas las funciones están disponibles, con algunas salvedades propias del navegador:
 
 - **Datos guardados**: favoritos, menú semanal, lista de la compra y ajustes viven en el almacenamiento local del navegador, no en SQLite. Son propios de ese navegador y se pierden al borrar los datos del sitio.
-- **Recetas de webs externas**: un navegador no deja leer otras webs directamente. Las peticiones a Lidl, Cookpad y a las URL que introduzcas pasan por un proxy configurable en Ajustes. Viene uno público por defecto; para algo estable, pon uno propio.
+- **Recetas de webs externas**: un navegador no deja leer otras webs directamente. Las peticiones que introduzcas pasan por un proxy configurable en Ajustes. Viene uno público por defecto; para algo estable, pon uno propio.
 - Los widgets de pantalla de inicio y la recepción de ficheros compartidos son de Android y no aparecen en web.
 
 #### Compilar para web

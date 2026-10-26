@@ -162,10 +162,14 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
   }
 
   void _openRecipe(Recipe recipe) {
+    final inputUrl = _urlController.text.trim();
     Navigator.pushNamed(
       context,
       AppRoutes.recipe,
-      arguments: RecipeScreenArguments(recipe: recipe),
+      arguments: RecipeScreenArguments(
+        recipe: recipe,
+        url: inputUrl.isNotEmpty ? inputUrl : null,
+      ),
     );
   }
 

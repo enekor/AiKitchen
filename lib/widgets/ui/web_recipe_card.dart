@@ -25,6 +25,7 @@ class WebRecipeCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return AppCard(
+      onTap: onImport,
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,6 +60,26 @@ class WebRecipeCard extends StatelessWidget {
                 const SizedBox(height: Spacing.xs),
                 Row(
                   children: [
+                    if (result.sourceName.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.xs,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(AppRadius.xs),
+                        ),
+                        child: Text(
+                          result.sourceName,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSecondaryContainer,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.sm),
+                    ],
                     Icon(
                       Icons.timer_outlined,
                       size: 16,
@@ -79,8 +100,8 @@ class WebRecipeCard extends StatelessWidget {
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: onImport,
-                        icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-                        label: const Text('Importar con IA'),
+                        icon: const Icon(Icons.menu_book_rounded, size: 18),
+                        label: const Text('Ver receta'),
                       ),
                     ),
                     const SizedBox(width: Spacing.sm),
