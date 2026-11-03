@@ -12,4 +12,3 @@ export 'recipe_card.dart';
 export 'recipe_meta_row.dart';
 export 'removable_chip.dart';
 export 'section_header.dart';
-export 'web_recipe_card.dart';

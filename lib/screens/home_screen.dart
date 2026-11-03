@@ -202,14 +202,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       _QuickAccessCard(
-                        icon: Icons.cloud_outlined,
-                        label: 'Sin IA',
-                        onTap: () => AppShellController.instance.goTo(
-                          AppShellTab.search,
-                          searchMode: SearchMode.web,
-                        ),
-                      ),
-                      _QuickAccessCard(
                         icon: Icons.calendar_today_rounded,
                         label: 'Plan semanal',
                         onTap: () => AppShellController.instance
@@ -220,14 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: 'Lista de la compra',
                         onTap: () => AppShellController.instance
                             .goTo(AppShellTab.shoppingList),
-                      ),
-                      _QuickAccessCard(
-                        icon: Icons.link_rounded,
-                        label: 'Importar URL',
-                        onTap: () => AppShellController.instance.goTo(
-                          AppShellTab.search,
-                          searchMode: SearchMode.fromUrl,
-                        ),
                       ),
                       _QuickAccessCard(
                         icon: Icons.add_circle_outline_rounded,

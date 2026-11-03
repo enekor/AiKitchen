@@ -1,6 +1,5 @@
 import 'package:aikitchen/screens/logs_screen.dart';
 import 'package:aikitchen/services/ai_service.dart';
-import 'package:aikitchen/services/cors_proxy.dart';
 import 'package:aikitchen/services/external_link_service.dart';
 import 'package:aikitchen/services/quick_settings_service.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
@@ -372,28 +371,6 @@ class _SettingsState extends State<Settings> {
                 subtitle: 'Reduce el espaciado para ver más contenido a la vez',
                 onChange: (value) => setState(() => singleton.setDensidadCompacta = value),
               ),
-
-              if (CorsProxy.isRequired) ...[
-                const SizedBox(height: Spacing.xxl),
-                _sectionHeader(theme, 'Acceso a webs de recetas'),
-                const SizedBox(height: Spacing.lg),
-                TextFieldSetting(
-                  initialValue: CorsProxy.enabled ? CorsProxy.template : '',
-                  text: 'Proxy',
-                  hint: CorsProxy.defaultTemplate,
-                  helper:
-                      'El navegador impide leer otras webs directamente. Las '
-                      'peticiones se reenvían por esta dirección, donde {url} se '
-                      'sustituye por la web a leer. Déjalo vacío para no usar '
-                      'ninguno.',
-                  onSave: (value) async {
-                    await CorsProxy.save(value);
-                    Toaster.showSuccess(
-                      value.isEmpty ? 'Proxy desactivado' : 'Proxy guardado',
-                    );
-                  },
-                ),
-              ],
 
               const SizedBox(height: Spacing.xxl),
               _sectionHeader(theme, 'Preferencias de recetas'),

@@ -18,7 +18,6 @@ enum SharedPreferencesKeys {
   firstStart,
   selectedModel,
   themeMode,
-  corsProxy,
   velocidadVoz,
   creatividad,
   densidadCompacta,

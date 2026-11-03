@@ -7,9 +7,7 @@ import 'package:flutter/material.dart';
 /// Tarjeta de receta sin fotografía.
 ///
 /// Las recetas generadas por IA no tienen imagen y el modelo no la guarda, así
-/// que esta tarjeta se apoya solo en tipografía y color. La única tarjeta con
-/// foto de la aplicación es [WebRecipeCard], para los resultados de internet,
-/// que sí traen una dirección de imagen.
+/// que esta tarjeta se apoya solo en tipografía y color.
 class RecipeCard extends StatelessWidget {
   const RecipeCard({
     super.key,
