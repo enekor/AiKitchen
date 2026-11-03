@@ -95,6 +95,35 @@ void main() {
       expect(AiService.maxOutputTokens('groq'), lessThanOrEqualTo(6144));
     });
 
+    test('elige el Gemini más barato que admita la clave', () {
+      // La clave admite el más barato: se queda con él.
+      expect(
+        AiService.pickGeminiModel(['gemini-3.6-flash', 'gemini-2.5-flash-lite']),
+        'gemini-2.5-flash-lite',
+      );
+      // Rechazado para este proyecto aunque aparezca en la lista.
+      expect(
+        AiService.pickGeminiModel(
+          ['gemini-2.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.6-flash'],
+          rejected: {'gemini-2.5-flash-lite'},
+        ),
+        'gemini-3.1-flash-lite',
+      );
+      // Ninguno conocido: el primer Flash-Lite estable de texto.
+      expect(
+        AiService.pickGeminiModel([
+          'gemini-4.0-flash-lite-image',
+          'gemini-4.0-flash-lite-preview',
+          'gemini-4.0-flash-lite',
+          'gemini-4.0-flash',
+        ]),
+        'gemini-4.0-flash-lite',
+      );
+      // Sin Flash-Lite, un Flash de texto; sin nada útil, null.
+      expect(AiService.pickGeminiModel(['gemini-4.0-flash', 'gemini-4.0-pro']), 'gemini-4.0-flash');
+      expect(AiService.pickGeminiModel(['text-embedding-005', 'gemini-tts-2']), isNull);
+    });
+
     test('prefiere los proveedores con cuota gratuita', () {
       expect(AiService.freeTierProviders, ['gemini', 'groq']);
       expect(AiService.hasFreeTier('Gemini'), isTrue);

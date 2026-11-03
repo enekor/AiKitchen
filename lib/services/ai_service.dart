@@ -101,8 +101,78 @@ class AiService {
   /// se usaba el modelo guardado en Ajustes aunque fuera de otro proveedor
   /// (con solo una clave de Gemini se quedaba el de Groq por defecto), la API
   /// lo rechazaba y la pantalla acababa leyendo como JSON un mensaje de error.
-  static String effectiveModel(String provider) =>
-      providerModel[provider.toLowerCase()] ?? providerModel['groq']!;
+  static String effectiveModel(String provider) {
+    final p = provider.toLowerCase();
+    if (p == 'gemini' && _geminiModel != null) return _geminiModel!;
+    return providerModel[p] ?? providerModel['groq']!;
+  }
+
+  /// Modelos de Gemini de más barato a más caro (precio por millón de tokens
+  /// de entrada / salida, noviembre de 2026). Todos con cuota gratuita.
+  static const List<String> geminiPreference = [
+    'gemini-2.5-flash-lite', // 0,10 $ / 0,40 $
+    'gemini-3.1-flash-lite', // 0,25 $ / 1,50 $
+    'gemini-3.5-flash-lite', // 0,30 $ / 2,50 $
+    'gemini-3.6-flash', // 0,75 $ / 3,75 $
+  ];
+
+  /// Modelo de Gemini elegido tras consultar qué admite la clave del usuario.
+  /// Qué modelos acepta cada clave depende de su proyecto: Google deja de
+  /// ofrecer los antiguos a proyectos nuevos aunque sigan existiendo.
+  static String? _geminiModel;
+
+  /// Modelos que Gemini ya ha rechazado en esta sesión.
+  static final Set<String> _geminiRejected = {};
+
+  /// Elige, entre los modelos que [available] dice que admite la clave, el
+  /// más barato que no haya sido rechazado. Si no hay ninguno conocido, se
+  /// queda con el primer Flash-Lite y, si tampoco, con el primer Flash de
+  /// texto. `null` si no hay nada utilizable.
+  @visibleForTesting
+  static String? pickGeminiModel(Iterable<String> available, {Set<String> rejected = const {}}) {
+    final usable = available.where((m) => !rejected.contains(m)).toSet();
+    for (final preferred in geminiPreference) {
+      if (usable.contains(preferred)) return preferred;
+    }
+    bool isTextModel(String m) =>
+        !RegExp(r'image|tts|audio|live|embedding|vision|robotics|computer|transcribe')
+            .hasMatch(m);
+    final sorted = usable.where(isTextModel).toList()..sort();
+    final stable = sorted.where((m) => !m.contains('preview') && !m.contains('exp'));
+    for (final pool in [stable, sorted]) {
+      for (final family in ['flash-lite', 'flash']) {
+        final match = pool.where((m) => m.contains(family));
+        if (match.isNotEmpty) return match.first;
+      }
+    }
+    return null;
+  }
+
+  /// Pregunta a Gemini qué modelos admite esta clave para generar texto.
+  static Future<List<String>> _listGeminiModels(String apiKey) async {
+    final models = <String>[];
+    String? pageToken;
+    do {
+      final url = Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000'
+        '${pageToken != null ? '&pageToken=$pageToken' : ''}',
+      );
+      final response = await http
+          .get(url, headers: {'x-goog-api-key': apiKey})
+          .timeout(const Duration(seconds: 30));
+      if (response.statusCode != 200) break;
+      final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      for (final m in (data['models'] as List? ?? const [])) {
+        if (m is! Map) continue;
+        final methods = (m['supportedGenerationMethods'] as List?) ?? const [];
+        if (!methods.contains('generateContent')) continue;
+        final name = (m['name'] as String?)?.replaceFirst('models/', '');
+        if (name != null) models.add(name);
+      }
+      pageToken = data['nextPageToken'] as String?;
+    } while (pageToken != null && pageToken.isNotEmpty);
+    return models;
+  }
 
   /// Tope de tokens de salida. Todos los modelos admiten bastante más, pero
   /// sin streaming una respuesta muy larga arriesga a agotar el tiempo de
@@ -283,13 +353,23 @@ class AiService {
     double temperature = 0.1,
   }) async {
     final logService = LogFileService();
-    const int maxAttempts = 3;
+    // Un intento más que en otros proveedores: puede gastarse uno en
+    // descubrir que el modelo no está disponible para esta clave.
+    const int maxAttempts = 4;
     String? lastError;
+    var currentModel = _geminiModel ?? model;
+    var discovered = false;
+    // Los Gemini 3 razonan por defecto; se pide el mínimo para no gastar
+    // tokens. Si el modelo no admite ese nivel, se repite sin él.
+    String? thinkingLevel;
+    void resetThinking() =>
+        thinkingLevel = currentModel.startsWith('gemini-3') ? 'minimal' : null;
+    resetThinking();
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        await logService.appendLog('INFO GeminiService: Intento ${attempt + 1} con modelo $model (maxTokens: $maxTokens)...');
-        final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent');
+        await logService.appendLog('INFO GeminiService: Intento ${attempt + 1} con modelo $currentModel (maxTokens: $maxTokens)...');
+        final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$currentModel:generateContent');
 
         final body = {
           'systemInstruction': {
@@ -305,13 +385,13 @@ class AiService {
               ]
             }
           ],
-          // 2.5 Flash-Lite no razona por defecto, así que todos los tokens
-          // de salida son para la respuesta. No se le manda configuración de
-          // razonamiento: pedirla la activaría.
+          // 2.5 Flash-Lite no razona por defecto, así que a ese no se le manda
+          // configuración de razonamiento: pedirla la activaría.
           'generationConfig': {
             'temperature': temperature,
             'maxOutputTokens': maxTokens ?? 8192,
             'responseMimeType': 'application/json',
+            if (thinkingLevel != null) 'thinkingConfig': {'thinkingLevel': thinkingLevel},
           }
         };
 
@@ -366,11 +446,43 @@ class AiService {
         } catch (_) {}
         await logService.appendLog('ERROR GeminiService (Intento ${attempt + 1}): $message');
 
-        if (response.statusCode == 401 || response.statusCode == 403) {
+        final lower = message.toLowerCase();
+        if (lower.contains('api key not valid') ||
+            lower.contains('api_key_invalid') ||
+            response.statusCode == 401) {
           return 'Error: API Key de Gemini inválida. Por favor, revísala en Ajustes.';
         }
-        if (response.statusCode == 404) {
-          return 'Error: el modelo $model no está disponible en Gemini.';
+
+        if (response.statusCode == 400 &&
+            thinkingLevel != null &&
+            lower.contains('thinking')) {
+          thinkingLevel = thinkingLevel == 'minimal' ? 'low' : null;
+          continue;
+        }
+
+        // El modelo no existe o esta clave no puede usarlo: se pregunta a
+        // Gemini cuáles admite y se cambia al más barato de ellos.
+        final modelUnavailable = response.statusCode == 404 ||
+            (response.statusCode == 400 && lower.contains('not found')) ||
+            lower.contains('no longer available') ||
+            lower.contains('not supported for generatecontent');
+        if (modelUnavailable) {
+          _geminiRejected.add(currentModel);
+          if (!discovered) {
+            discovered = true;
+            final available = await _listGeminiModels(apiKey);
+            await logService.appendLog('INFO GeminiService: modelos disponibles para esta clave: ${available.join(', ')}');
+            final next = pickGeminiModel(available, rejected: _geminiRejected);
+            if (next != null) {
+              await logService.appendLog('INFO GeminiService: $currentModel no disponible, se usa $next.');
+              _geminiModel = next;
+              currentModel = next;
+              resetThinking();
+              continue;
+            }
+          }
+          return 'Error: Gemini no permite usar el modelo $currentModel con esta '
+              'clave y no se ha encontrado otro disponible. Mensaje de Google: $message';
         }
         lastError = response.statusCode == 429
             ? _quotaMessage('Gemini', message)
