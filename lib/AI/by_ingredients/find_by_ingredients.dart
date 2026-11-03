@@ -3,6 +3,7 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/pantry_service.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -44,6 +45,24 @@ class _FindByIngredientsState extends State<FindByIngredients> {
 
   void _removeIngredient(String ingredient) {
     setState(() => ingredientes.remove(ingredient));
+  }
+
+  /// Rellena la búsqueda con lo que hay en la despensa.
+  Future<void> _usePantry() async {
+    await PantryService.instance.load();
+    final pantry = PantryService.instance.items;
+    if (pantry.isEmpty) {
+      Toaster.showWarning('Tu despensa está vacía. Añade productos desde Inicio.');
+      return;
+    }
+    final nuevos = pantry
+        .where((p) => !ingredientes.any((i) => i.toLowerCase() == p.toLowerCase()))
+        .toList();
+    if (nuevos.isEmpty) {
+      Toaster.showWarning('Ya están todos los productos de la despensa');
+      return;
+    }
+    setState(() => ingredientes.addAll(nuevos));
   }
 
   String _cleanJsonResponse(String response) {
@@ -147,6 +166,14 @@ class _FindByIngredientsState extends State<FindByIngredients> {
               icon: const Icon(Icons.add_rounded),
             ),
           ],
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _usePantry,
+            icon: const Icon(Icons.inventory_2_outlined),
+            label: const Text('Usar mi despensa'),
+          ),
         ),
         if (ingredientes.isNotEmpty) ...[
           const SizedBox(height: Spacing.md),

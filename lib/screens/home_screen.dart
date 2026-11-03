@@ -214,6 +214,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             .goTo(AppShellTab.shoppingList),
                       ),
                       _QuickAccessCard(
+                        icon: Icons.inventory_2_outlined,
+                        label: 'Despensa',
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.pantry),
+                      ),
+                      _QuickAccessCard(
                         icon: Icons.add_circle_outline_rounded,
                         label: 'Crear receta',
                         onTap: () =>

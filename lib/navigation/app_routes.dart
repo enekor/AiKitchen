@@ -17,4 +17,6 @@ abstract class AppRoutes {
   static const String settings = '/ajustes';
   static const String logs = '/registros';
   static const String sharedPreview = '/compartida';
+  static const String cookingMode = '/cocinar';
+  static const String pantry = '/despensa';
 }

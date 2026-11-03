@@ -1,5 +1,6 @@
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
+import 'package:aikitchen/widgets/kitchen_timers_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -211,6 +212,8 @@ class _StepCard extends StatelessWidget {
             ),
           ),
           if (isCurrent) ...[
+            const SizedBox(height: Spacing.md),
+            StepTimerButtons(text: text, stepNumber: number),
             const SizedBox(height: Spacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

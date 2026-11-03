@@ -3,11 +3,16 @@ import 'dart:async';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/navigation/app_shell.dart';
+import 'package:aikitchen/screens/cooking_mode_screen.dart';
 import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/screens/logs_screen.dart';
+import 'package:aikitchen/screens/pantry_screen.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
 import 'package:aikitchen/services/first_start_service.dart';
+import 'package:aikitchen/services/kitchen_timer_alert.dart';
+import 'package:aikitchen/services/kitchen_timers.dart';
+import 'package:aikitchen/services/pantry_service.dart';
 import 'package:aikitchen/services/log_file_service.dart';
 import 'package:aikitchen/services/platform/platform_info.dart' as platform;
 import 'package:aikitchen/services/shared_preferences_service.dart';
@@ -31,6 +36,8 @@ void main() async {
   });
   await _safely('migrar datos antiguos', () => FirstStartService().firstStart());
   await _safely('cargar el tema', () => themeController.load());
+  await _safely('cargar la despensa', () => PantryService.instance.load());
+  KitchenTimers.instance.onFinished = alertTimerFinished;
 
   if (platform.supportsHomeWidgets) {
     await _safely('inicializar los widgets', () async {
@@ -119,6 +126,7 @@ class _MyAppState extends State<MyApp> {
             AppRoutes.settings: (context) => Settings(),
             AppRoutes.createRecipe: (context) => const CreateRecipe(),
             AppRoutes.logs: (context) => const LogsScreen(),
+            AppRoutes.pantry: (context) => const PantryScreen(),
             // Alias heredado, mantenido para no romper enlaces guardados.
             '/api_key': (context) => Settings(),
           },
@@ -133,6 +141,16 @@ class _MyAppState extends State<MyApp> {
               return MaterialPageRoute(
                 settings: settings,
                 builder: (_) => RecipeScreen(recipe: args.recipe, url: args.url),
+              );
+            }
+            if (settings.name == AppRoutes.cookingMode) {
+              final args = settings.arguments;
+              if (args is! RecipeScreenArguments) {
+                return MaterialPageRoute(builder: (_) => const AppShell());
+              }
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (_) => CookingModeScreen(recipe: args.recipe),
               );
             }
             return null;
