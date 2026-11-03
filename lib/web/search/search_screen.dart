@@ -27,25 +27,37 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
   bool _isSearching = false;
   bool _isFetchingRecipe = false;
 
+  /// Identifica la búsqueda en curso: si el usuario lanza otra antes de que
+  /// termine, los lotes de la anterior se descartan al llegar.
+  int _searchToken = 0;
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+  /// Los resultados se pintan a medida que responde cada fuente, en vez de
+  /// esperar a la más lenta, y siempre ordenados por título.
   void _onSearch(String query) async {
     if (query.isEmpty) return;
+    final token = ++_searchToken;
     setState(() {
       _isSearching = true;
       _results = [];
     });
-    final results = await _service.searchRecipes(query);
-    if (!mounted) return;
-    setState(() {
-      _isSearching = false;
-      _results = results;
-    });
-    if (results.isEmpty) {
+
+    await for (final batch in _service.searchRecipes(query)) {
+      if (!mounted || token != _searchToken) return;
+      if (batch.isEmpty) continue;
+      setState(() {
+        _results = _sortedByTitle([..._results, ...batch]);
+      });
+    }
+
+    if (!mounted || token != _searchToken) return;
+    setState(() => _isSearching = false);
+    if (_results.isEmpty) {
       final error = _service.lastError;
       if (error != null) {
         Toaster.showError(error);
@@ -53,6 +65,13 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
         Toaster.showWarning('No se han encontrado recetas para "$query"');
       }
     }
+  }
+
+  static List<WebRecipeResult> _sortedByTitle(List<WebRecipeResult> results) {
+    return results
+      ..sort(
+        (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      );
   }
 
   Future<void> _launchUrl(String url) async {
@@ -122,7 +141,16 @@ class _LidSearchScreenState extends State<LidSearchScreen> {
                 ),
               ),
             ),
-            if (_isSearching)
+            // Mientras alguna fuente siga respondiendo, una barra fina avisa
+            // de que pueden llegar más resultados sin tapar los que ya hay.
+            if (_isSearching && _results.isNotEmpty)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                  child: LinearProgressIndicator(),
+                ),
+              ),
+            if (_isSearching && _results.isEmpty)
               const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
               )

@@ -60,26 +60,6 @@ class WebRecipeCard extends StatelessWidget {
                 const SizedBox(height: Spacing.xs),
                 Row(
                   children: [
-                    if (result.sourceName.isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.xs,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(AppRadius.xs),
-                        ),
-                        child: Text(
-                          result.sourceName,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSecondaryContainer,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: Spacing.sm),
-                    ],
                     Icon(
                       Icons.timer_outlined,
                       size: 16,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/web_recipe_result.dart';
 import 'package:aikitchen/services/cors_proxy.dart';
+import 'package:aikitchen/services/structured_recipe_extractor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
@@ -41,21 +42,18 @@ class SearchService {
         .timeout(const Duration(seconds: 30));
   }
 
-  Future<List<WebRecipeResult>> searchRecipes(String query) async {
+  /// Lanza la búsqueda en todas las fuentes a la vez y emite los resultados
+  /// de cada una en cuanto responde, para que la pantalla no espere a la más
+  /// lenta. Cada evento es el lote de una fuente (vacío si falló).
+  Stream<List<WebRecipeResult>> searchRecipes(String query) {
     lastError = null;
     final lidlUrl = 'https://recetas.lidl.es/todasrecetas?q=$query';
     final cookpadUrl = 'https://cookpad.com/es/buscar/$query';
 
-    final resultsList = await Future.wait([
+    return Stream.fromFutures([
       fetchRecipesFromUrl(lidlUrl, source: RecipeSource.lidl),
       fetchRecipesFromUrl(cookpadUrl, source: RecipeSource.cookpad),
     ]);
-
-    final combined = <WebRecipeResult>[];
-    for (final list in resultsList) {
-      combined.addAll(list);
-    }
-    return combined;
   }
 
   Future<List<WebRecipeResult>> fetchRecipesFromUrl(
@@ -98,9 +96,7 @@ class SearchService {
         return null;
       }
 
-      var recipe = isCookpad
-          ? _parseCookpadRecipeDetails(response.body)
-          : _parseFullRecipeDetails(response.body);
+      var recipe = _parseRecipePage(response.body, isCookpad: isCookpad);
 
       // Lidl a veces devuelve la página sin los pasos al primer intento.
       if (!isCookpad && (recipe == null || recipe.preparacion.isEmpty)) {
@@ -108,7 +104,7 @@ class SearchService {
 
         response = await _get(url);
         if (response.statusCode == 200) {
-          recipe = _parseFullRecipeDetails(response.body);
+          recipe = _parseRecipePage(response.body, isCookpad: isCookpad);
         }
       }
 
@@ -118,6 +114,39 @@ class SearchService {
       lastError = CorsProxy.failureHint;
     }
     return null;
+  }
+
+  /// Primero los datos estructurados (schema.org), que valen para cualquier
+  /// web y no dependen de su maquetación. El parser escrito a medida para el
+  /// sitio sirve de respaldo, y también para rellenar lo que el JSON-LD no
+  /// trae: Cookpad, por ejemplo, no publica ahí ni el tiempo ni las raciones.
+  Recipe? _parseRecipePage(String html, {required bool isCookpad}) {
+    final structured = StructuredRecipeExtractor.extract(html);
+    final specific = isCookpad
+        ? _parseCookpadRecipeDetails(html)
+        : _parseFullRecipeDetails(html);
+    if (structured == null) return specific;
+    if (specific == null) return structured;
+
+    final hasTime =
+        structured.tiempoEstimado != StructuredRecipeExtractor.tiempoDesconocido;
+    final hasServings = structured.raciones != '1';
+    final hasCalories =
+        structured.calorias != StructuredRecipeExtractor.caloriasDesconocidas;
+    final specificCalories = int.tryParse(specific.calorias) ?? 0;
+
+    return Recipe(
+      nombre: structured.nombre,
+      descripcion: structured.descripcion,
+      ingredientes: structured.ingredientes,
+      preparacion: structured.preparacion,
+      tiempoEstimado: hasTime ? structured.tiempoEstimado : specific.tiempoEstimado,
+      raciones: hasServings ? structured.raciones : specific.raciones,
+      calorias: hasCalories || specificCalories <= 0
+          ? structured.calorias
+          : specific.calorias,
+      origen: RecipeOrigin.web,
+    );
   }
 
   Recipe? _parseFullRecipeDetails(String htmlContent) {

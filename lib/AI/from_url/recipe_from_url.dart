@@ -1,12 +1,10 @@
-import 'dart:convert';
-
-import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/services/cors_proxy.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
+import 'package:aikitchen/services/structured_recipe_extractor.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -16,6 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 /// Modo "desde una URL" del centro de búsqueda. Sin `Scaffold` propio.
+///
+/// No usa la IA: lee los datos estructurados (schema.org/Recipe) que publica
+/// la propia web. Si la página no los trae, se informa al usuario.
 class RecipeFromUrl extends StatefulWidget {
   const RecipeFromUrl({super.key});
 
@@ -33,33 +34,6 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
   void dispose() {
     _urlController.dispose();
     super.dispose();
-  }
-
-  String _stripHtml(String html) {
-    return html
-        .replaceAll(
-          RegExp(r'<script[^>]*>.*?</script>', dotAll: true, caseSensitive: false),
-          ' ',
-        )
-        .replaceAll(
-          RegExp(r'<style[^>]*>.*?</style>', dotAll: true, caseSensitive: false),
-          ' ',
-        )
-        .replaceAll(RegExp(r'<[^>]+>'), ' ')
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&quot;', '"')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-  }
-
-  String _cleanJsonResponse(String response) {
-    return response
-        .replaceAll(RegExp(r'^```json\s*', multiLine: true), '')
-        .replaceAll(RegExp(r'\s*```$', multiLine: true), '')
-        .trim();
   }
 
   Future<void> _generateFromUrl() async {
@@ -94,42 +68,22 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
         return;
       }
 
-      final rawText = _stripHtml(httpResponse.body);
-      final content = rawText.length > 7000 ? rawText.substring(0, 7000) : rawText;
-
+      final recipe = StructuredRecipeExtractor.extract(httpResponse.body);
       if (!mounted) return;
 
-      final aiResponse = await AppSingleton().generateContent(
-        Prompt.recipeFromUrlPrompt(
-          content,
-          AppSingleton().personality,
-          AppSingleton().idioma,
-          AppSingleton().tipoReceta,
-        ),
-        context,
-      );
-
-      final cleaned = _cleanJsonResponse(aiResponse);
-      final Map<String, dynamic> parsed = jsonDecode(cleaned);
-
-      if (parsed['status'] == 'ok') {
-        final recipes = Recipe.fromJsonList(jsonEncode(parsed['response']));
-        if (recipes.isNotEmpty) {
-          setState(() {
-            _recipe = recipes.first;
-            _loading = false;
-          });
-          Toaster.showSuccess('¡Receta extraída con éxito!');
-        } else {
-          _handleError('La IA no pudo extraer la receta.');
-        }
-      } else {
-        setState(() {
-          _errorMessage =
-              parsed['response'] as String? ?? 'No se pudo extraer una receta de esa URL.';
-          _loading = false;
-        });
+      if (recipe == null) {
+        _handleError(
+          'Esa web no publica la receta en un formato que la app pueda leer '
+          '(schema.org/Recipe). Prueba con otra página de la receta.',
+        );
+        return;
       }
+
+      setState(() {
+        _recipe = recipe;
+        _loading = false;
+      });
+      Toaster.showSuccess('¡Receta extraída con éxito!');
     } on http.ClientException catch (e) {
       debugPrint('Error de red leyendo la URL: $e');
       _handleError(CorsProxy.failureHint);
@@ -200,10 +154,14 @@ class _RecipeFromUrlState extends State<RecipeFromUrl> {
           onSubmitted: (_) => _generateFromUrl(),
         ),
         const SizedBox(height: Spacing.lg),
-        AiButton(
-          label: 'Extraer receta',
-          expand: true,
-          onPressed: _generateFromUrl,
+        // Botón normal, no `AiButton`: este modo no llama al modelo.
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _generateFromUrl,
+            icon: const Icon(Icons.download_rounded, size: 18),
+            label: const Text('Extraer receta'),
+          ),
         ),
         if (_errorMessage != null) ...[
           const SizedBox(height: Spacing.xl),

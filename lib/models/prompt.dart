@@ -184,49 +184,6 @@ Parámetros:
 El formato debe ser el mismo JSON base, con una lista de una sola receta.
 ''';
 
-  static String recipeFromUrlPrompt(
-    String urlContent,
-    String tono,
-    String idioma,
-    String tipoReceta,
-  ) =>
-      '''
-Eres un chef experto. Recibirás el contenido textual de una página web.
-
-Tu tarea:
-1. Determina si el contenido contiene una receta de cocina o información suficiente para elaborarla.
-2. Si NO contiene ninguna receta ni información culinaria relevante (por ejemplo es un vídeo, audio, noticia, página sin contenido de cocina, etc.), responde ÚNICAMENTE con este JSON exacto:
-   {"status": "fail", "response": "El contenido de la URL no parece contener una receta de cocina."}
-3. Si SÍ contiene una receta, extráela y responde ÚNICAMENTE con este JSON exacto:
-   {
-     "status": "ok", 
-     "response": {
-       "recetas": [
-         {
-           "nombre": "nombre de la receta",
-           "descripcion": "descripcion de la receta",
-           "tiempoEstimado": "x min/h",
-           "calorias": 123,
-           "raciones": 2,
-           "ingredientes": ["ingrediente 1", "ingrediente 2"],
-           "preparacion": ["paso 1", "paso 2"]
-         }
-       ]
-     }
-   }
-
-Reglas importantes:
-- Responde SOLO con el JSON, sin texto adicional, sin markdown, sin bloques de código.
-- Para los ingredientes, no te dejes ninguno por obvio que parezca.
-- Los pasos de preparación deben ser detallados, sin dar nada por hecho.
-- Parámetros a aplicar: idioma de respuesta: $idioma, tipo de dieta: $tipoReceta, tono de los pasos: $tono.
-
-Contenido de la página:
----
-$urlContent
----
-''';
-
   static String formatExternalWeeklyMenuPrompt(
     String externalContent,
     String tipoReceta,
