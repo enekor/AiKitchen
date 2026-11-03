@@ -7,7 +7,6 @@ import 'package:aikitchen/screens/create_recipe.dart';
 import 'package:aikitchen/screens/logs_screen.dart';
 import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/screens/recipe_screen.dart';
-import 'package:aikitchen/services/cors_proxy.dart';
 import 'package:aikitchen/services/first_start_service.dart';
 import 'package:aikitchen/services/log_file_service.dart';
 import 'package:aikitchen/services/platform/platform_info.dart' as platform;
@@ -31,7 +30,6 @@ void main() async {
     await AppSingleton().initializeWithStoredKey();
   });
   await _safely('migrar datos antiguos', () => FirstStartService().firstStart());
-  await _safely('cargar el proxy', () => CorsProxy.load());
   await _safely('cargar el tema', () => themeController.load());
 
   if (platform.supportsHomeWidgets) {
