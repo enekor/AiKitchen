@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/models/tipo_receta.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/toaster.dart';
@@ -12,23 +13,48 @@ enum _Dificultad { principiante, intermedio, avanzado }
 
 enum _Tono { conciso, guiado, profesional }
 
-/// Panel de "Modificar con IA": las siete opciones existentes como prompts,
-/// más una petición libre, combinadas en una sola llamada al modelo.
+/// Aparatos a los que se puede adaptar la elaboración de una receta.
+const _aparatos = [
+  'Freidora de aire',
+  'Horno',
+  'Microondas',
+  'Olla rápida',
+  'Robot de cocina (tipo Thermomix)',
+  'Sin horno, solo fuegos',
+];
+
+/// Panel de "Adaptar o modificar con IA": adaptación a dietas, alergias y
+/// aparatos, más los ajustes de raciones, tiempo, dificultad y tono y una
+/// petición libre, todo combinado en una sola llamada al modelo.
 class AiEditSheet extends StatefulWidget {
-  const AiEditSheet({super.key, required this.recipe, required this.onRecipeUpdated});
+  const AiEditSheet({
+    super.key,
+    required this.recipe,
+    required this.onRecipeUpdated,
+    this.initialAdaptations = const {},
+  });
 
   final Recipe recipe;
   final ValueChanged<Recipe> onRecipeUpdated;
+
+  /// Dietas y restricciones ya marcadas al abrir, por ejemplo las del usuario
+  /// cuando se llega desde "Adaptar a mis preferencias".
+  final Set<TipoReceta> initialAdaptations;
 
   static Future<void> show(
     BuildContext context, {
     required Recipe recipe,
     required ValueChanged<Recipe> onRecipeUpdated,
+    Set<TipoReceta> initialAdaptations = const {},
   }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => AiEditSheet(recipe: recipe, onRecipeUpdated: onRecipeUpdated),
+      builder: (context) => AiEditSheet(
+        recipe: recipe,
+        onRecipeUpdated: onRecipeUpdated,
+        initialAdaptations: initialAdaptations,
+      ),
     );
   }
 
@@ -43,18 +69,17 @@ class _AiEditSheetState extends State<AiEditSheet> {
   bool _cambiarUnidades = false;
   bool _expres = false;
   bool _saludable = false;
-  String? _dieta;
+  late final Set<TipoReceta> _adaptaciones = {...widget.initialAdaptations};
+  String? _aparato;
   _Dificultad _dificultad = _Dificultad.intermedio;
   _Tono _tono = _Tono.guiado;
   final _peticionController = TextEditingController();
 
-  static const _dietas = [
-    'Sin gluten',
-    'Sin lactosa',
-    'Keto / baja en carbohidratos',
-    'Vegetariana',
-    'Apta para diabéticos',
-  ];
+  /// Las preferencias del usuario, sin la dieta omnívora, que no adapta nada.
+  Set<TipoReceta> get _misPreferencias => AppSingleton()
+      .preferenciasCocina
+      .where((t) => t != TipoReceta.omnivora)
+      .toSet();
 
   @override
   void dispose() {
@@ -82,8 +107,22 @@ class _AiEditSheetState extends State<AiEditSheet> {
     if (_saludable) {
       instrucciones.add('Haz una versión más saludable, con menos grasas y calorías.');
     }
-    if (_dieta != null) {
-      instrucciones.add('Adapta la receta para que sea apta para una dieta "$_dieta".');
+    final adaptaciones = [
+      for (final t in TipoReceta.values)
+        if (_adaptaciones.contains(t) && t != TipoReceta.omnivora) t.label,
+    ];
+    if (adaptaciones.isNotEmpty) {
+      instrucciones.add(
+        'Adapta la receta para que sea apta a la vez para: ${adaptaciones.join(', ')}. '
+        'Sustituye cada ingrediente no apto por una alternativa equivalente, '
+        'ajusta cantidades y pasos, y menciona las sustituciones en la descripción.',
+      );
+    }
+    if (_aparato != null) {
+      instrucciones.add(
+        'Adapta la elaboración para hacerla con: $_aparato. Ajusta tiempos, '
+        'temperaturas y recipientes a ese aparato.',
+      );
     }
     instrucciones.add(
       'El nivel de dificultad debe ser "${_dificultadLabel(_dificultad)}".',
@@ -114,7 +153,7 @@ class _AiEditSheetState extends State<AiEditSheet> {
     setState(() => _processing = true);
 
     try {
-      final recipeJsonStr = jsonEncode([widget.recipe.toJson()]);
+      final recipeJsonStr = jsonEncode([widget.recipe.toJson(includeFoto: false)]);
       final response = await AppSingleton().generateContent(
         Prompt.combinedUpdatePrompt(recipeJsonStr, instrucciones),
         context,
@@ -170,10 +209,70 @@ class _AiEditSheetState extends State<AiEditSheet> {
                 children: [
                   Icon(Icons.auto_awesome_rounded, color: accent.color),
                   const SizedBox(width: Spacing.sm),
-                  Text('Modificar con IA', style: theme.textTheme.headlineSmall),
+                  Expanded(
+                    child: Text(
+                      'Adaptar o modificar con IA',
+                      style: theme.textTheme.headlineSmall,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: Spacing.xl),
+
+              Text('Adaptar a dietas y alergias', style: theme.textTheme.titleMedium),
+              const SizedBox(height: Spacing.xs),
+              Text(
+                'Puedes combinar varias.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (_misPreferencias.isNotEmpty) ...[
+                const SizedBox(height: Spacing.sm),
+                OutlinedButton.icon(
+                  onPressed: () => setState(() => _adaptaciones.addAll(_misPreferencias)),
+                  icon: const Icon(Icons.person_outline_rounded),
+                  label: Text(
+                    'Usar mis preferencias: ${_misPreferencias.map((t) => t.label).join(', ')}',
+                  ),
+                ),
+              ],
+              const SizedBox(height: Spacing.sm),
+              Wrap(
+                spacing: Spacing.sm,
+                runSpacing: Spacing.sm,
+                children: [
+                  for (final tipo in TipoReceta.values)
+                    if (tipo != TipoReceta.omnivora)
+                      FilterChip(
+                        label: Text(tipo.label),
+                        selected: _adaptaciones.contains(tipo),
+                        onSelected: (selected) => setState(() {
+                          selected ? _adaptaciones.add(tipo) : _adaptaciones.remove(tipo);
+                        }),
+                      ),
+                ],
+              ),
+              const SizedBox(height: Spacing.lg),
+
+              Text('Adaptar a un aparato', style: theme.textTheme.titleMedium),
+              const SizedBox(height: Spacing.sm),
+              Wrap(
+                spacing: Spacing.sm,
+                runSpacing: Spacing.sm,
+                children: [
+                  for (final aparato in _aparatos)
+                    ChoiceChip(
+                      label: Text(aparato),
+                      selected: _aparato == aparato,
+                      onSelected: (selected) =>
+                          setState(() => _aparato = selected ? aparato : null),
+                    ),
+                ],
+              ),
+              const SizedBox(height: Spacing.xl),
+              Text('Otros ajustes', style: theme.textTheme.titleMedium),
+              const SizedBox(height: Spacing.sm),
 
               _SettingTile(
                 title: 'Raciones',
@@ -226,23 +325,6 @@ class _AiEditSheetState extends State<AiEditSheet> {
                   value: _saludable,
                   onChanged: (v) => setState(() => _saludable = v),
                 ),
-              ),
-              const SizedBox(height: Spacing.lg),
-
-              Text('Adaptar a una dieta', style: theme.textTheme.titleMedium),
-              const SizedBox(height: Spacing.sm),
-              Wrap(
-                spacing: Spacing.sm,
-                runSpacing: Spacing.sm,
-                children: [
-                  for (final dieta in _dietas)
-                    ChoiceChip(
-                      label: Text(dieta),
-                      selected: _dieta == dieta,
-                      onSelected: (selected) =>
-                          setState(() => _dieta = selected ? dieta : null),
-                    ),
-                ],
               ),
               const SizedBox(height: Spacing.lg),
 

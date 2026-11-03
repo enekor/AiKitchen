@@ -2,6 +2,7 @@ import 'package:aikitchen/AI/by_ingredients/find_by_ingredients.dart';
 import 'package:aikitchen/AI/by_name/find_by_name.dart';
 import 'package:aikitchen/navigation/app_shell_controller.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
+import 'package:aikitchen/widgets/diet_preferences.dart';
 import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:flutter/material.dart';
 
@@ -76,6 +77,10 @@ class _SearchHubState extends State<SearchHub> {
               selected: _mode,
               onChanged: (m) => setState(() => _mode = m),
             ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
+            child: DietPreferencesBar(),
           ),
           const Divider(height: 1),
           Expanded(

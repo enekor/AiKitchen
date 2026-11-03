@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 /// Cómo se obtuvo una receta. Determina el filtro y la insignia de origen en
 /// Favoritos. `null` (recetas guardadas antes de este campo) se trata como
@@ -27,6 +28,13 @@ class Recipe {
   /// Opcional para no romper las recetas guardadas antes de este campo.
   final RecipeOrigin? origen;
 
+  /// Foto del plato en JPEG codificado en base64. Va dentro del JSON para que
+  /// viaje con la receta al compartirla. `null` si no tiene.
+  final String? foto;
+
+  /// Etiquetas libres del usuario ("Cenas rápidas", "Táper"...).
+  final List<String> etiquetas;
+
   Recipe({
     this.id,
     required this.nombre,
@@ -37,7 +45,45 @@ class Recipe {
     required this.calorias,
     required this.raciones,
     this.origen,
+    this.foto,
+    this.etiquetas = const [],
   });
+
+  bool get tieneFoto => foto != null && foto!.isNotEmpty;
+
+  Uint8List? _fotoBytes;
+
+  /// Bytes de la foto, decodificados una sola vez. `null` si no tiene o si el
+  /// base64 está dañado, para que la tarjeta caiga en su versión sin foto.
+  Uint8List? get fotoBytes {
+    if (!tieneFoto) return null;
+    try {
+      return _fotoBytes ??= base64Decode(foto!);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Copia con algunos campos cambiados. Para quitar la foto, [sinFoto].
+  Recipe copyWith({
+    String? foto,
+    bool sinFoto = false,
+    List<String>? etiquetas,
+  }) {
+    return Recipe(
+      id: id,
+      nombre: nombre,
+      descripcion: descripcion,
+      tiempoEstimado: tiempoEstimado,
+      ingredientes: ingredientes,
+      preparacion: preparacion,
+      calorias: calorias,
+      raciones: raciones,
+      origen: origen,
+      foto: sinFoto ? null : (foto ?? this.foto),
+      etiquetas: etiquetas ?? this.etiquetas,
+    );
+  }
 
   /// Origen a efectos de mostrar, con las recetas antiguas cayendo en "IA".
   RecipeOrigin get origenEfectivo => origen ?? RecipeOrigin.ia;
@@ -53,10 +99,14 @@ class Recipe {
       calorias: json['calorias'].toString(),
       raciones: json['raciones'].toString(),
       origen: RecipeOrigin.fromName(json['origen'] as String?),
+      foto: json['foto'] as String?,
+      etiquetas: _parseEtiquetas(json['etiquetas']),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  /// [includeFoto] a `false` para mandar la receta a la IA: la foto en base64
+  /// dispararía el tamaño del prompt sin aportar nada.
+  Map<String, dynamic> toJson({bool includeFoto = true}) {
     return {
       if (id != null) 'id': id,
       'nombre': nombre,
@@ -67,7 +117,20 @@ class Recipe {
       'calorias': calorias,
       'raciones': raciones,
       if (origen != null) 'origen': origen!.name,
+      if (includeFoto && tieneFoto) 'foto': foto,
+      if (etiquetas.isNotEmpty) 'etiquetas': etiquetas,
     };
+  }
+
+  static List<String> _parseEtiquetas(dynamic value) {
+    if (value is List) return value.map((e) => e.toString()).toList();
+    if (value is String && value.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is List) return decoded.map((e) => e.toString()).toList();
+      } catch (_) {}
+    }
+    return const [];
   }
 
   // Compatibilidad con SQLite
@@ -82,6 +145,8 @@ class Recipe {
       'calorias': calorias,
       'raciones': raciones,
       'origen': origen?.name,
+      'foto': foto,
+      'etiquetas': jsonEncode(etiquetas),
     };
   }
 
@@ -98,6 +163,9 @@ class Recipe {
       // Columna añadida en la versión 3 de la base de datos: puede faltar en
       // filas migradas de una versión anterior.
       origen: RecipeOrigin.fromName(map['origen'] as String?),
+      // Columnas añadidas en la versión 4; no existen en la tabla del menú.
+      foto: map['foto'] as String?,
+      etiquetas: _parseEtiquetas(map['etiquetas']),
     );
   }
 

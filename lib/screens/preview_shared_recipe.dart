@@ -4,6 +4,7 @@ import 'package:aikitchen/services/recipe_from_file_service.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/toaster.dart';
+import 'package:aikitchen/widgets/ui/recipe_photo.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -201,6 +202,10 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
             ),
           ),
           const SizedBox(height: 16),
+          if (recipe.tieneFoto) ...[
+            RecipePhoto(recipe: recipe, borderRadius: AppRadius.large),
+            const SizedBox(height: 16),
+          ],
           Text(
             recipe.nombre,
             style: theme.textTheme.displaySmall?.copyWith(

@@ -1,4 +1,5 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/models/tipo_receta.dart';
 import 'package:aikitchen/services/ai_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
@@ -55,7 +56,15 @@ class AppSingleton {
   bool get useTTS => _useTTS;
   String get personality => _personality;
   String get idioma => _idioma;
-  String get tipoReceta => _tipoReceta;
+  /// Dieta y restricciones en texto legible, para los prompts.
+  String get tipoReceta => TipoReceta.promptText(_tipoReceta);
+
+  /// Dieta y restricciones elegidas, siempre con una dieta en primer lugar.
+  List<TipoReceta> get preferenciasCocina => TipoReceta.parseList(_tipoReceta);
+
+  /// Avisa a las barras de preferencias de toda la app cuando cambian, para
+  /// que lo elegido en una pantalla se vea al momento en las demás.
+  final ValueNotifier<int> preferenciasCambiadas = ValueNotifier(0);
   String get selectedModel => _selectedModel;
   double get velocidadVoz => _velocidadVoz;
   double get creatividad => _creatividad;
@@ -93,9 +102,10 @@ class AppSingleton {
     SharedPreferencesService.setBoolValue(SharedPreferencesKeys.useTTS, value);
   }
 
-  set setTipoReceta(String value) {
-    _tipoReceta = value;
-    SharedPreferencesService.setStringValue(SharedPreferencesKeys.tipoReceta, value);
+  set setPreferenciasCocina(List<TipoReceta> value) {
+    _tipoReceta = TipoReceta.toStored(value);
+    SharedPreferencesService.setStringValue(SharedPreferencesKeys.tipoReceta, _tipoReceta);
+    preferenciasCambiadas.value++;
   }
 
   set setIdioma(String value) {

@@ -10,6 +10,9 @@ import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/ui/app_card.dart';
 import 'package:flutter/material.dart';
 import '../singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/diet_preferences.dart';
+
+export 'package:aikitchen/models/tipo_receta.dart';
 
 class Settings extends StatefulWidget {
   static const String routeName = '/ajustes';
@@ -85,31 +88,6 @@ enum Idioma {
     return values.firstWhere(
       (e) => e.name.toLowerCase() == normalized,
       orElse: () => Idioma.espanhol,
-    );
-  }
-}
-
-enum TipoReceta {
-  // ignore: constant_identifier_names
-  vegana, vegetariana, carnivora, pescetariana, sin_gluten, sin_lactosa, omnivora, sin_azucar, sin_huevo, sin_frutosSecos, sin_cereales, sin_legumbres;
-
-  String get displayName => _humanize(name);
-
-  static List<String> get displayNames =>
-      values.map((e) => e.displayName).toList();
-
-  static TipoReceta fromDisplayName(String displayName) {
-    return values.firstWhere(
-      (e) => e.displayName.toLowerCase() == displayName.toLowerCase(),
-      orElse: () => TipoReceta.omnivora,
-    );
-  }
-
-  static TipoReceta fromStoredName(String stored) {
-    final normalized = stored.trim().toLowerCase();
-    return values.firstWhere(
-      (e) => e.name.toLowerCase() == normalized,
-      orElse: () => TipoReceta.omnivora,
     );
   }
 }
@@ -383,18 +361,7 @@ class _SettingsState extends State<Settings> {
                 onChange: (int value) => setState(() => singleton.setNumRecetas = value),
               ),
               const SizedBox(height: 16),
-              MultiListSetting(
-                initialValues: [
-                  TipoReceta.fromStoredName(singleton.tipoReceta).displayName,
-                ],
-                text: 'Tipo de cocina',
-                options: TipoReceta.displayNames,
-                onChange: (List<String> values) {
-                  final tipo = TipoReceta.fromDisplayName(values.first);
-                  setState(() => singleton.setTipoReceta = tipo.name);
-                  Toaster.showToast('Tipo de cocina: ${tipo.displayName}');
-                },
-              ),
+              const DietPreferencesBar(),
               const SizedBox(height: 16),
               MultiListSetting(
                 initialValues: [

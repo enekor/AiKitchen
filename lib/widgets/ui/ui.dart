@@ -10,5 +10,6 @@ export 'filter_chip_bar.dart';
 export 'primary_button.dart';
 export 'recipe_card.dart';
 export 'recipe_meta_row.dart';
+export 'recipe_photo.dart';
 export 'removable_chip.dart';
 export 'section_header.dart';

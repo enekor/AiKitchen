@@ -12,8 +12,12 @@ class JsonDocumentsService {
     return await _storage.getFavRecipes();
   }
 
-  Future<void> addFavRecipe(Recipe recipe) async {
-    await _storage.insertFavRecipe(recipe);
+  /// Guarda la receta y le asigna el id con el que ha quedado guardada,
+  /// para poder actualizarla o borrarla después sin reescribir todas.
+  Future<int> addFavRecipe(Recipe recipe) async {
+    final id = await _storage.insertFavRecipe(recipe);
+    recipe.id = id;
+    return id;
   }
 
   Future<void> removeFavRecipe(int id) async {

@@ -25,7 +25,8 @@ class SqliteService {
 
     return await openDatabase(
       path,
-      version: 3, // v2: tabla preferences. v3: origen y categoria.
+      // v2: tabla preferences. v3: origen y categoria. v4: foto y etiquetas.
+      version: 4,
       onCreate: (db, version) async {
         await _createTables(db);
       },
@@ -44,6 +45,10 @@ class SqliteService {
           await db.execute(
             'ALTER TABLE shopping_list ADD COLUMN categoria TEXT',
           );
+        }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE fav_recipes ADD COLUMN foto TEXT');
+          await db.execute('ALTER TABLE fav_recipes ADD COLUMN etiquetas TEXT');
         }
       },
     );
@@ -68,7 +73,9 @@ class SqliteService {
         preparacion TEXT NOT NULL,
         calorias REAL NOT NULL,
         raciones INTEGER NOT NULL,
-        origen TEXT
+        origen TEXT,
+        foto TEXT,
+        etiquetas TEXT
       )
     ''');
     await db.execute('''
@@ -188,7 +195,10 @@ class SqliteService {
   // --- DAO Menu ---
   Future<int> insertMenuRecipe(Recipe recipe, String dia, String tipoComida) async {
     final db = await database;
-    final map = recipe.toMap();
+    final map = recipe.toMap()
+      // La tabla del menú no tiene estas columnas: son cosas de favoritos.
+      ..remove('foto')
+      ..remove('etiquetas');
     map['dia'] = dia;
     map['tipo_comida'] = tipoComida;
     return await db.insert('menu', map);

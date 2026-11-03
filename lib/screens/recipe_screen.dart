@@ -1,5 +1,6 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/models/tipo_receta.dart';
 import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/screens/recipe/ai_edit_sheet.dart';
 import 'package:aikitchen/services/external_link_service.dart';
@@ -103,6 +104,8 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
       calorias: showingRecipe.calorias,
       raciones: '$_servings',
       origen: showingRecipe.origen,
+      foto: showingRecipe.foto,
+      etiquetas: showingRecipe.etiquetas,
     );
   }
 
@@ -153,19 +156,26 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
   }
 
   void _toggleFavorite() async {
+    final favs = AppSingleton().recetasFavoritas;
+    bool same(Recipe r) =>
+        r.nombre == showingRecipe.nombre &&
+        r.descripcion == showingRecipe.descripcion;
+
+    // Se guarda o se borra solo esta receta. Reescribir todos los favoritos,
+    // como antes, es muy costoso ahora que pueden llevar foto.
     if (_isFavorite) {
-      AppSingleton().recetasFavoritas.removeWhere(
-        (r) =>
-            r.nombre == showingRecipe.nombre &&
-            r.descripcion == showingRecipe.descripcion,
-      );
+      final existing = favs.where(same).toList();
+      favs.removeWhere(same);
+      for (final r in existing) {
+        if (r.id != null) await JsonDocumentsService().removeFavRecipe(r.id!);
+      }
       Toaster.showWarning('Eliminado de favoritos');
     } else {
-      AppSingleton().recetasFavoritas.add(showingRecipe);
+      favs.add(showingRecipe);
+      await JsonDocumentsService().addFavRecipe(showingRecipe);
       Toaster.showSuccess('¡Añadido a favoritos!');
     }
 
-    await JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
     await WidgetService.updateFavoritesWidget();
     _checkIfFavorite();
   }
@@ -182,10 +192,11 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
     ShareRecipeService().shareRecipe([showingRecipe]);
   }
 
-  void _showAiEditOptions() {
+  void _showAiEditOptions({Set<TipoReceta> adaptations = const {}}) {
     AiEditSheet.show(
       context,
       recipe: showingRecipe,
+      initialAdaptations: adaptations,
       onRecipeUpdated: (newRecipe) {
         setState(() {
           showingRecipe = newRecipe;
@@ -237,6 +248,9 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
                   onModifyWithAi: _showAiEditOptions,
                 ),
                 const SizedBox(height: Spacing.lg),
+                _AdaptToPreferencesCard(
+                  onAdapt: (prefs) => _showAiEditOptions(adaptations: prefs),
+                ),
                 _VoiceReadingBanner(onStart: _openCookingMode),
                 const TimersBar(padding: EdgeInsets.only(top: Spacing.lg)),
                 const SizedBox(height: Spacing.xl),
@@ -277,12 +291,17 @@ class _HeroHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    // Con foto, la foto va encima y el bloque de color pierde las esquinas de
+    // arriba para que formen una sola pieza.
+    final hasPhoto = recipe.fotoBytes != null;
+    final header = Container(
       width: double.infinity,
       padding: const EdgeInsets.all(Spacing.xl),
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer,
-        borderRadius: AppRadius.large,
+        borderRadius: hasPhoto
+            ? const BorderRadius.vertical(bottom: Radius.circular(AppRadius.lg))
+            : AppRadius.large,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,6 +323,72 @@ class _HeroHeader extends StatelessWidget {
           ],
         ],
       ),
+    );
+
+    if (!hasPhoto) return header;
+    return Column(
+      children: [
+        RecipePhoto(
+          recipe: recipe,
+          aspectRatio: 16 / 9,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+        ),
+        header,
+      ],
+    );
+  }
+}
+
+/// Recordatorio de la dieta y las alergias del usuario, con un atajo para
+/// adaptar esta receta a ellas. Solo aparece si el usuario ha elegido algo
+/// distinto de "omnívora sin restricciones".
+class _AdaptToPreferencesCard extends StatelessWidget {
+  const _AdaptToPreferencesCard({required this.onAdapt});
+
+  final ValueChanged<Set<TipoReceta>> onAdapt;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ValueListenableBuilder<int>(
+      valueListenable: AppSingleton().preferenciasCambiadas,
+      builder: (context, _, _) {
+        final prefs = AppSingleton()
+            .preferenciasCocina
+            .where((t) => t != TipoReceta.omnivora)
+            .toSet();
+        if (prefs.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.lg),
+          child: AppCard(
+            color: theme.colorScheme.secondaryContainer,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.no_food_outlined,
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: Spacing.md),
+                Expanded(
+                  child: Text(
+                    'Tus preferencias: ${prefs.map((t) => t.label).join(', ')}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: Spacing.sm),
+                TextButton(
+                  onPressed: () => onAdapt(prefs),
+                  child: const Text('Adaptar receta'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
