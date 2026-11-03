@@ -102,10 +102,9 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
       final response = await AppSingleton().generateContent(
         finalPrompt,
         context,
-        maxTokens: 6000,
       );
 
-      if (response.isNotEmpty && !response.contains('error')) {
+      if (response.isNotEmpty) {
         final cleanedResponse = _cleanJsonResponse(response);
         final Map<String, List<Recipe>> newMenu = {};
 
@@ -160,7 +159,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         context,
       );
 
-      if (response.isNotEmpty && !response.contains('error')) {
+      if (response.isNotEmpty) {
         final nuevas = Recipe.fromJsonList(_cleanJsonResponse(response));
         if (nuevas.isNotEmpty) {
           setState(() {
@@ -196,7 +195,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
   void _handleError(String error) {
     setState(() => _isLoading = false);
-    Toaster.showError('Error: ${error.split(":").last}');
+    Toaster.showError('Error: $error');
   }
 
   @override

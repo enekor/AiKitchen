@@ -77,7 +77,7 @@ class _FindByNameState extends State<FindByName> {
         context,
       );
 
-      if (response.isNotEmpty && !response.contains('error')) {
+      if (response.isNotEmpty) {
         final cleanedResponse = _cleanJsonResponse(response);
         setState(() {
           _recetas = Recipe.fromJsonList(cleanedResponse);
@@ -104,7 +104,7 @@ class _FindByNameState extends State<FindByName> {
 
   void _handleError(String error) {
     setState(() => _searching = false);
-    Toaster.showError('Error al generar recetas: ${error.split(":").last}');
+    Toaster.showError('Error al generar recetas: $error');
   }
 
   void _onFavRecipe(Recipe recipe) {

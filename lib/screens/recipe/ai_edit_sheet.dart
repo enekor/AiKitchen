@@ -159,7 +159,7 @@ class _AiEditSheetState extends State<AiEditSheet> {
         context,
       );
 
-      if (response.isNotEmpty && !response.contains('error')) {
+      if (response.isNotEmpty) {
         final cleaned = response
             .replaceAll(RegExp(r'^```json\s*', multiLine: true), '')
             .replaceAll(RegExp(r'\s*```$', multiLine: true), '')
@@ -173,7 +173,7 @@ class _AiEditSheetState extends State<AiEditSheet> {
           Toaster.showError('La IA no devolvió una receta válida');
         }
       } else {
-        Toaster.showError('Algo ha fallado: ${response.split(":").last}');
+        Toaster.showError('Algo ha fallado: $response');
       }
     } catch (e) {
       Toaster.showError('Error al modificar la receta: $e');

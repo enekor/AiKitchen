@@ -107,15 +107,6 @@ class _SettingsState extends State<Settings> {
     });
   }
 
-  List<String> get _availableModelsForActiveProvider {
-    final active = AppSingleton().activeProvider ?? 'groq';
-    return AiService.providerModels[active] ?? ['llama-3.3-70b-versatile'];
-  }
-
-  String _getModelDisplayName(String modelId) {
-    return modelId;
-  }
-
   void _showTutorialModal(String providerKey) {
     final title = AiService.providerDisplayNames[providerKey] ?? providerKey;
     final url = AiService.providerTutorialUrls[providerKey] ?? '';
@@ -302,14 +293,30 @@ class _SettingsState extends State<Settings> {
               ],
 
               const SizedBox(height: Spacing.lg),
-              SingleListSetting(
-                initialValue: _getModelDisplayName(singleton.selectedModel),
-                text: 'Modelo de Lenguaje (${AiService.providerDisplayNames[activeProvider]})',
-                options: _availableModelsForActiveProvider,
-                onChange: (String value) {
-                  setState(() => singleton.setSelectedModel = value);
-                  Toaster.showToast('Modelo cambiado a: $value');
-                },
+              // El modelo ya no se elige: cada proveedor usa siempre el más
+              // barato que aguanta una respuesta con cinco recetas.
+              AppCard(
+                child: Row(
+                  children: [
+                    Icon(Icons.memory_rounded, color: theme.colorScheme.primary),
+                    const SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Modelo', style: theme.textTheme.titleMedium),
+                          Text(
+                            '${AiService.effectiveModel(activeProvider)}: el más '
+                            'económico de ${AiService.providerDisplayNames[activeProvider]}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               DecimalSliderSetting(

@@ -1,9 +1,12 @@
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/tipo_receta.dart';
+import 'package:aikitchen/services/ai_json.dart';
 import 'package:aikitchen/services/ai_service.dart';
+import 'package:aikitchen/services/log_file_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/services/shared_preferences_service.dart';
+import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/warning_modal.dart';
 import 'package:flutter/material.dart';
 
@@ -88,7 +91,10 @@ class AppSingleton {
     if (configured.length == 1) {
       return configured.keys.first;
     }
-    // If multiple configured but selected is invalid, pick the first configured one
+    // Con varias claves y ninguna elegida, primero las de cuota gratuita.
+    for (final free in AiService.freeTierProviders) {
+      if (configured.containsKey(free)) return free;
+    }
     return configured.keys.first;
   }
 
@@ -218,10 +224,18 @@ class AppSingleton {
     }
   }
 
+  /// Pide algo a la IA y devuelve siempre JSON limpio: un único objeto o
+  /// lista, sin texto alrededor, sin bloques de código y sin repeticiones.
+  ///
+  /// Si la respuesta llega cortada se repite con el doble de tokens de
+  /// salida, y si llega mal formada se repite una vez más. Si aun así no hay
+  /// JSON válido, o el proveedor devuelve un error, lanza [AiResponseException]
+  /// con un mensaje para el usuario, en vez de devolver texto que la pantalla
+  /// intentaría leer como JSON.
   Future<String> generateContent(
     String prompt,
     BuildContext context, {
-    int? maxTokens = 4096,
+    int? maxTokens,
   }) async {
     final provider = activeProvider;
     final configured = configuredApiKeys;
@@ -242,21 +256,110 @@ class AppSingleton {
       throw NoApiKeyException();
     }
 
-    final apiKey = configured[provider]!;
-    return await _aiService!.generateContent(
-      prompt,
+    // Primero el proveedor activo; si agota su cuota, los demás que tengan
+    // cuota gratuita y clave configurada. Nunca se salta por cuenta propia a
+    // uno de pago: gastar dinero lo decide el usuario.
+    final order = [
       provider,
-      apiKey,
-      model: _selectedModel,
-      maxTokens: maxTokens,
-      temperature: _creatividad,
-      context: context,
-    );
+      for (final free in AiService.freeTierProviders)
+        if (free != provider && configured.containsKey(free)) free,
+    ];
+
+    for (var i = 0; i < order.length; i++) {
+      try {
+        return await _generateWith(
+          order[i],
+          configured[order[i]]!,
+          prompt,
+          context,
+          maxTokens,
+        );
+      } on _QuotaExceeded catch (e) {
+        final next = i + 1 < order.length ? order[i + 1] : null;
+        if (next == null) throw AiResponseException(e.message);
+        Toaster.showToast(
+          'Cuota de ${AiService.providerDisplayNames[order[i]]} agotada. '
+          'Probando con ${AiService.providerDisplayNames[next]}...',
+        );
+      }
+    }
+    throw AiResponseException('La IA no ha devuelto una respuesta válida.');
+  }
+
+  Future<String> _generateWith(
+    String provider,
+    String apiKey,
+    String prompt,
+    BuildContext context,
+    int? maxTokens,
+  ) async {
+    final model = AiService.effectiveModel(provider);
+    final cap = AiService.maxOutputTokens(provider);
+    var tokens = (maxTokens ?? 8192).clamp(1024, cap);
+    final log = LogFileService();
+
+    const maxAttempts = 3;
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      final raw = await _aiService!.generateContent(
+        prompt,
+        provider,
+        apiKey,
+        model: model,
+        maxTokens: tokens,
+        temperature: _creatividad,
+        context: context.mounted ? context : null,
+      );
+
+      // Los servicios devuelven sus fallos como texto que empieza por "Error".
+      if (raw.trimLeft().startsWith('Error')) {
+        final message = raw.replaceFirst(RegExp(r'^\s*Error:?\s*'), '');
+        if (raw.contains(AiService.quotaMarker)) throw _QuotaExceeded(message);
+        throw AiResponseException(message);
+      }
+
+      try {
+        return AiJson.extract(raw);
+      } on AiJsonException catch (e) {
+        await log.appendLog(
+          'WARNING generateContent ($provider/$model, intento $attempt, '
+          'maxTokens $tokens): ${e.message} Inicio de la respuesta: '
+          '${raw.length > 300 ? raw.substring(0, 300) : raw}',
+        );
+        if (attempt == maxAttempts) {
+          throw AiResponseException(
+            e.truncated
+                ? 'La respuesta de la IA era demasiado larga y llegó cortada. '
+                    'Prueba a pedir menos recetas en Ajustes.'
+                : 'La IA no ha devuelto una respuesta válida. Inténtalo de nuevo.',
+          );
+        }
+        if (e.truncated) tokens = (tokens * 2).clamp(1024, cap);
+      }
+    }
+    throw AiResponseException('La IA no ha devuelto una respuesta válida.');
   }
 
   Future<void> shareRecipe(Recipe recipe, BuildContext context) async {
     await ShareRecipeService().shareRecipe([recipe]);
   }
+}
+
+/// La IA no ha podido dar una respuesta utilizable. [message] está pensado
+/// para enseñárselo al usuario tal cual.
+class AiResponseException implements Exception {
+  AiResponseException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+/// El proveedor ha agotado su cuota; se puede probar con otro.
+class _QuotaExceeded implements Exception {
+  _QuotaExceeded(this.message);
+
+  final String message;
 }
 
 class NoApiKeyException implements Exception {
