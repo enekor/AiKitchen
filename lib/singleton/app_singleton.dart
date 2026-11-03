@@ -73,6 +73,18 @@ class AppSingleton {
   double get creatividad => _creatividad;
   bool get densidadCompacta => _densidadCompacta;
 
+  /// Qué pantalla de inicio se usa: la nueva (por defecto) o la clásica. Es
+  /// un notificador para que Inicio cambie en cuanto se toca en Ajustes.
+  final ValueNotifier<bool> inicioModerno = ValueNotifier(true);
+
+  set setInicioModerno(bool value) {
+    inicioModerno.value = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.inicioModerno,
+      value.toString(),
+    );
+  }
+
   Map<String, String> get configuredApiKeys {
     final map = <String, String>{};
     if (_groqApiKey != null && _groqApiKey!.trim().isNotEmpty) map['groq'] = _groqApiKey!.trim();
@@ -184,6 +196,12 @@ class AppSingleton {
           await SharedPreferencesService.getStringValue(SharedPreferencesKeys.creatividad) ?? '',
         ) ?? 0.1;
     _densidadCompacta = await SharedPreferencesService.getBoolValue(SharedPreferencesKeys.densidadCompacta);
+    // Se guarda como texto para distinguir "nunca elegido" (nueva pantalla)
+    // de "desactivado a propósito".
+    inicioModerno.value = await SharedPreferencesService.getStringValue(
+          SharedPreferencesKeys.inicioModerno,
+        ) !=
+        'false';
 
     _aiService = AiService();
 

@@ -20,9 +20,15 @@ class PantryService extends ChangeNotifier {
 
   Future<void> load() async {
     if (_loaded) return;
-    final raw = await SharedPreferencesService.getStringValue(
-      SharedPreferencesKeys.despensa,
-    );
+    String? raw;
+    try {
+      raw = await SharedPreferencesService.getStringValue(
+        SharedPreferencesKeys.despensa,
+      );
+    } catch (e) {
+      // Sin almacenamiento disponible, la despensa empieza vacía.
+      debugPrint('No se pudo leer la despensa: $e');
+    }
     if (raw != null && raw.isNotEmpty) {
       try {
         _items = List<String>.from(jsonDecode(raw) as List);

@@ -2,6 +2,8 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/models/recipe_screen_arguments.dart';
 import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/navigation/app_shell_controller.dart';
+import 'package:aikitchen/screens/home_screen_modern.dart';
+import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
@@ -9,15 +11,31 @@ import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Pantalla de inicio: menú del día, accesos rápidos y últimas guardadas.
-class HomeScreen extends StatefulWidget {
+/// Destino "Inicio": la pantalla nueva o la clásica, según Ajustes. Cambia en
+/// el momento en que se toca el interruptor, sin reiniciar.
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppSingleton().inicioModerno,
+      builder: (context, moderno, _) =>
+          moderno ? const ModernHomeScreen() : const ClassicHomeScreen(),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+/// Pantalla de inicio clásica: menú del día, accesos rápidos y últimas
+/// guardadas.
+class ClassicHomeScreen extends StatefulWidget {
+  const ClassicHomeScreen({super.key});
+
+  @override
+  State<ClassicHomeScreen> createState() => _ClassicHomeScreenState();
+}
+
+class _ClassicHomeScreenState extends State<ClassicHomeScreen> {
   List<Recipe>? _todayMenu;
   String? _currentDayName;
   List<Recipe> _recentFavourites = const [];

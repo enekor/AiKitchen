@@ -356,6 +356,14 @@ class _SettingsState extends State<Settings> {
                 subtitle: 'Reduce el espaciado para ver más contenido a la vez',
                 onChange: (value) => setState(() => singleton.setDensidadCompacta = value),
               ),
+              const SizedBox(height: Spacing.md),
+              SwitchSetting(
+                initialValue: singleton.inicioModerno.value,
+                text: 'Nueva pantalla de inicio',
+                subtitle: 'Menú de hoy destacado, accesos por colores y favoritas con foto. '
+                    'Desactívala para volver a la anterior.',
+                onChange: (value) => setState(() => singleton.setInicioModerno = value),
+              ),
 
               const SizedBox(height: Spacing.xxl),
               _sectionHeader(theme, 'Preferencias de recetas'),
