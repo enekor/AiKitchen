@@ -93,6 +93,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
       origen: widget.recipe?.origen ?? RecipeOrigin.manual,
       foto: widget.recipe?.foto,
       etiquetas: widget.recipe?.etiquetas ?? const [],
+      canal: widget.recipe?.canal,
     );
 
     if (widget.recipe != null) {

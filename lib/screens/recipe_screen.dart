@@ -106,6 +106,7 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
       origen: showingRecipe.origen,
       foto: showingRecipe.foto,
       etiquetas: showingRecipe.etiquetas,
+      canal: showingRecipe.canal,
     );
   }
 
@@ -188,6 +189,33 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
     }
   }
 
+  /// La IA devuelve solo los campos básicos: se le devuelven a la receta
+  /// modificada la foto, las etiquetas, el canal y el enlace al vídeo de la
+  /// original, que no tienen por qué cambiar al adaptarla.
+  static Recipe _keepExtras(Recipe updated, Recipe original) {
+    final video = original.videoUrl;
+    final keepsVideo = video == null || updated.videoUrl != null;
+    return Recipe(
+      nombre: updated.nombre,
+      descripcion: keepsVideo ? updated.descripcion : '${updated.descripcion.trim()} - $video',
+      tiempoEstimado: updated.tiempoEstimado,
+      ingredientes: updated.ingredientes,
+      preparacion: updated.preparacion,
+      calorias: updated.calorias,
+      raciones: updated.raciones,
+      origen: original.origen,
+      foto: original.foto,
+      etiquetas: original.etiquetas,
+      canal: original.canal,
+    );
+  }
+
+  Future<void> _openVideo(String url) async {
+    if (!await openExternalUrl(url)) {
+      Toaster.showError('No se pudo abrir el vídeo');
+    }
+  }
+
   void _shareRecipe() {
     ShareRecipeService().shareRecipe([showingRecipe]);
   }
@@ -199,7 +227,7 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
       initialAdaptations: adaptations,
       onRecipeUpdated: (newRecipe) {
         setState(() {
-          showingRecipe = newRecipe;
+          showingRecipe = _keepExtras(newRecipe, showingRecipe);
           // Al modificarla, dejamos de considerarla la misma para favoritos
           // hasta que la guarde, y los marcados dejan de tener sentido porque
           // los ingredientes y pasos pueden haber cambiado.
@@ -247,6 +275,10 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
                   onOpenUrl: _launchUrl,
                   onModifyWithAi: _showAiEditOptions,
                 ),
+                if (recipe.videoUrl != null) ...[
+                  const SizedBox(height: Spacing.md),
+                  _VideoButton(onPressed: () => _openVideo(recipe.videoUrl!)),
+                ],
                 const SizedBox(height: Spacing.lg),
                 _AdaptToPreferencesCard(
                   onAdapt: (prefs) => _showAiEditOptions(adaptations: prefs),
@@ -312,10 +344,31 @@ class _HeroHeader extends StatelessWidget {
               color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
-          if (recipe.descripcion.isNotEmpty) ...[
+          if (recipe.canal != null) ...[
+            const SizedBox(height: Spacing.xs),
+            Row(
+              children: [
+                Icon(
+                  Icons.smart_display_outlined,
+                  size: 18,
+                  color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
+                ),
+                const SizedBox(width: Spacing.xs),
+                Expanded(
+                  child: Text(
+                    recipe.canal!,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (recipe.descripcionVisible.isNotEmpty) ...[
             const SizedBox(height: Spacing.sm),
             Text(
-              recipe.descripcion,
+              recipe.descripcionVisible,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
               ),
@@ -471,6 +524,32 @@ class _MetricCard extends StatelessWidget {
 
 /// Favorito, compartir, abrir la web original y modificar con IA, en el mismo
 /// orden que el diseño de referencia.
+/// Botón para ver el vídeo de la receta en YouTube. Solo aparece si la
+/// descripción trae el enlace.
+class _VideoButton extends StatelessWidget {
+  const _VideoButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          // Rojo de YouTube, con texto blanco que contrasta en claro y oscuro.
+          backgroundColor: const Color(0xFFCC0000),
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(48),
+        ),
+        icon: const Icon(Icons.smart_display_rounded),
+        label: const Text('Ver el vídeo en YouTube'),
+      ),
+    );
+  }
+}
+
 class _ActionsRow extends StatelessWidget {
   const _ActionsRow({
     required this.isFavorite,

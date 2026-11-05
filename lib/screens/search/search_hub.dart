@@ -1,12 +1,14 @@
 import 'package:aikitchen/AI/by_ingredients/find_by_ingredients.dart';
 import 'package:aikitchen/AI/by_name/find_by_name.dart';
 import 'package:aikitchen/navigation/app_shell_controller.dart';
+import 'package:aikitchen/screens/recetario_screen.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/diet_preferences.dart';
 import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:flutter/material.dart';
 
-/// Centro de búsqueda con dos modos: por nombre y por ingredientes. Cada modo
+/// Centro de búsqueda con tres modos: por nombre, por ingredientes y el
+/// recetario configurado en Ajustes. Cada modo
 /// conserva su estado al cambiar de modo, gracias al `IndexedStack`.
 ///
 /// Como todos los destinos del armazón, este widget se construye una sola vez
@@ -27,11 +29,13 @@ class _SearchHubState extends State<SearchHub> {
   static const _modes = [
     SearchMode.byName,
     SearchMode.byIngredients,
+    SearchMode.recetario,
   ];
 
   static const _labels = {
     SearchMode.byName: 'Por nombre',
     SearchMode.byIngredients: 'Por ingredientes',
+    SearchMode.recetario: 'Recetario',
   };
 
   late SearchMode _mode;
@@ -89,6 +93,7 @@ class _SearchHubState extends State<SearchHub> {
               children: const [
                 FindByName(),
                 FindByIngredients(),
+                RecetarioScreen(),
               ],
             ),
           ),

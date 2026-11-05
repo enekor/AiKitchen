@@ -366,6 +366,23 @@ class _SettingsState extends State<Settings> {
               ),
 
               const SizedBox(height: Spacing.xxl),
+              _sectionHeader(theme, 'Recetario'),
+              const SizedBox(height: Spacing.lg),
+              TextFieldSetting(
+                initialValue: singleton.recetarioUrl.value,
+                text: 'URL del recetario',
+                hint: 'https://raw.githubusercontent.com/usuario/repo/main/recetas.json',
+                helper: 'Fichero JSON con recetas que se muestra en Buscar › Recetario. '
+                    'Vale también el enlace normal de GitHub al fichero.',
+                onSave: (value) {
+                  setState(() => singleton.setRecetarioUrl = value);
+                  Toaster.showSuccess(
+                    value.trim().isEmpty ? 'Recetario desactivado' : 'URL del recetario guardada',
+                  );
+                },
+              ),
+
+              const SizedBox(height: Spacing.xxl),
               _sectionHeader(theme, 'Preferencias de recetas'),
               const SizedBox(height: 16),
               ScrollbarSetting(

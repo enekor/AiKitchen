@@ -11,7 +11,7 @@ abstract class AppShellTab {
 }
 
 /// Modo inicial con el que abrir el centro de búsqueda.
-enum SearchMode { byName, byIngredients }
+enum SearchMode { byName, byIngredients, recetario }
 
 /// Permite navegar entre los destinos del armazón desde fuera de él, por
 /// ejemplo desde los accesos rápidos de Inicio hacia un modo concreto de

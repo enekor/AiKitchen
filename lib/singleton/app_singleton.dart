@@ -77,6 +77,17 @@ class AppSingleton {
   /// un notificador para que Inicio cambie en cuanto se toca en Ajustes.
   final ValueNotifier<bool> inicioModerno = ValueNotifier(true);
 
+  /// Dirección del fichero JSON del recetario. Vacía si no se ha configurado.
+  final ValueNotifier<String> recetarioUrl = ValueNotifier('');
+
+  set setRecetarioUrl(String value) {
+    recetarioUrl.value = value.trim();
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.recetarioUrl,
+      value.trim(),
+    );
+  }
+
   set setInicioModerno(bool value) {
     inicioModerno.value = value;
     SharedPreferencesService.setStringValue(
@@ -202,6 +213,10 @@ class AppSingleton {
           SharedPreferencesKeys.inicioModerno,
         ) !=
         'false';
+    recetarioUrl.value = await SharedPreferencesService.getStringValue(
+          SharedPreferencesKeys.recetarioUrl,
+        ) ??
+        '';
 
     _aiService = AiService();
 

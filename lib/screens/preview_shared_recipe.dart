@@ -216,7 +216,7 @@ class _PreviewSharedFilesState extends State<PreviewSharedFiles> {
           ),
           const SizedBox(height: 12),
           Text(
-            recipe.descripcion,
+            recipe.descripcionVisible,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               height: 1.6,

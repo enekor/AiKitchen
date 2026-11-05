@@ -26,7 +26,8 @@ class SqliteService {
     return await openDatabase(
       path,
       // v2: tabla preferences. v3: origen y categoria. v4: foto y etiquetas.
-      version: 4,
+      // v5: canal.
+      version: 5,
       onCreate: (db, version) async {
         await _createTables(db);
       },
@@ -49,6 +50,9 @@ class SqliteService {
         if (oldVersion < 4) {
           await db.execute('ALTER TABLE fav_recipes ADD COLUMN foto TEXT');
           await db.execute('ALTER TABLE fav_recipes ADD COLUMN etiquetas TEXT');
+        }
+        if (oldVersion < 5) {
+          await db.execute('ALTER TABLE fav_recipes ADD COLUMN canal TEXT');
         }
       },
     );
@@ -75,7 +79,8 @@ class SqliteService {
         raciones INTEGER NOT NULL,
         origen TEXT,
         foto TEXT,
-        etiquetas TEXT
+        etiquetas TEXT,
+        canal TEXT
       )
     ''');
     await db.execute('''
@@ -198,7 +203,8 @@ class SqliteService {
     final map = recipe.toMap()
       // La tabla del menú no tiene estas columnas: son cosas de favoritos.
       ..remove('foto')
-      ..remove('etiquetas');
+      ..remove('etiquetas')
+      ..remove('canal');
     map['dia'] = dia;
     map['tipo_comida'] = tipoComida;
     return await db.insert('menu', map);

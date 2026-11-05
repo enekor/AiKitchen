@@ -35,6 +35,10 @@ class Recipe {
   /// Etiquetas libres del usuario ("Cenas rápidas", "Táper"...).
   final List<String> etiquetas;
 
+  /// Canal de YouTube del que sale la receta, en las del recetario. En sus
+  /// ficheros llega en el campo "origen".
+  final String? canal;
+
   Recipe({
     this.id,
     required this.nombre,
@@ -47,9 +51,35 @@ class Recipe {
     this.origen,
     this.foto,
     this.etiquetas = const [],
+    this.canal,
   });
 
   bool get tieneFoto => foto != null && foto!.isNotEmpty;
+
+  static final RegExp _youtubeUrl = RegExp(
+    r'https?://(?:www\.|m\.)?(?:youtube\.com/(?:watch\?\S+|shorts/\S+|live/\S+)|youtu\.be/\S+)',
+    caseSensitive: false,
+  );
+
+  /// Enlace al vídeo de YouTube que acompaña a la receta, si la descripción
+  /// trae uno (las recetas del recetario lo llevan al final). `null` si no.
+  String? get videoUrl {
+    final match = _youtubeUrl.firstMatch(descripcion)?.group(0);
+    // Quita la puntuación que pueda ir pegada al final del enlace.
+    return match?.replaceFirst(RegExp(r'[).,;!?»"]+$'), '');
+  }
+
+  /// Descripción para mostrar, sin el enlace al vídeo ni el guion que lo
+  /// separa del texto. La original se conserva tal cual para que el enlace
+  /// siga en favoritos y al compartir.
+  String get descripcionVisible {
+    if (videoUrl == null) return descripcion;
+    return descripcion
+        .replaceAll(_youtubeUrl, '')
+        .replaceAll(RegExp(r'\s*[-–—|:]\s*$'), '')
+        .replaceAll(RegExp(r'\s{2,}'), ' ')
+        .trim();
+  }
 
   Uint8List? _fotoBytes;
 
@@ -69,6 +99,7 @@ class Recipe {
     String? foto,
     bool sinFoto = false,
     List<String>? etiquetas,
+    RecipeOrigin? origen,
   }) {
     return Recipe(
       id: id,
@@ -79,9 +110,10 @@ class Recipe {
       preparacion: preparacion,
       calorias: calorias,
       raciones: raciones,
-      origen: origen,
+      origen: origen ?? this.origen,
       foto: sinFoto ? null : (foto ?? this.foto),
       etiquetas: etiquetas ?? this.etiquetas,
+      canal: canal,
     );
   }
 
@@ -89,6 +121,15 @@ class Recipe {
   RecipeOrigin get origenEfectivo => origen ?? RecipeOrigin.ia;
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
+    // En los ficheros del recetario "origen" trae el nombre del canal, no
+    // uno de los orígenes de la app: se guarda como canal y la receta pasa a
+    // contar como importada de la web.
+    final origenRaw = (json['origen'] as String?)?.trim();
+    final origen = RecipeOrigin.fromName(origenRaw);
+    final canalJson = (json['canal'] as String?)?.trim();
+    final canal = canalJson != null && canalJson.isNotEmpty
+        ? canalJson
+        : (origen == null && origenRaw != null && origenRaw.isNotEmpty ? origenRaw : null);
     return Recipe(
       id: json['id'],
       nombre: json['nombre'],
@@ -98,9 +139,10 @@ class Recipe {
       preparacion: List<String>.from(json['preparacion']),
       calorias: json['calorias'].toString(),
       raciones: json['raciones'].toString(),
-      origen: RecipeOrigin.fromName(json['origen'] as String?),
+      origen: origen ?? (canal != null ? RecipeOrigin.web : null),
       foto: json['foto'] as String?,
       etiquetas: _parseEtiquetas(json['etiquetas']),
+      canal: canal,
     );
   }
 
@@ -119,6 +161,7 @@ class Recipe {
       if (origen != null) 'origen': origen!.name,
       if (includeFoto && tieneFoto) 'foto': foto,
       if (etiquetas.isNotEmpty) 'etiquetas': etiquetas,
+      if (canal != null) 'canal': canal,
     };
   }
 
@@ -147,6 +190,7 @@ class Recipe {
       'origen': origen?.name,
       'foto': foto,
       'etiquetas': jsonEncode(etiquetas),
+      'canal': canal,
     };
   }
 
@@ -166,6 +210,8 @@ class Recipe {
       // Columnas añadidas en la versión 4; no existen en la tabla del menú.
       foto: map['foto'] as String?,
       etiquetas: _parseEtiquetas(map['etiquetas']),
+      // Columna añadida en la versión 5.
+      canal: map['canal'] as String?,
     );
   }
 

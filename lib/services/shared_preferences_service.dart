@@ -23,6 +23,7 @@ enum SharedPreferencesKeys {
   densidadCompacta,
   despensa,
   inicioModerno,
+  recetarioUrl,
 }
 
 class SharedPreferencesService {
