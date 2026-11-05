@@ -8,7 +8,7 @@ import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:flutter/material.dart';
 
 /// Centro de búsqueda con tres modos: por nombre, por ingredientes y el
-/// recetario configurado en Ajustes. Cada modo
+/// recetario que trae la app. Cada modo
 /// conserva su estado al cambiar de modo, gracias al `IndexedStack`.
 ///
 /// Como todos los destinos del armazón, este widget se construye una sola vez

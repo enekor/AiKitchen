@@ -73,13 +73,6 @@ class AppSingleton {
   double get creatividad => _creatividad;
   bool get densidadCompacta => _densidadCompacta;
 
-  /// Qué pantalla de inicio se usa: la nueva (por defecto) o la clásica. Es
-  /// un notificador para que Inicio cambie en cuanto se toca en Ajustes.
-  final ValueNotifier<bool> inicioModerno = ValueNotifier(true);
-
-  /// Dirección del fichero JSON del recetario. Vacía si no se ha configurado.
-  final ValueNotifier<String> recetarioUrl = ValueNotifier('');
-
   /// Cada cuántos días se descarga de nuevo el recetario en segundo plano.
   final ValueNotifier<int> recetarioDias = ValueNotifier(7);
 
@@ -91,13 +84,9 @@ class AppSingleton {
     );
   }
 
-  set setRecetarioUrl(String value) {
-    recetarioUrl.value = value.trim();
-    SharedPreferencesService.setStringValue(
-      SharedPreferencesKeys.recetarioUrl,
-      value.trim(),
-    );
-  }
+  /// Qué pantalla de inicio se usa: la nueva (por defecto) o la clásica. Es
+  /// un notificador para que Inicio cambie en cuanto se toca en Ajustes.
+  final ValueNotifier<bool> inicioModerno = ValueNotifier(true);
 
   set setInicioModerno(bool value) {
     inicioModerno.value = value;
@@ -224,10 +213,6 @@ class AppSingleton {
           SharedPreferencesKeys.inicioModerno,
         ) !=
         'false';
-    recetarioUrl.value = await SharedPreferencesService.getStringValue(
-          SharedPreferencesKeys.recetarioUrl,
-        ) ??
-        '';
     recetarioDias.value = int.tryParse(
           await SharedPreferencesService.getStringValue(
                 SharedPreferencesKeys.recetarioDias,

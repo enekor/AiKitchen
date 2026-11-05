@@ -5,7 +5,6 @@ import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/recetario_screen.dart';
 import 'package:aikitchen/services/recetario/recetario_cache.dart';
 import 'package:aikitchen/services/recetario_service.dart';
-import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,6 +72,13 @@ void main() {
   });
 
   group('RecetarioService', () {
+    test('trae fija la URL del recetario de la app', () {
+      expect(
+        RecetarioService.url,
+        'https://raw.githubusercontent.com/enekor/AiKitchen/feat/cocina-asistida/data/recetas/recetas.json',
+      );
+    });
+
     test('convierte el enlace normal de GitHub en el descargable', () {
       expect(
         RecetarioService.toRawUrl('https://github.com/enekor/recetas/blob/main/datos/recetas.json'),
@@ -238,14 +244,11 @@ void main() {
     Future<RecetarioService> pintar(
       WidgetTester tester,
       Size size, {
-      String configured = url,
       Completer<void>? gate,
     }) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      AppSingleton().recetarioUrl.value = configured;
-      addTearDown(() => AppSingleton().recetarioUrl.value = '');
 
       final cache = MemoryRecetarioCache()
         ..data = CachedRecetario(url: url, body: jsonEncode(recetas), savedAt: DateTime.now());
@@ -256,7 +259,7 @@ void main() {
           return jsonEncode([...recetas, receta(nombre: 'Receta nueva')]);
         },
       );
-      if (configured.isNotEmpty) await service.configure(configured, const Duration(days: 7));
+      await service.configure(url, const Duration(days: 7));
       await tester.pumpWidget(MaterialApp(
         theme: CookingTheme.lightTheme(),
         home: Scaffold(body: RecetarioScreen(service: service)),
@@ -306,10 +309,5 @@ void main() {
       expect(find.text('Receta nueva'), findsOneWidget);
     });
 
-    testWidgets('sin URL invita a configurarla en Ajustes', (tester) async {
-      await pintar(tester, const Size(1280, 800), configured: '');
-      expect(find.text('Sin recetario configurado'), findsOneWidget);
-      expect(find.text('Ir a Ajustes'), findsOneWidget);
-    });
   });
 }

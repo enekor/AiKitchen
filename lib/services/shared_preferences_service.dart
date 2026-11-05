@@ -23,7 +23,6 @@ enum SharedPreferencesKeys {
   densidadCompacta,
   despensa,
   inicioModerno,
-  recetarioUrl,
   recetarioDias,
 }
 

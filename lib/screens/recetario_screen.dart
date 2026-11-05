@@ -10,8 +10,8 @@ import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:flutter/material.dart';
 
-/// Modo "Recetario" del centro de búsqueda: las recetas del fichero JSON
-/// configurado en Ajustes, con foto, canal y vídeo. No usa la IA. Sin
+/// Modo "Recetario" del centro de búsqueda: las recetas del fichero JSON que
+/// trae la app, con foto, canal y vídeo. No usa la IA. Sin
 /// `Scaffold` propio.
 ///
 /// Muestra siempre la última descarga guardada; las descargas automáticas
@@ -124,20 +124,8 @@ class _RecetarioScreenState extends State<RecetarioScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([AppSingleton().recetarioUrl, _service]),
+      listenable: _service,
       builder: (context, _) {
-        if (AppSingleton().recetarioUrl.value.isEmpty) {
-          return EmptyState(
-            icon: Icons.menu_book_outlined,
-            title: 'Sin recetario configurado',
-            description:
-                'Pon en Ajustes la dirección del fichero JSON de recetas '
-                '(por ejemplo, uno publicado en GitHub) para verlas aquí.',
-            actionLabel: 'Ir a Ajustes',
-            onAction: () => Navigator.pushNamed(context, AppRoutes.settings),
-          );
-        }
-
         final recipes = _service.recipes;
         if (recipes == null) {
           // Sin copia guardada: hay que esperar a la primera descarga.

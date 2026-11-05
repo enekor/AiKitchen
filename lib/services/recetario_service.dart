@@ -17,8 +17,9 @@ class RecetarioException implements Exception {
   String toString() => message;
 }
 
-/// El recetario: un fichero JSON con recetas publicado en GitHub, cuya
-/// dirección se configura en Ajustes.
+/// El recetario: un fichero JSON con recetas publicado en el repositorio de
+/// la app en GitHub. La dirección va fija en la app ([url]); el usuario no
+/// tiene que configurarla.
 ///
 /// La última descarga se guarda en el dispositivo y es lo que se muestra.
 /// Solo se vuelve a descargar, en segundo plano y sin bloquear la pantalla,
@@ -37,6 +38,10 @@ class RecetarioService extends ChangeNotifier {
         _now = now ?? DateTime.now;
 
   static final RecetarioService instance = RecetarioService();
+
+  /// Dirección del recetario que trae la app.
+  static const String url =
+      'https://raw.githubusercontent.com/enekor/AiKitchen/feat/cocina-asistida/data/recetas/recetas.json';
 
   final RecetarioCache _cache;
   final Future<String> Function(Uri uri) _fetch;
@@ -68,9 +73,9 @@ class RecetarioService extends ChangeNotifier {
   /// ese caso se muestra el indicador de carga; la automática es silenciosa.
   bool get isManualRefresh => _downloading && _manual;
 
-  /// Aplica la configuración de Ajustes: carga la copia guardada y, si es
-  /// más antigua que [maxAge] o es de otra URL, descarga en segundo plano.
-  /// No espera a la descarga.
+  /// Carga la copia guardada del recetario en [url] y, si es más antigua que
+  /// [maxAge] o es de otra dirección, descarga en segundo plano. No espera a
+  /// la descarga.
   Future<void> configure(String url, Duration maxAge) async {
     final rawUrl = url.trim().isEmpty ? '' : toRawUrl(url);
     final urlChanged = rawUrl != _url;
@@ -168,7 +173,7 @@ class RecetarioService extends ChangeNotifier {
   Future<String> _download(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null || !uri.hasScheme || !uri.scheme.startsWith('http')) {
-      throw const RecetarioException('La URL del recetario no es válida. Revísala en Ajustes.');
+      throw const RecetarioException('La dirección del recetario no es válida.');
     }
     return _fetch(uri);
   }

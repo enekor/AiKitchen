@@ -45,12 +45,11 @@ void main() async {
   void configureRecetario() {
     final singleton = AppSingleton();
     unawaited(RecetarioService.instance.configure(
-      singleton.recetarioUrl.value,
+      RecetarioService.url,
       Duration(days: singleton.recetarioDias.value),
     ));
   }
 
-  AppSingleton().recetarioUrl.addListener(configureRecetario);
   AppSingleton().recetarioDias.addListener(configureRecetario);
   configureRecetario();
   RecetarioService.instance.startAutoRefresh();
