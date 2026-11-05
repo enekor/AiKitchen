@@ -93,6 +93,15 @@ enum Idioma {
 }
 
 class _SettingsState extends State<Settings> {
+  /// Frecuencia de descarga automática del recetario, en días.
+  static const _recetarioFrecuencias = {
+    'Cada día': 1,
+    'Cada 3 días': 3,
+    'Cada semana': 7,
+    'Cada 2 semanas': 14,
+    'Cada mes': 30,
+  };
+
   String _configProviderKey = 'groq';
 
   @override
@@ -380,6 +389,20 @@ class _SettingsState extends State<Settings> {
                     value.trim().isEmpty ? 'Recetario desactivado' : 'URL del recetario guardada',
                   );
                 },
+              ),
+              const SizedBox(height: Spacing.md),
+              SingleListSetting(
+                initialValue: _recetarioFrecuencias.entries
+                    .firstWhere(
+                      (e) => e.value == singleton.recetarioDias.value,
+                      orElse: () => _recetarioFrecuencias.entries.elementAt(2),
+                    )
+                    .key,
+                text: 'Buscar recetas nuevas',
+                options: _recetarioFrecuencias.keys.toList(),
+                onChange: (value) => setState(
+                  () => singleton.setRecetarioDias = _recetarioFrecuencias[value] ?? 7,
+                ),
               ),
 
               const SizedBox(height: Spacing.xxl),

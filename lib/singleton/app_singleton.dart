@@ -80,6 +80,17 @@ class AppSingleton {
   /// Dirección del fichero JSON del recetario. Vacía si no se ha configurado.
   final ValueNotifier<String> recetarioUrl = ValueNotifier('');
 
+  /// Cada cuántos días se descarga de nuevo el recetario en segundo plano.
+  final ValueNotifier<int> recetarioDias = ValueNotifier(7);
+
+  set setRecetarioDias(int value) {
+    recetarioDias.value = value;
+    SharedPreferencesService.setStringValue(
+      SharedPreferencesKeys.recetarioDias,
+      value.toString(),
+    );
+  }
+
   set setRecetarioUrl(String value) {
     recetarioUrl.value = value.trim();
     SharedPreferencesService.setStringValue(
@@ -217,6 +228,13 @@ class AppSingleton {
           SharedPreferencesKeys.recetarioUrl,
         ) ??
         '';
+    recetarioDias.value = int.tryParse(
+          await SharedPreferencesService.getStringValue(
+                SharedPreferencesKeys.recetarioDias,
+              ) ??
+              '',
+        ) ??
+        7;
 
     _aiService = AiService();
 

@@ -13,12 +13,16 @@ import 'package:flutter/material.dart';
 /// Modo "Recetario" del centro de búsqueda: las recetas del fichero JSON
 /// configurado en Ajustes, con foto, canal y vídeo. No usa la IA. Sin
 /// `Scaffold` propio.
+///
+/// Muestra siempre la última descarga guardada; las descargas automáticas
+/// ocurren en segundo plano sin bloquear la lista. Solo "Actualizar" muestra
+/// un indicador de carga.
 class RecetarioScreen extends StatefulWidget {
-  const RecetarioScreen({super.key, this.loader});
+  const RecetarioScreen({super.key, this.service});
 
-  /// Para pruebas: sustituye la descarga del recetario.
+  /// Para pruebas: otro servicio en vez del de toda la app.
   @visibleForTesting
-  final Future<List<Recipe>> Function(String url, {bool refresh})? loader;
+  final RecetarioService? service;
 
   @override
   State<RecetarioScreen> createState() => _RecetarioScreenState();
@@ -26,63 +30,37 @@ class RecetarioScreen extends StatefulWidget {
 
 class _RecetarioScreenState extends State<RecetarioScreen> {
   final _searchController = TextEditingController();
-  List<Recipe>? _recipes;
-  String? _error;
-  bool _loading = false;
 
   /// Filtro elegido en la fila de chips: `c:` + canal o `e:` + etiqueta.
   String? _filter;
 
-  @override
-  void initState() {
-    super.initState();
-    AppSingleton().recetarioUrl.addListener(_onUrlChanged);
-    _load();
-  }
+  RecetarioService get _service => widget.service ?? RecetarioService.instance;
 
   @override
   void dispose() {
-    AppSingleton().recetarioUrl.removeListener(_onUrlChanged);
     _searchController.dispose();
     super.dispose();
   }
 
-  String get _url => AppSingleton().recetarioUrl.value;
-
-  void _onUrlChanged() {
-    setState(() {
-      _recipes = null;
-      _filter = null;
-    });
-    _load();
-  }
-
-  Future<void> _load({bool refresh = false}) async {
-    final url = _url;
-    if (url.isEmpty) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final load = widget.loader ?? RecetarioService.instance.load;
-      final recipes = await load(url, refresh: refresh);
-      if (!mounted || url != _url) return;
-      setState(() => _recipes = recipes);
-    } on RecetarioException catch (e) {
-      if (mounted) setState(() => _error = e.message);
-    } catch (e) {
-      if (mounted) setState(() => _error = 'No se ha podido cargar el recetario.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
+  Future<void> _refresh() async {
+    final before = _service.updatedAt;
+    await _service.refresh(manual: true);
+    if (!mounted) return;
+    if (_service.updatedAt != before) {
+      final count = _service.recipes?.length ?? 0;
+      Toaster.showSuccess(
+        count == 1 ? 'Recetario actualizado: 1 receta' : 'Recetario actualizado: $count recetas',
+      );
+    } else if (_service.error != null) {
+      Toaster.showError(_service.error!);
     }
   }
 
-  List<String> get _canales =>
-      _sortedUnique([for (final r in _recipes ?? <Recipe>[]) ?r.canal]);
+  List<String> _canales(List<Recipe> recipes) =>
+      _sortedUnique([for (final r in recipes) ?r.canal]);
 
-  List<String> get _etiquetas =>
-      _sortedUnique([for (final r in _recipes ?? <Recipe>[]) ...r.etiquetas]);
+  List<String> _etiquetas(List<Recipe> recipes) =>
+      _sortedUnique([for (final r in recipes) ...r.etiquetas]);
 
   static List<String> _sortedUnique(Iterable<String> values) {
     final byKey = <String, String>{};
@@ -93,10 +71,10 @@ class _RecetarioScreenState extends State<RecetarioScreen> {
       ..sort((a, b) => PantryMatcher.normalize(a).compareTo(PantryMatcher.normalize(b)));
   }
 
-  List<Recipe> get _visible {
+  List<Recipe> _visible(List<Recipe> all) {
     final query = PantryMatcher.normalize(_searchController.text.trim());
-    return (_recipes ?? const <Recipe>[]).where((r) {
-      final filter = _filter;
+    final filter = _filter;
+    return all.where((r) {
       if (filter != null) {
         final value = filter.substring(2);
         if (filter.startsWith('c:') && r.canal != value) return false;
@@ -145,10 +123,10 @@ class _RecetarioScreenState extends State<RecetarioScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<String>(
-      valueListenable: AppSingleton().recetarioUrl,
-      builder: (context, url, _) {
-        if (url.isEmpty) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([AppSingleton().recetarioUrl, _service]),
+      builder: (context, _) {
+        if (AppSingleton().recetarioUrl.value.isEmpty) {
           return EmptyState(
             icon: Icons.menu_book_outlined,
             title: 'Sin recetario configurado',
@@ -159,39 +137,55 @@ class _RecetarioScreenState extends State<RecetarioScreen> {
             onAction: () => Navigator.pushNamed(context, AppRoutes.settings),
           );
         }
-        if (_recipes == null) {
-          if (_error != null) return _errorState();
-          return const Center(child: CircularProgressIndicator());
+
+        final recipes = _service.recipes;
+        if (recipes == null) {
+          // Sin copia guardada: hay que esperar a la primera descarga.
+          if (_service.isDownloading) {
+            return const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: Spacing.lg),
+                  Text('Descargando el recetario...'),
+                ],
+              ),
+            );
+          }
+          return EmptyState(
+            icon: Icons.cloud_off_rounded,
+            title: 'No se ha podido cargar el recetario',
+            description: _service.error,
+            actionLabel: 'Reintentar',
+            onAction: _refresh,
+          );
         }
+
         return RefreshIndicator(
-          onRefresh: () => _load(refresh: true),
-          child: _content(),
+          onRefresh: _refresh,
+          child: _content(recipes),
         );
       },
     );
   }
 
-  Widget _errorState() {
-    return EmptyState(
-      icon: Icons.cloud_off_rounded,
-      title: 'No se ha podido cargar el recetario',
-      description: _error,
-      actionLabel: 'Reintentar',
-      onAction: () => _load(refresh: true),
-    );
-  }
-
-  Widget _content() {
+  Widget _content(List<Recipe> all) {
     final theme = Theme.of(context);
-    final recipes = _visible;
+    final recipes = _visible(all);
+    final canales = _canales(all);
     final filters = <String?>[
       null,
       // Por canal solo si hay más de uno: con uno no filtra nada.
-      if (_canales.length > 1) for (final c in _canales) 'c:$c',
-      for (final e in _etiquetas) 'e:$e',
+      if (canales.length > 1) for (final c in canales) 'c:$c',
+      for (final e in _etiquetas(all)) 'e:$e',
     ];
+    final refreshing = _service.isManualRefresh;
 
     return ListView(
+      // Necesario para que el gesto de deslizar actualice aunque la lista
+      // sea corta.
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(Spacing.lg),
       children: [
         Row(
@@ -204,68 +198,99 @@ class _RecetarioScreenState extends State<RecetarioScreen> {
               ),
             ),
             const SizedBox(width: Spacing.sm),
-            IconButton.filledTonal(
-              onPressed: _loading ? null : () => _load(refresh: true),
-              tooltip: 'Actualizar el recetario',
-              icon: _loading
+            FilledButton.tonalIcon(
+              onPressed: refreshing ? null : _refresh,
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+              icon: refreshing
                   ? const SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.refresh_rounded),
+              label: Text(refreshing ? 'Actualizando...' : 'Actualizar'),
             ),
           ],
         ),
+        if (refreshing) ...[
+          const SizedBox(height: Spacing.md),
+          const LinearProgressIndicator(),
+        ],
         if (filters.length > 1) ...[
           const SizedBox(height: Spacing.md),
           FilterChipBar<String?>(
             options: filters,
             labelOf: (f) => f == null ? 'Todas' : f.substring(2),
-            selected: _filter,
+            selected: filters.contains(_filter) ? _filter : null,
             onChanged: (f) => setState(() => _filter = f),
           ),
         ],
         const SizedBox(height: Spacing.md),
         Text(
-          recipes.length == 1 ? '1 receta' : '${recipes.length} recetas',
+          '${recipes.length == 1 ? '1 receta' : '${recipes.length} recetas'}'
+          '${_updatedLabel()}',
           style: theme.textTheme.labelLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: Spacing.md),
-        if (recipes.isEmpty)
-          const EmptyState(
-            icon: Icons.search_off_rounded,
-            title: 'No hay recetas con esa búsqueda',
-          )
-        else
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // Columnas de unos 280 px: una en móvil, tres o cuatro en tableta.
-              final columns = (constraints.maxWidth / 280).floor().clamp(1, 4);
-              final width =
-                  (constraints.maxWidth - Spacing.md * (columns - 1)) / columns;
-              return Wrap(
-                spacing: Spacing.md,
-                runSpacing: Spacing.md,
-                children: [
-                  for (final recipe in recipes)
-                    SizedBox(
-                      width: width,
-                      child: _RecetarioCard(
-                        recipe: recipe,
-                        isFavorite: _isFavorite(recipe),
-                        onTap: () => _open(recipe),
-                        onToggleFavorite: () => _toggleFavorite(recipe),
-                      ),
-                    ),
-                ],
-              );
-            },
+        // Mientras se actualiza a mano, la lista se atenúa: lo que se ve va a
+        // cambiar en cuanto termine.
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: refreshing ? 0.4 : 1,
+          child: IgnorePointer(
+            ignoring: refreshing,
+            child: recipes.isEmpty
+                ? const EmptyState(
+                    icon: Icons.search_off_rounded,
+                    title: 'No hay recetas con esa búsqueda',
+                  )
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Columnas de unos 280 px: una en móvil, tres o cuatro
+                      // en tableta.
+                      final columns = (constraints.maxWidth / 280).floor().clamp(1, 4);
+                      final width =
+                          (constraints.maxWidth - Spacing.md * (columns - 1)) / columns;
+                      return Wrap(
+                        spacing: Spacing.md,
+                        runSpacing: Spacing.md,
+                        children: [
+                          for (final recipe in recipes)
+                            SizedBox(
+                              width: width,
+                              child: _RecetarioCard(
+                                recipe: recipe,
+                                isFavorite: _isFavorite(recipe),
+                                onTap: () => _open(recipe),
+                                onToggleFavorite: () => _toggleFavorite(recipe),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
           ),
+        ),
       ],
     );
+  }
+
+  /// " · actualizado hoy", " · actualizado hace 3 días"...
+  String _updatedLabel() {
+    final updated = _service.updatedAt;
+    if (updated == null) return '';
+    final now = DateTime.now();
+    final days = DateTime(now.year, now.month, now.day)
+        .difference(DateTime(updated.year, updated.month, updated.day))
+        .inDays;
+    final when = switch (days) {
+      <= 0 => 'hoy',
+      1 => 'ayer',
+      _ => 'hace $days días',
+    };
+    return ' · actualizado $when';
   }
 }
 

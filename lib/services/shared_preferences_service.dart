@@ -24,6 +24,7 @@ enum SharedPreferencesKeys {
   despensa,
   inicioModerno,
   recetarioUrl,
+  recetarioDias,
 }
 
 class SharedPreferencesService {

@@ -13,6 +13,7 @@ import 'package:aikitchen/services/first_start_service.dart';
 import 'package:aikitchen/services/kitchen_timer_alert.dart';
 import 'package:aikitchen/services/kitchen_timers.dart';
 import 'package:aikitchen/services/pantry_service.dart';
+import 'package:aikitchen/services/recetario_service.dart';
 import 'package:aikitchen/services/log_file_service.dart';
 import 'package:aikitchen/services/platform/platform_info.dart' as platform;
 import 'package:aikitchen/services/shared_preferences_service.dart';
@@ -38,6 +39,21 @@ void main() async {
   await _safely('cargar el tema', () => themeController.load());
   await _safely('cargar la despensa', () => PantryService.instance.load());
   KitchenTimers.instance.onFinished = alertTimerFinished;
+
+  // El recetario se carga de la copia guardada y, si toca, se descarga en
+  // segundo plano. No se espera: no debe retrasar la apertura de la app.
+  void configureRecetario() {
+    final singleton = AppSingleton();
+    unawaited(RecetarioService.instance.configure(
+      singleton.recetarioUrl.value,
+      Duration(days: singleton.recetarioDias.value),
+    ));
+  }
+
+  AppSingleton().recetarioUrl.addListener(configureRecetario);
+  AppSingleton().recetarioDias.addListener(configureRecetario);
+  configureRecetario();
+  RecetarioService.instance.startAutoRefresh();
 
   if (platform.supportsHomeWidgets) {
     await _safely('inicializar los widgets', () async {

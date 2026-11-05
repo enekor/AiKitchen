@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:aikitchen/models/recipe.dart';
 import 'package:aikitchen/screens/recetario_screen.dart';
+import 'package:aikitchen/services/recetario/recetario_cache.dart';
 import 'package:aikitchen/services/recetario_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
@@ -109,29 +111,158 @@ void main() {
     });
   });
 
+  group('Descarga y copia guardada', () {
+    const url = 'https://raw.githubusercontent.com/u/r/main/recetas.json';
+    late MemoryRecetarioCache cache;
+    late DateTime now;
+    late int downloads;
+    late String body;
+    Completer<void>? gate;
+
+    RecetarioService crear() => RecetarioService(
+          cache: cache,
+          now: () => now,
+          fetch: (uri) async {
+            downloads++;
+            if (gate != null) await gate!.future;
+            if (body == 'ERROR') throw const RecetarioException('Sin conexión');
+            return body;
+          },
+        );
+
+    setUp(() {
+      cache = MemoryRecetarioCache();
+      now = DateTime(2026, 11, 5, 12);
+      downloads = 0;
+      body = jsonEncode([receta()]);
+      gate = null;
+    });
+
+    test('sin copia guardada, descarga y la guarda', () async {
+      final service = crear();
+      await service.configure(url, const Duration(days: 7));
+      await service.refresh(); // se une a la descarga lanzada en segundo plano
+      expect(downloads, 1);
+      expect(service.recipes, hasLength(1));
+      expect(cache.data?.url, url);
+      expect(cache.data?.savedAt, now);
+    });
+
+    test('con copia reciente, la usa y no descarga', () async {
+      cache.data = CachedRecetario(url: url, body: body, savedAt: now.subtract(const Duration(days: 2)));
+      final service = crear();
+      await service.configure(url, const Duration(days: 7));
+      expect(service.recipes, hasLength(1));
+      expect(service.isDownloading, isFalse);
+      expect(downloads, 0);
+    });
+
+    test('con copia vieja, la muestra mientras descarga la nueva', () async {
+      cache.data = CachedRecetario(url: url, body: body, savedAt: now.subtract(const Duration(days: 8)));
+      body = jsonEncode([receta(), receta(nombre: 'Lentejas')]);
+      gate = Completer();
+      final service = crear();
+      await service.configure(url, const Duration(days: 7));
+
+      // La descarga va en segundo plano: ya se ve la lista guardada.
+      expect(service.recipes, hasLength(1));
+      expect(service.isDownloading, isTrue);
+      expect(service.isManualRefresh, isFalse);
+
+      gate!.complete();
+      await service.refresh();
+      expect(service.recipes, hasLength(2));
+      expect(downloads, 1);
+    });
+
+    test('la copia de otra URL no se usa', () async {
+      cache.data = CachedRecetario(url: 'https://otra/url.json', body: body, savedAt: now);
+      gate = Completer();
+      final service = crear();
+      await service.configure(url, const Duration(days: 7));
+      expect(service.recipes, isNull);
+      expect(service.isDownloading, isTrue);
+      gate!.complete();
+      await service.refresh();
+      expect(service.recipes, hasLength(1));
+    });
+
+    test('al actualizar a mano se marca como manual hasta que termina', () async {
+      cache.data = CachedRecetario(url: url, body: body, savedAt: now);
+      final service = crear();
+      await service.configure(url, const Duration(days: 7));
+      gate = Completer();
+      final future = service.refresh(manual: true);
+      expect(service.isManualRefresh, isTrue);
+      gate!.complete();
+      await future;
+      expect(service.isManualRefresh, isFalse);
+      expect(downloads, 1);
+    });
+
+    test('si falla la descarga, se queda la lista que había', () async {
+      final viejo = now.subtract(const Duration(days: 30));
+      cache.data = CachedRecetario(url: url, body: body, savedAt: viejo);
+      body = 'ERROR';
+      final service = crear();
+      await service.configure(url, const Duration(days: 7));
+      await service.refresh(manual: true);
+      expect(service.recipes, hasLength(1));
+      expect(service.error, 'Sin conexión');
+      expect(cache.data!.savedAt, viejo);
+    });
+
+    test('un fichero roto no sustituye a la lista buena', () async {
+      cache.data = CachedRecetario(url: url, body: body, savedAt: now);
+      body = '<html>no es json</html>';
+      final service = crear();
+      await service.configure(url, const Duration(days: 7));
+      await service.refresh(manual: true);
+      expect(service.recipes, hasLength(1));
+      expect(service.error, isNotNull);
+      expect(cache.data!.body, isNot(contains('html')));
+    });
+  });
+
   group('RecetarioScreen', () {
     final recetas = [
       for (var i = 0; i < 9; i++)
-        Recipe.fromJson(receta(
+        receta(
           nombre: 'Receta del recetario número $i con un nombre largo',
           origen: i.isEven ? 'una vasca en la cocina' : 'Otro canal',
           etiquetas: [i.isEven ? 'Legumbres' : 'Pescado'],
-        )),
+        ),
     ];
+    const url = 'https://raw.githubusercontent.com/u/r/main/recetas.json';
 
-    Future<void> pintar(WidgetTester tester, Size size, {String url = 'https://x/r.json'}) async {
+    Future<RecetarioService> pintar(
+      WidgetTester tester,
+      Size size, {
+      String configured = url,
+      Completer<void>? gate,
+    }) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      AppSingleton().recetarioUrl.value = url;
+      AppSingleton().recetarioUrl.value = configured;
       addTearDown(() => AppSingleton().recetarioUrl.value = '');
+
+      final cache = MemoryRecetarioCache()
+        ..data = CachedRecetario(url: url, body: jsonEncode(recetas), savedAt: DateTime.now());
+      final service = RecetarioService(
+        cache: cache,
+        fetch: (uri) async {
+          if (gate != null) await gate.future;
+          return jsonEncode([...recetas, receta(nombre: 'Receta nueva')]);
+        },
+      );
+      if (configured.isNotEmpty) await service.configure(configured, const Duration(days: 7));
       await tester.pumpWidget(MaterialApp(
         theme: CookingTheme.lightTheme(),
-        home: Scaffold(
-          body: RecetarioScreen(loader: (url, {bool refresh = false}) async => recetas),
-        ),
+        home: Scaffold(body: RecetarioScreen(service: service)),
       ));
       await tester.pumpAndSettle();
+      return service;
     }
 
     for (final size in const [Size(1280, 800), Size(800, 1280), Size(390, 844)]) {
@@ -139,7 +270,8 @@ void main() {
           (tester) async {
         await pintar(tester, size);
         expect(tester.takeException(), isNull);
-        expect(find.text('9 recetas'), findsOneWidget);
+        expect(find.textContaining('9 recetas'), findsOneWidget);
+        expect(find.textContaining('actualizado hoy'), findsOneWidget);
       });
     }
 
@@ -147,16 +279,35 @@ void main() {
       await pintar(tester, const Size(1280, 800));
       await tester.tap(find.text('Otro canal').first);
       await tester.pumpAndSettle();
-      expect(find.text('4 recetas'), findsOneWidget);
+      expect(find.textContaining('4 recetas'), findsOneWidget);
 
       await tester.tap(find.text('Todas'));
       await tester.enterText(find.byType(TextField), 'número 3');
       await tester.pumpAndSettle();
-      expect(find.text('1 receta'), findsOneWidget);
+      expect(find.textContaining('1 receta'), findsOneWidget);
+    });
+
+    testWidgets('Actualizar muestra un spinner y luego la lista nueva', (tester) async {
+      final gate = Completer<void>();
+      await pintar(tester, const Size(1280, 800), gate: gate);
+
+      await tester.tap(find.text('Actualizar'));
+      await tester.pump();
+      expect(find.text('Actualizando...'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      // Mientras tanto se sigue viendo la lista anterior.
+      expect(find.textContaining('9 recetas'), findsOneWidget);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('Actualizar'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.textContaining('10 recetas'), findsOneWidget);
+      expect(find.text('Receta nueva'), findsOneWidget);
     });
 
     testWidgets('sin URL invita a configurarla en Ajustes', (tester) async {
-      await pintar(tester, const Size(1280, 800), url: '');
+      await pintar(tester, const Size(1280, 800), configured: '');
       expect(find.text('Sin recetario configurado'), findsOneWidget);
       expect(find.text('Ir a Ajustes'), findsOneWidget);
     });
