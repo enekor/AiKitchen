@@ -6,6 +6,7 @@ import 'package:aikitchen/navigation/app_shell_controller.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/kitchen_timers.dart';
 import 'package:aikitchen/services/pantry_service.dart';
+import 'package:aikitchen/services/recetario_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/utils/step_durations.dart';
@@ -452,18 +453,37 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
       ),
     ];
 
-    return GridView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        crossAxisSpacing: Spacing.md,
-        mainAxisSpacing: Spacing.md,
-        // Altura fija y no proporción: el texto ocupa lo mismo sea cual sea
-        // el ancho, y una proporción dejaba tarjetas enormes en tableta.
-        mainAxisExtent: tall ? 128 : 112,
-      ),
-      children: tiles,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GridView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: Spacing.md,
+            mainAxisSpacing: Spacing.md,
+            // Altura fija y no proporción: el texto ocupa lo mismo sea cual
+            // sea el ancho, y una proporción dejaba tarjetas enormes en
+            // tableta.
+            mainAxisExtent: tall ? 128 : 112,
+          ),
+          children: tiles,
+        ),
+        const SizedBox(height: Spacing.md),
+        // A lo ancho y no como una quinta casilla: así la cuadrícula queda
+        // completa tanto a dos como a cuatro columnas.
+        _ActionTile(
+          icon: Icons.menu_book_rounded,
+          title: 'Nuestro recetario',
+          subtitle: 'Recetas de ${RecetarioService.canal}',
+          background: scheme.secondaryContainer,
+          foreground: scheme.onSecondaryContainer,
+          iconColor: scheme.onSecondaryContainer,
+          horizontal: true,
+          onTap: () => _goSearch(SearchMode.recetario),
+        ),
+      ],
     );
   }
 
@@ -899,6 +919,7 @@ class _ActionTile extends StatelessWidget {
     required this.iconColor,
     required this.onTap,
     this.outlined = false,
+    this.horizontal = false,
   });
 
   final IconData icon;
@@ -910,10 +931,36 @@ class _ActionTile extends StatelessWidget {
   final VoidCallback onTap;
   final bool outlined;
 
+  /// Icono a la izquierda y texto al lado, para la tarjeta a lo ancho.
+  final bool horizontal;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final radius = BorderRadius.circular(AppRadius.lg + 4);
+    final texts = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: foreground,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: foreground.withValues(alpha: 0.85),
+          ),
+        ),
+      ],
+    );
     return Material(
       color: background,
       shape: RoundedRectangleBorder(
@@ -927,35 +974,23 @@ class _ActionTile extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(Spacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, size: 28, color: iconColor),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: foreground,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: foreground.withValues(alpha: 0.85),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          child: horizontal
+              ? Row(
+                  children: [
+                    Icon(icon, size: 28, color: iconColor),
+                    const SizedBox(width: Spacing.md),
+                    Expanded(child: texts),
+                    Icon(Icons.chevron_right_rounded, color: foreground),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(icon, size: 28, color: iconColor),
+                    texts,
+                  ],
+                ),
         ),
       ),
     );

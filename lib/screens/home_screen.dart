@@ -249,6 +249,14 @@ class _ClassicHomeScreenState extends State<ClassicHomeScreen> {
                         onTap: () => AppShellController.instance
                             .goTo(AppShellTab.favourites),
                       ),
+                      _QuickAccessCard(
+                        icon: Icons.menu_book_rounded,
+                        label: 'Nuestro recetario',
+                        onTap: () => AppShellController.instance.goTo(
+                          AppShellTab.search,
+                          searchMode: SearchMode.recetario,
+                        ),
+                      ),
                     ],
                   ),
                   if (_recentFavourites.isNotEmpty) ...[

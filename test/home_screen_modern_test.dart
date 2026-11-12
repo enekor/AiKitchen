@@ -68,6 +68,11 @@ void main() {
 
           expect(tester.takeException(), isNull);
           expect(find.textContaining('¿qué cocinamos hoy?'), findsOneWidget);
+          expect(find.text('Nuestro recetario'), findsOneWidget);
+          expect(
+            find.text('Recetas de Una vasca en la cocina'),
+            findsOneWidget,
+          );
           if (conMenu) {
             expect(find.text('HOY EN TU MENÚ'), findsOneWidget);
             expect(find.textContaining('Empezar a cocinar'), findsOneWidget);

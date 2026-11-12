@@ -39,6 +39,9 @@ class RecetarioService extends ChangeNotifier {
 
   static final RecetarioService instance = RecetarioService();
 
+  /// Canal de YouTube del que salen las recetas del recetario.
+  static const String canal = 'Una vasca en la cocina';
+
   /// Dirección del recetario que trae la app.
   static const String url =
       'https://raw.githubusercontent.com/enekor/AiKitchen/feat/cocina-asistida/data/recetas/recetas.json';
