@@ -17,6 +17,7 @@ import 'package:aikitchen/services/recetario_service.dart';
 import 'package:aikitchen/services/log_file_service.dart';
 import 'package:aikitchen/services/platform/platform_info.dart' as platform;
 import 'package:aikitchen/services/shared_preferences_service.dart';
+import 'package:aikitchen/services/tls/extra_trusted_roots.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/theme/theme_controller.dart';
@@ -28,6 +29,10 @@ import 'singleton/app_singleton.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Antes de cualquier petición: Android 7 no reconoce el certificado raíz de
+  // Let's Encrypt que usa raw.githubusercontent.com (recetario).
+  await _safely('añadir los certificados raíz', installExtraTrustedRoots);
 
   // Ningún fallo de arranque debe dejar una pantalla en blanco. Si la
   // configuración no carga, la app abre igual y el usuario puede arreglarla

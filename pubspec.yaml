@@ -36,6 +36,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    # Raíz de Let's Encrypt para Android 7 (ver extra_trusted_roots_io.dart).
+    - assets/certs/isrg_root_x1.pem
   fonts:
     - family: Inter
       fonts:
