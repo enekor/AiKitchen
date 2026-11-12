@@ -78,6 +78,37 @@ void main() {
     });
   });
 
+  group('Recipe.fromMap', () {
+    test('no añade ".0" a los números que SQLite devuelve como REAL', () {
+      final receta = Recipe.fromMap({
+        'id': 1,
+        'nombre': 'Merluza',
+        'descripcion': '',
+        'tiempo_estimado': '40 min',
+        'ingredientes': jsonEncode(['merluza']),
+        'preparacion': jsonEncode(['hornear']),
+        'calorias': 380.0,
+        'raciones': 4,
+      });
+      expect(receta.calorias, '380');
+      expect(receta.raciones, '4');
+    });
+
+    test('conserva los decimales reales', () {
+      final receta = Recipe.fromMap({
+        'id': 1,
+        'nombre': 'Merluza',
+        'descripcion': '',
+        'tiempo_estimado': '40 min',
+        'ingredientes': jsonEncode(['merluza']),
+        'preparacion': jsonEncode(['hornear']),
+        'calorias': 380.5,
+        'raciones': 4,
+      });
+      expect(receta.calorias, '380.5');
+    });
+  });
+
   group('CartItem', () {
     test('conserva el estado de comprado al pasar por JSON', () {
       final item = CartItem(id: 3, name: 'Leche', isPurchased: true);

@@ -32,9 +32,17 @@ class IngredientsController extends ChangeNotifier {
 
 /// Lista de ingredientes con casilla para marcar mientras se cocina.
 class IngredientsList extends StatefulWidget {
-  const IngredientsList({super.key, required this.ingredients, this.controller});
+  const IngredientsList({
+    super.key,
+    required this.ingredients,
+    this.controller,
+    this.isInPantry,
+  });
 
   final List<String> ingredients;
+
+  /// Si se da, los ingredientes que ya hay en casa llevan una marca.
+  final bool Function(String ingredient)? isInPantry;
 
   /// Si no se da uno, la lista crea el suyo propio. Se expone para que la
   /// cabecera de la pantalla de receta pueda mostrar el contador y el botón
@@ -75,6 +83,7 @@ class _IngredientsListState extends State<IngredientsList> {
           _IngredientRow(
             text: widget.ingredients[i],
             marked: _controller.isMarked(i),
+            inPantry: widget.isInPantry?.call(widget.ingredients[i]) ?? false,
             onTap: () => _controller.toggle(i),
           ),
         ],
@@ -88,10 +97,12 @@ class _IngredientRow extends StatelessWidget {
     required this.text,
     required this.marked,
     required this.onTap,
+    this.inPantry = false,
   });
 
   final String text;
   final bool marked;
+  final bool inPantry;
   final VoidCallback onTap;
 
   @override
@@ -128,6 +139,15 @@ class _IngredientRow extends StatelessWidget {
                   ),
                 ),
               ),
+              if (inPantry)
+                Tooltip(
+                  message: 'Lo tienes en la despensa',
+                  child: Icon(
+                    Icons.inventory_2_outlined,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
             ],
           ),
         ),

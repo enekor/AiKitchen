@@ -1,11 +1,17 @@
 import 'package:aikitchen/models/recipe.dart';
+import 'package:aikitchen/models/recipe_screen_arguments.dart';
+import 'package:aikitchen/models/tipo_receta.dart';
+import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/screens/recipe/ai_edit_sheet.dart';
 import 'package:aikitchen/services/external_link_service.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/pantry_service.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
+import 'package:aikitchen/utils/ingredient_scaler.dart';
 import 'package:aikitchen/widgets/ingredients_list.dart';
+import 'package:aikitchen/widgets/kitchen_timers_widgets.dart';
 import 'package:aikitchen/widgets/steps_list.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
@@ -40,9 +46,11 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
   late IngredientsController _ingredientsController;
   late StepsController _stepsController;
 
-  /// Marca dónde empieza la sección de ingredientes y pasos, para poder
-  /// desplazar la vista hasta ahí al iniciar la lectura guiada.
-  final GlobalKey _stepsSectionKey = GlobalKey();
+  /// Raciones de la receta tal como viene, y las que ha elegido el usuario.
+  /// `null` si el campo de raciones no trae un número: entonces no se ofrece
+  /// escalar.
+  int? _baseServings;
+  int? _servings;
 
   @override
   void initState() {
@@ -51,19 +59,91 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
     _tabController = TabController(length: 2, vsync: this);
     _initControllers();
     _checkIfFavorite();
+    PantryService.instance.addListener(_onPantryChanged);
+    PantryService.instance.load();
   }
 
   void _initControllers() {
     _ingredientsController = IngredientsController(showingRecipe.ingredientes.length);
     _stepsController = StepsController();
+    _baseServings = IngredientScaler.baseServings(showingRecipe.raciones);
+    _servings = _baseServings;
   }
 
   @override
   void dispose() {
+    PantryService.instance.removeListener(_onPantryChanged);
     _tabController.dispose();
     _ingredientsController.dispose();
     _stepsController.dispose();
     super.dispose();
+  }
+
+  void _onPantryChanged() {
+    if (mounted) setState(() {});
+  }
+
+  double get _scaleFactor =>
+      _baseServings == null || _servings == null ? 1 : _servings! / _baseServings!;
+
+  /// La receta con las cantidades ajustadas a las raciones elegidas. Es la que
+  /// se muestra y la que se lleva al modo cocina; la original es la que se
+  /// guarda en favoritos.
+  Recipe get _scaledRecipe {
+    final factor = _scaleFactor;
+    if (factor == 1) return showingRecipe;
+    return Recipe(
+      id: showingRecipe.id,
+      nombre: showingRecipe.nombre,
+      descripcion: showingRecipe.descripcion,
+      tiempoEstimado: showingRecipe.tiempoEstimado,
+      ingredientes: [
+        for (final i in showingRecipe.ingredientes) IngredientScaler.scale(i, factor),
+      ],
+      preparacion: showingRecipe.preparacion,
+      calorias: showingRecipe.calorias,
+      raciones: '$_servings',
+      origen: showingRecipe.origen,
+      foto: showingRecipe.foto,
+      etiquetas: showingRecipe.etiquetas,
+      canal: showingRecipe.canal,
+    );
+  }
+
+  void _setServings(int value) {
+    if (value < 1 || value > 50) return;
+    setState(() => _servings = value);
+  }
+
+  /// Añade a la lista de la compra los ingredientes que no hay en la
+  /// despensa, con las cantidades de las raciones elegidas.
+  Future<void> _addMissingToCart() async {
+    final ingredients = _scaledRecipe.ingredientes;
+    final missing = ingredients
+        .where((i) => !PantryService.instance.covers(i))
+        .toList();
+    final inPantry = ingredients.length - missing.length;
+
+    if (missing.isEmpty) {
+      Toaster.showSuccess('Tienes todo en la despensa');
+      return;
+    }
+
+    await JsonDocumentsService().addCartItemsFromNames(missing);
+    await WidgetService.updateShoppingListWidget();
+    Toaster.showSuccess(
+      inPantry == 0
+          ? '${missing.length} ingredientes añadidos a la compra'
+          : '${missing.length} añadidos a la compra; $inPantry ya los tienes',
+    );
+  }
+
+  void _openCookingMode() {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.cookingMode,
+      arguments: RecipeScreenArguments(recipe: _scaledRecipe),
+    );
   }
 
   void _checkIfFavorite() {
@@ -77,19 +157,26 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
   }
 
   void _toggleFavorite() async {
+    final favs = AppSingleton().recetasFavoritas;
+    bool same(Recipe r) =>
+        r.nombre == showingRecipe.nombre &&
+        r.descripcion == showingRecipe.descripcion;
+
+    // Se guarda o se borra solo esta receta. Reescribir todos los favoritos,
+    // como antes, es muy costoso ahora que pueden llevar foto.
     if (_isFavorite) {
-      AppSingleton().recetasFavoritas.removeWhere(
-        (r) =>
-            r.nombre == showingRecipe.nombre &&
-            r.descripcion == showingRecipe.descripcion,
-      );
+      final existing = favs.where(same).toList();
+      favs.removeWhere(same);
+      for (final r in existing) {
+        if (r.id != null) await JsonDocumentsService().removeFavRecipe(r.id!);
+      }
       Toaster.showWarning('Eliminado de favoritos');
     } else {
-      AppSingleton().recetasFavoritas.add(showingRecipe);
+      favs.add(showingRecipe);
+      await JsonDocumentsService().addFavRecipe(showingRecipe);
       Toaster.showSuccess('¡Añadido a favoritos!');
     }
 
-    await JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
     await WidgetService.updateFavoritesWidget();
     _checkIfFavorite();
   }
@@ -102,17 +189,45 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
     }
   }
 
+  /// La IA devuelve solo los campos básicos: se le devuelven a la receta
+  /// modificada la foto, las etiquetas, el canal y el enlace al vídeo de la
+  /// original, que no tienen por qué cambiar al adaptarla.
+  static Recipe _keepExtras(Recipe updated, Recipe original) {
+    final video = original.videoUrl;
+    final keepsVideo = video == null || updated.videoUrl != null;
+    return Recipe(
+      nombre: updated.nombre,
+      descripcion: keepsVideo ? updated.descripcion : '${updated.descripcion.trim()} - $video',
+      tiempoEstimado: updated.tiempoEstimado,
+      ingredientes: updated.ingredientes,
+      preparacion: updated.preparacion,
+      calorias: updated.calorias,
+      raciones: updated.raciones,
+      origen: original.origen,
+      foto: original.foto,
+      etiquetas: original.etiquetas,
+      canal: original.canal,
+    );
+  }
+
+  Future<void> _openVideo(String url) async {
+    if (!await openExternalUrl(url)) {
+      Toaster.showError('No se pudo abrir el vídeo');
+    }
+  }
+
   void _shareRecipe() {
     ShareRecipeService().shareRecipe([showingRecipe]);
   }
 
-  void _showAiEditOptions() {
+  void _showAiEditOptions({Set<TipoReceta> adaptations = const {}}) {
     AiEditSheet.show(
       context,
       recipe: showingRecipe,
+      initialAdaptations: adaptations,
       onRecipeUpdated: (newRecipe) {
         setState(() {
-          showingRecipe = newRecipe;
+          showingRecipe = _keepExtras(newRecipe, showingRecipe);
           // Al modificarla, dejamos de considerarla la misma para favoritos
           // hasta que la guarde, y los marcados dejan de tener sentido porque
           // los ingredientes y pasos pueden haber cambiado.
@@ -125,34 +240,19 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
     );
   }
 
-  /// Inicia la lectura guiada y salta a la pestaña de preparación, tal como
-  /// hace el botón "Iniciar" del diseño de referencia.
-  ///
-  /// También desplaza la vista hasta los pasos: el cambio ocurre más abajo de
-  /// la franja, fuera de la pantalla, y sin este desplazamiento parecía que
-  /// pulsar "Iniciar" no hacía nada.
-  void _startGuidedReading() {
-    _stepsController.start();
-    _tabController.animateTo(1);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = _stepsSectionKey.currentContext;
-      if (target == null) return;
-      Scrollable.ensureVisible(
-        target,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOut,
-        alignment: 0.05,
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final viewport = MediaQuery.sizeOf(context);
     // Con ancho de sobra no tiene sentido esconder la mitad de la receta tras
     // una pestaña: se cocina mirando ingredientes y pasos a la vez.
     final sideBySide = viewport.width >= Breakpoints.expanded;
+    final recipe = _scaledRecipe;
+    final ingredientsHeader = _IngredientsSectionHeader(
+      controller: _ingredientsController,
+      servings: _servings,
+      onServingsChanged: _baseServings == null ? null : _setServings,
+      onAddToCart: _addMissingToCart,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle de receta')),
@@ -165,7 +265,7 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
               children: [
                 _HeroHeader(recipe: showingRecipe),
                 const SizedBox(height: Spacing.lg),
-                _MetricsRow(recipe: showingRecipe),
+                _MetricsRow(recipe: recipe),
                 const SizedBox(height: Spacing.lg),
                 _ActionsRow(
                   isFavorite: _isFavorite,
@@ -175,22 +275,32 @@ class _RecipeScreenState extends State<RecipeScreen> with SingleTickerProviderSt
                   onOpenUrl: _launchUrl,
                   onModifyWithAi: _showAiEditOptions,
                 ),
+                if (recipe.videoUrl != null) ...[
+                  const SizedBox(height: Spacing.md),
+                  _VideoButton(onPressed: () => _openVideo(recipe.videoUrl!)),
+                ],
                 const SizedBox(height: Spacing.lg),
-                _VoiceReadingBanner(onStart: _startGuidedReading),
+                _AdaptToPreferencesCard(
+                  onAdapt: (prefs) => _showAiEditOptions(adaptations: prefs),
+                ),
+                _VoiceReadingBanner(onStart: _openCookingMode),
+                const TimersBar(padding: EdgeInsets.only(top: Spacing.lg)),
                 const SizedBox(height: Spacing.xl),
                 sideBySide
                     ? _SideBySideContent(
-                        key: _stepsSectionKey,
-                        recipe: showingRecipe,
+                        recipe: recipe,
+                        ingredientsHeader: ingredientsHeader,
                         ingredientsController: _ingredientsController,
                         stepsController: _stepsController,
+                        isInPantry: PantryService.instance.covers,
                       )
                     : _TabbedContent(
-                        key: _stepsSectionKey,
-                        recipe: showingRecipe,
+                        recipe: recipe,
+                        ingredientsHeader: ingredientsHeader,
                         tabController: _tabController,
                         ingredientsController: _ingredientsController,
                         stepsController: _stepsController,
+                        isInPantry: PantryService.instance.covers,
                       ),
               ],
             ),
@@ -213,12 +323,17 @@ class _HeroHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    // Con foto, la foto va encima y el bloque de color pierde las esquinas de
+    // arriba para que formen una sola pieza.
+    final hasPhoto = recipe.fotoBytes != null;
+    final header = Container(
       width: double.infinity,
       padding: const EdgeInsets.all(Spacing.xl),
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer,
-        borderRadius: AppRadius.large,
+        borderRadius: hasPhoto
+            ? const BorderRadius.vertical(bottom: Radius.circular(AppRadius.lg))
+            : AppRadius.large,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,10 +344,31 @@ class _HeroHeader extends StatelessWidget {
               color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
-          if (recipe.descripcion.isNotEmpty) ...[
+          if (recipe.canal != null) ...[
+            const SizedBox(height: Spacing.xs),
+            Row(
+              children: [
+                Icon(
+                  Icons.smart_display_outlined,
+                  size: 18,
+                  color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
+                ),
+                const SizedBox(width: Spacing.xs),
+                Expanded(
+                  child: Text(
+                    recipe.canal!,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (recipe.descripcionVisible.isNotEmpty) ...[
             const SizedBox(height: Spacing.sm),
             Text(
-              recipe.descripcion,
+              recipe.descripcionVisible,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
               ),
@@ -240,6 +376,72 @@ class _HeroHeader extends StatelessWidget {
           ],
         ],
       ),
+    );
+
+    if (!hasPhoto) return header;
+    return Column(
+      children: [
+        RecipePhoto(
+          recipe: recipe,
+          aspectRatio: 16 / 9,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+        ),
+        header,
+      ],
+    );
+  }
+}
+
+/// Recordatorio de la dieta y las alergias del usuario, con un atajo para
+/// adaptar esta receta a ellas. Solo aparece si el usuario ha elegido algo
+/// distinto de "omnívora sin restricciones".
+class _AdaptToPreferencesCard extends StatelessWidget {
+  const _AdaptToPreferencesCard({required this.onAdapt});
+
+  final ValueChanged<Set<TipoReceta>> onAdapt;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ValueListenableBuilder<int>(
+      valueListenable: AppSingleton().preferenciasCambiadas,
+      builder: (context, _, _) {
+        final prefs = AppSingleton()
+            .preferenciasCocina
+            .where((t) => t != TipoReceta.omnivora)
+            .toSet();
+        if (prefs.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.lg),
+          child: AppCard(
+            color: theme.colorScheme.secondaryContainer,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.no_food_outlined,
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: Spacing.md),
+                Expanded(
+                  child: Text(
+                    'Tus preferencias: ${prefs.map((t) => t.label).join(', ')}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: Spacing.sm),
+                TextButton(
+                  onPressed: () => onAdapt(prefs),
+                  child: const Text('Adaptar receta'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -322,6 +524,32 @@ class _MetricCard extends StatelessWidget {
 
 /// Favorito, compartir, abrir la web original y modificar con IA, en el mismo
 /// orden que el diseño de referencia.
+/// Botón para ver el vídeo de la receta en YouTube. Solo aparece si la
+/// descripción trae el enlace.
+class _VideoButton extends StatelessWidget {
+  const _VideoButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          // Rojo de YouTube, con texto blanco que contrasta en claro y oscuro.
+          backgroundColor: const Color(0xFFCC0000),
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(48),
+        ),
+        icon: const Icon(Icons.smart_display_rounded),
+        label: const Text('Ver el vídeo en YouTube'),
+      ),
+    );
+  }
+}
+
 class _ActionsRow extends StatelessWidget {
   const _ActionsRow({
     required this.isFavorite,
@@ -382,8 +610,8 @@ class _ActionsRow extends StatelessWidget {
 }
 
 /// Aviso de lectura en voz alta, con su propio interruptor para activar o
-/// desactivar la voz sin tener que ir a Ajustes. "Iniciar" arranca la
-/// preparación guiada y salta a esa sección, igual que en el diseño.
+/// desactivar la voz sin tener que ir a Ajustes. "Modo cocina" abre la
+/// preparación paso a paso a pantalla completa.
 ///
 /// Los colores salen de `tertiaryContainer`, que vale igual en claro y en
 /// oscuro. Antes usaba `inverseSurface`, que por definición se invierte con el
@@ -469,8 +697,8 @@ class _VoiceReadingBannerState extends State<_VoiceReadingBanner> {
                   backgroundColor: theme.colorScheme.surface,
                   foregroundColor: theme.colorScheme.onSurface,
                 ),
-                icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                label: const Text('Iniciar'),
+                icon: const Icon(Icons.soup_kitchen_outlined, size: 18),
+                label: const Text('Modo cocina'),
               ),
             ],
           ),
@@ -480,36 +708,106 @@ class _VoiceReadingBannerState extends State<_VoiceReadingBanner> {
   }
 }
 
-/// Cabecera de la sección de ingredientes: contador de marcados y acción de
-/// desmarcar todos, como en el diseño de referencia.
+/// Cabecera de la sección de ingredientes: raciones, añadir a la compra,
+/// contador de marcados y acción de desmarcar todos.
 class _IngredientsSectionHeader extends StatelessWidget {
-  const _IngredientsSectionHeader({required this.controller});
+  const _IngredientsSectionHeader({
+    required this.controller,
+    required this.servings,
+    required this.onServingsChanged,
+    required this.onAddToCart,
+  });
 
   final IngredientsController controller;
+  final int? servings;
+
+  /// `null` si la receta no trae un número de raciones que escalar.
+  final ValueChanged<int>? onServingsChanged;
+  final VoidCallback onAddToCart;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: Spacing.md,
+          runSpacing: Spacing.sm,
           children: [
-            Text(
-              '${controller.markedCount} de ${controller.total} marcados',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            TextButton(
-              onPressed: controller.markedCount == 0 ? null : controller.clearAll,
-              child: const Text('Desmarcar todos'),
+            if (onServingsChanged != null && servings != null)
+              _ServingsStepper(value: servings!, onChanged: onServingsChanged!),
+            TextButton.icon(
+              onPressed: onAddToCart,
+              icon: const Icon(Icons.add_shopping_cart_rounded),
+              label: const Text('Añadir lo que falta a la compra'),
             ),
           ],
-        );
-      },
+        ),
+        const SizedBox(height: Spacing.sm),
+        AnimatedBuilder(
+          animation: controller,
+          builder: (context, _) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${controller.markedCount} de ${controller.total} marcados',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                TextButton(
+                  onPressed: controller.markedCount == 0 ? null : controller.clearAll,
+                  child: const Text('Desmarcar todos'),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// Cambia el número de raciones; las cantidades se recalculan al momento.
+class _ServingsStepper extends StatelessWidget {
+  const _ServingsStepper({required this.value, required this.onChanged});
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.large,
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: value > 1 ? () => onChanged(value - 1) : null,
+            tooltip: 'Menos raciones',
+            icon: const Icon(Icons.remove_rounded),
+          ),
+          Text(
+            value == 1 ? '1 ración' : '$value raciones',
+            style: theme.textTheme.labelLarge,
+          ),
+          IconButton(
+            onPressed: value < 50 ? () => onChanged(value + 1) : null,
+            tooltip: 'Más raciones',
+            icon: const Icon(Icons.add_rounded),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -518,17 +816,20 @@ class _IngredientsSectionHeader extends StatelessWidget {
 /// cada sección en la etiqueta.
 class _TabbedContent extends StatelessWidget {
   const _TabbedContent({
-    super.key,
     required this.recipe,
+    required this.ingredientsHeader,
     required this.tabController,
     required this.ingredientsController,
     required this.stepsController,
+    required this.isInPantry,
   });
 
   final Recipe recipe;
+  final Widget ingredientsHeader;
   final TabController tabController;
   final IngredientsController ingredientsController;
   final StepsController stepsController;
+  final bool Function(String ingredient) isInPantry;
 
   @override
   Widget build(BuildContext context) {
@@ -568,11 +869,12 @@ class _TabbedContent extends StatelessWidget {
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _IngredientsSectionHeader(controller: ingredientsController),
+                      ingredientsHeader,
                       const SizedBox(height: Spacing.md),
                       IngredientsList(
                         ingredients: recipe.ingredientes,
                         controller: ingredientsController,
+                        isInPantry: isInPantry,
                       ),
                     ],
                   )
@@ -587,15 +889,18 @@ class _TabbedContent extends StatelessWidget {
 /// Disposición ancha: las dos columnas a la vez, sin pestañas.
 class _SideBySideContent extends StatelessWidget {
   const _SideBySideContent({
-    super.key,
     required this.recipe,
+    required this.ingredientsHeader,
     required this.ingredientsController,
     required this.stepsController,
+    required this.isInPantry,
   });
 
   final Recipe recipe;
+  final Widget ingredientsHeader;
   final IngredientsController ingredientsController;
   final StepsController stepsController;
+  final bool Function(String ingredient) isInPantry;
 
   @override
   Widget build(BuildContext context) {
@@ -614,11 +919,12 @@ class _SideBySideContent extends StatelessWidget {
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: Spacing.sm),
-              _IngredientsSectionHeader(controller: ingredientsController),
+              ingredientsHeader,
               const SizedBox(height: Spacing.md),
               IngredientsList(
                 ingredients: recipe.ingredientes,
                 controller: ingredientsController,
+                isInPantry: isInPantry,
               ),
             ],
           ),

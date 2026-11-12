@@ -1,7 +1,7 @@
 name: aikitchen
 description: "Aplicacion de recetas usando la IA de google"
 publish_to: "none"
-version: 3.1.0+59
+version: 3.1.0+63
 
 environment:
   sdk: ^3.8.0
@@ -26,14 +26,20 @@ dependencies:
   file_picker: ^10.3.10
   permission_handler: ^12.0.1
   device_info_plus: ^12.3.0
+  wakelock_plus: ^1.5.2
+  image: ^4.12.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
+  sqflite_common_ffi: ^2.3.6
 
 flutter:
   uses-material-design: true
+  assets:
+    # Raíz de Let's Encrypt para Android 7 (ver extra_trusted_roots_io.dart).
+    - assets/certs/isrg_root_x1.pem
   fonts:
     - family: Inter
       fonts:

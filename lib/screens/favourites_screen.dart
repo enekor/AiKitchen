@@ -6,11 +6,13 @@ import 'package:aikitchen/screens/preview_shared_recipe.dart';
 import 'package:aikitchen/services/json_documents.dart';
 import 'package:aikitchen/services/platform/platform_info.dart' as platform;
 import 'package:aikitchen/services/recipe_from_file_service.dart';
+import 'package:aikitchen/services/recipe_photo_service.dart';
 import 'package:aikitchen/services/share_recipe_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
 import 'package:aikitchen/widgets/responsive_card_list.dart';
+import 'package:aikitchen/widgets/tag_editor_sheet.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/ui/ui.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -36,6 +38,9 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
   List<Recipe> _allRecipes = [];
   _OriginFilter _filter = _OriginFilter.todas;
 
+  /// Etiqueta por la que se filtra; `null` para no filtrar.
+  String? _tagFilter;
+
   @override
   void initState() {
     super.initState();
@@ -57,17 +62,34 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     });
   }
 
+  /// Todas las etiquetas usadas en favoritos, sin repetir y ordenadas.
+  List<String> get _allTags {
+    final byKey = <String, String>{};
+    for (final r in _allRecipes) {
+      for (final t in r.etiquetas) {
+        byKey.putIfAbsent(t.toLowerCase(), () => t);
+      }
+    }
+    return byKey.values.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  }
+
   List<Recipe> get _visibleRecipes {
     final query = _searchController.text.toLowerCase();
+    final tag = _tagFilter?.toLowerCase();
     return _allRecipes.where((r) {
-      final matchesQuery = query.isEmpty || r.nombre.toLowerCase().contains(query);
+      final matchesQuery = query.isEmpty ||
+          r.nombre.toLowerCase().contains(query) ||
+          r.etiquetas.any((t) => t.toLowerCase().contains(query));
+      final matchesTag = tag == null ||
+          r.etiquetas.any((t) => t.toLowerCase() == tag);
       final matchesFilter = switch (_filter) {
         _OriginFilter.todas => true,
         _OriginFilter.manual => r.origenEfectivo == RecipeOrigin.manual,
         _OriginFilter.ia => r.origenEfectivo == RecipeOrigin.ia,
         _OriginFilter.web => r.origenEfectivo == RecipeOrigin.web,
       };
-      return matchesQuery && matchesFilter;
+      return matchesQuery && matchesFilter && matchesTag;
     }).toList();
   }
 
@@ -129,13 +151,103 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
 
   void _removeFavorite(Recipe recipe) {
     setState(() {
-      AppSingleton().recetasFavoritas.removeWhere((r) => r.nombre == recipe.nombre);
-      _allRecipes.removeWhere((r) => r.nombre == recipe.nombre);
+      AppSingleton().recetasFavoritas.removeWhere((r) => _sameRecipe(r, recipe));
+      _allRecipes.removeWhere((r) => _sameRecipe(r, recipe));
       _selectedRecipes.remove(recipe);
       if (_selectedRecipes.isEmpty) _isSelectionMode = false;
     });
-    JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
+    // Se borra solo esta receta. Reescribir la lista entera, como antes, es
+    // muy costoso ahora que las recetas pueden llevar foto.
+    if (recipe.id != null) {
+      JsonDocumentsService().removeFavRecipe(recipe.id!);
+    } else {
+      JsonDocumentsService().setFavRecipes(AppSingleton().recetasFavoritas);
+    }
     Toaster.showWarning('Receta eliminada');
+  }
+
+  bool _sameRecipe(Recipe a, Recipe b) =>
+      a.id != null && b.id != null ? a.id == b.id : a.nombre == b.nombre;
+
+  /// Guarda una receta modificada (foto o etiquetas) y la sustituye en las
+  /// listas en memoria.
+  Future<bool> _saveRecipe(Recipe updated) async {
+    try {
+      await JsonDocumentsService().updateFavRecipe(updated);
+    } catch (e) {
+      debugPrint('Error guardando la receta: $e');
+      // En navegador el almacenamiento es limitado y una foto puede no caber.
+      Toaster.showError('No se ha podido guardar. Puede que no quede espacio.');
+      return false;
+    }
+    if (!mounted) return true;
+    setState(() {
+      void replace(List<Recipe> list) {
+        final i = list.indexWhere((r) => _sameRecipe(r, updated));
+        if (i != -1) list[i] = updated;
+      }
+
+      replace(_allRecipes);
+      replace(AppSingleton().recetasFavoritas);
+    });
+    return true;
+  }
+
+  Future<void> _pickPhoto(Recipe recipe) async {
+    final foto = await RecipePhotoService.pickPhoto();
+    if (foto == null) return;
+    if (await _saveRecipe(recipe.copyWith(foto: foto))) {
+      Toaster.showSuccess('Foto guardada');
+    }
+  }
+
+  Future<void> _onPhoto(Recipe recipe) async {
+    if (!recipe.tieneFoto) {
+      await _pickPhoto(recipe);
+      return;
+    }
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Cambiar foto'),
+              onTap: () => Navigator.pop(context, 'cambiar'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.hide_image_outlined),
+              title: const Text('Quitar foto'),
+              onTap: () => Navigator.pop(context, 'quitar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (action == 'cambiar') {
+      await _pickPhoto(recipe);
+    } else if (action == 'quitar') {
+      if (await _saveRecipe(recipe.copyWith(sinFoto: true))) {
+        Toaster.showWarning('Foto quitada');
+      }
+    }
+  }
+
+  Future<void> _onTags(Recipe recipe) async {
+    final tags = await TagEditorSheet.show(
+      context,
+      initialTags: recipe.etiquetas,
+      knownTags: _allTags,
+    );
+    if (tags == null) return;
+    await _saveRecipe(recipe.copyWith(etiquetas: tags));
+    // Si se quita la etiqueta por la que se filtraba, se deja de filtrar.
+    if (_tagFilter != null && !_allTags.contains(_tagFilter)) {
+      setState(() => _tagFilter = null);
+    }
   }
 
   Future<void> _openSharedRecipe() async {
@@ -250,6 +362,15 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
               selected: _filter,
               onChanged: (f) => setState(() => _filter = f),
             ),
+            if (_allTags.isNotEmpty) ...[
+              const SizedBox(height: Spacing.sm),
+              FilterChipBar<String?>(
+                options: [null, ..._allTags],
+                labelOf: (t) => t ?? 'Todas las etiquetas',
+                selected: _tagFilter,
+                onChanged: (t) => setState(() => _tagFilter = t),
+              ),
+            ],
             const SizedBox(height: Spacing.md),
             Expanded(
               child: recipes.isEmpty
@@ -278,6 +399,8 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                             onEdit: () => _onEditRecipe(recipe),
                             onDelete: () => _removeFavorite(recipe),
                             onShare: () => ShareRecipeService().shareRecipe([recipe]),
+                            onPhoto: () => _onPhoto(recipe),
+                            onTags: () => _onTags(recipe),
                           ),
                       ],
                     ),
@@ -299,6 +422,8 @@ class _FavouriteCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onShare,
+    required this.onPhoto,
+    required this.onTags,
   });
 
   final Recipe recipe;
@@ -309,6 +434,8 @@ class _FavouriteCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onShare;
+  final VoidCallback onPhoto;
+  final VoidCallback onTags;
 
   String get _originLabel => switch (recipe.origenEfectivo) {
     RecipeOrigin.manual => 'Manual',
@@ -328,6 +455,11 @@ class _FavouriteCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Sin foto no se reserva hueco: la tarjeta queda como siempre.
+            if (recipe.tieneFoto) ...[
+              RecipePhoto(recipe: recipe, borderRadius: AppRadius.small),
+              const SizedBox(height: Spacing.md),
+            ],
             Row(
               children: [
                 if (isSelectionMode)
@@ -368,11 +500,52 @@ class _FavouriteCard extends StatelessWidget {
             ),
             const SizedBox(height: Spacing.xs),
             RecipeMetaRow(recipe: recipe),
+            if (recipe.etiquetas.isNotEmpty) ...[
+              const SizedBox(height: Spacing.sm),
+              Wrap(
+                spacing: Spacing.xs,
+                runSpacing: Spacing.xs,
+                children: [
+                  for (final tag in recipe.etiquetas)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.sm,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.tertiaryContainer,
+                        borderRadius: AppRadius.capsule,
+                      ),
+                      child: Text(
+                        tag,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
             if (!isSelectionMode) ...[
               const SizedBox(height: Spacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  IconButton(
+                    onPressed: onTags,
+                    icon: const Icon(Icons.label_outline_rounded, size: 20),
+                    tooltip: 'Etiquetas',
+                  ),
+                  IconButton(
+                    onPressed: onPhoto,
+                    icon: Icon(
+                      recipe.tieneFoto
+                          ? Icons.photo_camera_back_outlined
+                          : Icons.add_a_photo_outlined,
+                      size: 20,
+                    ),
+                    tooltip: recipe.tieneFoto ? 'Foto del plato' : 'Añadir foto',
+                  ),
                   IconButton(
                     onPressed: onEdit,
                     icon: const Icon(Icons.edit_outlined, size: 20),

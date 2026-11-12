@@ -63,10 +63,10 @@ class RecipeCard extends StatelessWidget {
                 ),
             ],
           ),
-          if (recipe.descripcion.isNotEmpty) ...[
+          if (recipe.descripcionVisible.isNotEmpty) ...[
             const SizedBox(height: Spacing.xs),
             Text(
-              recipe.descripcion,
+              recipe.descripcionVisible,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

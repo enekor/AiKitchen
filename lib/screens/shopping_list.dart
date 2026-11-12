@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:aikitchen/models/cart_item.dart';
 import 'package:aikitchen/models/prompt.dart';
+import 'package:aikitchen/navigation/app_routes.dart';
 import 'package:aikitchen/services/json_documents.dart';
+import 'package:aikitchen/services/pantry_service.dart';
+import 'package:aikitchen/utils/pantry_matcher.dart';
 import 'package:aikitchen/services/widget_service.dart';
 import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
@@ -14,7 +17,14 @@ import 'package:share_plus/share_plus.dart';
 
 /// Acciones poco frecuentes de la lista. Viven en el menú de la barra superior
 /// para que la lista empiece lo más arriba posible.
-enum _ListAction { fromWeeklyMenu, monthlyWithAi, share, clearCompleted }
+enum _ListAction {
+  fromWeeklyMenu,
+  monthlyWithAi,
+  pantry,
+  purchasedToPantry,
+  share,
+  clearCompleted,
+}
 
 /// Destino "Lista de la compra" del armazón de navegación.
 class ShoppingList extends StatefulWidget {
@@ -82,6 +92,21 @@ class _ShoppingListState extends State<ShoppingList> {
     }
     await WidgetService.updateShoppingListWidget();
     await _load();
+  }
+
+  /// Lo comprado pasa a la despensa, sin cantidades, y sale de la lista.
+  Future<void> _purchasedToPantry() async {
+    final completed = _items.where((i) => i.isPurchased).toList();
+    if (completed.isEmpty) return;
+    final added = await PantryService.instance.addAll(
+      completed.map((i) => PantryMatcher.cleanName(i.name)),
+    );
+    await _clearCompleted();
+    Toaster.showSuccess(
+      added == 0
+          ? 'Ya estaba todo en la despensa'
+          : '$added productos pasados a la despensa',
+    );
   }
 
   void _shareList() {
@@ -157,6 +182,17 @@ class _ShoppingListState extends State<ShoppingList> {
       return;
     }
 
+    // Lo que ya hay en casa no hace falta comprarlo.
+    await PantryService.instance.load();
+    final faltan = ingredientes
+        .where((i) => !PantryService.instance.covers(i))
+        .toList();
+    final enDespensa = ingredientes.length - faltan.length;
+    if (faltan.isEmpty) {
+      Toaster.showSuccess('Tienes en la despensa todo lo del menú');
+      return;
+    }
+
     // El menú se ha leído de forma asíncrona antes de esto: comprobamos que la
     // pantalla siga viva antes de usar el contexto.
     if (!mounted) return;
@@ -164,14 +200,18 @@ class _ShoppingListState extends State<ShoppingList> {
     setState(() => _isGenerating = true);
     try {
       final response = await AppSingleton().generateContent(
-        Prompt.categorizeIngredientsPrompt(ingredientes.toList()),
+        Prompt.categorizeIngredientsPrompt(faltan),
         context,
       );
       final items = _parseCategorizedList(response);
       await JsonDocumentsService().addCategorizedCartItems(items);
       await WidgetService.updateShoppingListWidget();
       await _load();
-      Toaster.showSuccess('${items.length} ingredientes añadidos desde el menú');
+      Toaster.showSuccess(
+        enDespensa == 0
+            ? '${items.length} ingredientes añadidos desde el menú'
+            : '${items.length} ingredientes añadidos; $enDespensa ya estaban en la despensa',
+      );
     } catch (e) {
       Toaster.showError('Error al exportar el menú: $e');
     } finally {
@@ -186,6 +226,12 @@ class _ShoppingListState extends State<ShoppingList> {
         break;
       case _ListAction.monthlyWithAi:
         _generateMonthlyList();
+        break;
+      case _ListAction.pantry:
+        Navigator.pushNamed(context, AppRoutes.pantry);
+        break;
+      case _ListAction.purchasedToPantry:
+        _purchasedToPantry();
         break;
       case _ListAction.share:
         _shareList();
@@ -246,6 +292,22 @@ class _ShoppingListState extends State<ShoppingList> {
                 child: const _MenuRow(
                   icon: Icons.calendar_month_outlined,
                   label: 'Generar lista mensual con IA',
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: _ListAction.pantry,
+                child: _MenuRow(
+                  icon: Icons.inventory_2_outlined,
+                  label: 'Mi despensa',
+                ),
+              ),
+              PopupMenuItem(
+                value: _ListAction.purchasedToPantry,
+                enabled: completed.isNotEmpty,
+                child: const _MenuRow(
+                  icon: Icons.move_down_rounded,
+                  label: 'Pasar comprados a la despensa',
                 ),
               ),
               const PopupMenuDivider(),

@@ -5,6 +5,7 @@ import 'package:aikitchen/singleton/app_singleton.dart';
 import 'package:aikitchen/models/prompt.dart';
 import 'package:aikitchen/theme/cooking_theme.dart';
 import 'package:aikitchen/widgets/content_shell.dart';
+import 'package:aikitchen/widgets/diet_preferences.dart';
 import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/ui/ai_button.dart';
 import 'package:flutter/material.dart';
@@ -101,10 +102,9 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
       final response = await AppSingleton().generateContent(
         finalPrompt,
         context,
-        maxTokens: 6000,
       );
 
-      if (response.isNotEmpty && !response.contains('error')) {
+      if (response.isNotEmpty) {
         final cleanedResponse = _cleanJsonResponse(response);
         final Map<String, List<Recipe>> newMenu = {};
 
@@ -159,7 +159,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
         context,
       );
 
-      if (response.isNotEmpty && !response.contains('error')) {
+      if (response.isNotEmpty) {
         final nuevas = Recipe.fromJsonList(_cleanJsonResponse(response));
         if (nuevas.isNotEmpty) {
           setState(() {
@@ -195,7 +195,7 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
 
   void _handleError(String error) {
     setState(() => _isLoading = false);
-    Toaster.showError('Error: ${error.split(":").last}');
+    Toaster.showError('Error: $error');
   }
 
   @override
@@ -217,14 +217,30 @@ class _WeeklyMenuState extends State<WeeklyMenu> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _weeklyMenu.isEmpty
-          ? ContentShell(child: EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu))
-          : ContentShell.wide(
-              child: WeeklyMenuList(
-                diasSemana: _diasSemana,
-                weeklyMenu: _weeklyMenu,
-                onRegenerateMeal: _regenerateMeal,
-              ),
+          : Column(
+              children: [
+                // Se ve antes de generar o regenerar el menú, que es cuando
+                // importa con qué dieta y alergias lo va a hacer la IA.
+                const ContentShell.wide(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: Spacing.md),
+                    child: DietPreferencesBar(),
+                  ),
+                ),
+                Expanded(
+                  child: _weeklyMenu.isEmpty
+                      ? ContentShell(
+                          child: EmptyWeeklyMenu(onGenerate: _generateWeeklyMenu),
+                        )
+                      : ContentShell.wide(
+                          child: WeeklyMenuList(
+                            diasSemana: _diasSemana,
+                            weeklyMenu: _weeklyMenu,
+                            onRegenerateMeal: _regenerateMeal,
+                          ),
+                        ),
+                ),
+              ],
             ),
     );
   }

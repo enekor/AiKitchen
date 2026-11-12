@@ -248,8 +248,12 @@ class CookingTheme {
         backgroundColor: colorScheme.surface,
         labelType: NavigationRailLabelType.all,
         selectedIconTheme: IconThemeData(color: colorScheme.onSecondaryContainer),
+        // La etiqueta va fuera del indicador, sobre el fondo del raíl: con
+        // onSecondaryContainer (pensado para ir encima del indicador) quedaba
+        // blanca sobre blanco en el tema claro.
         selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
-          color: colorScheme.onSecondaryContainer,
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w700,
         ),
         unselectedLabelTextStyle: textTheme.labelMedium?.copyWith(
           color: colorScheme.onSurfaceVariant,

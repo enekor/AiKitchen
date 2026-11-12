@@ -89,8 +89,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
       ingredientes: _ingredients.where((i) => i.isNotEmpty).toList(),
       preparacion: _steps.where((s) => s.isNotEmpty).toList(),
       tiempoEstimado: '${_estimatedTimeController.text} min',
-      // Al editar se conserva el origen original de la receta.
+      // Al editar se conservan el origen, la foto y las etiquetas.
       origen: widget.recipe?.origen ?? RecipeOrigin.manual,
+      foto: widget.recipe?.foto,
+      etiquetas: widget.recipe?.etiquetas ?? const [],
+      canal: widget.recipe?.canal,
     );
 
     if (widget.recipe != null) {

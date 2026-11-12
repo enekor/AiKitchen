@@ -10,6 +10,9 @@ import 'package:aikitchen/widgets/toaster.dart';
 import 'package:aikitchen/widgets/ui/app_card.dart';
 import 'package:flutter/material.dart';
 import '../singleton/app_singleton.dart';
+import 'package:aikitchen/widgets/diet_preferences.dart';
+
+export 'package:aikitchen/models/tipo_receta.dart';
 
 class Settings extends StatefulWidget {
   static const String routeName = '/ajustes';
@@ -89,32 +92,16 @@ enum Idioma {
   }
 }
 
-enum TipoReceta {
-  // ignore: constant_identifier_names
-  vegana, vegetariana, carnivora, pescetariana, sin_gluten, sin_lactosa, omnivora, sin_azucar, sin_huevo, sin_frutosSecos, sin_cereales, sin_legumbres;
-
-  String get displayName => _humanize(name);
-
-  static List<String> get displayNames =>
-      values.map((e) => e.displayName).toList();
-
-  static TipoReceta fromDisplayName(String displayName) {
-    return values.firstWhere(
-      (e) => e.displayName.toLowerCase() == displayName.toLowerCase(),
-      orElse: () => TipoReceta.omnivora,
-    );
-  }
-
-  static TipoReceta fromStoredName(String stored) {
-    final normalized = stored.trim().toLowerCase();
-    return values.firstWhere(
-      (e) => e.name.toLowerCase() == normalized,
-      orElse: () => TipoReceta.omnivora,
-    );
-  }
-}
-
 class _SettingsState extends State<Settings> {
+  /// Frecuencia de descarga automática del recetario, en días.
+  static const _recetarioFrecuencias = {
+    'Cada día': 1,
+    'Cada 3 días': 3,
+    'Cada semana': 7,
+    'Cada 2 semanas': 14,
+    'Cada mes': 30,
+  };
+
   String _configProviderKey = 'groq';
 
   @override
@@ -127,15 +114,6 @@ class _SettingsState extends State<Settings> {
     setState(() {
       AppSingleton().setUseTTS = value;
     });
-  }
-
-  List<String> get _availableModelsForActiveProvider {
-    final active = AppSingleton().activeProvider ?? 'groq';
-    return AiService.providerModels[active] ?? ['llama-3.3-70b-versatile'];
-  }
-
-  String _getModelDisplayName(String modelId) {
-    return modelId;
   }
 
   void _showTutorialModal(String providerKey) {
@@ -324,14 +302,30 @@ class _SettingsState extends State<Settings> {
               ],
 
               const SizedBox(height: Spacing.lg),
-              SingleListSetting(
-                initialValue: _getModelDisplayName(singleton.selectedModel),
-                text: 'Modelo de Lenguaje (${AiService.providerDisplayNames[activeProvider]})',
-                options: _availableModelsForActiveProvider,
-                onChange: (String value) {
-                  setState(() => singleton.setSelectedModel = value);
-                  Toaster.showToast('Modelo cambiado a: $value');
-                },
+              // El modelo ya no se elige: cada proveedor usa siempre el más
+              // barato que aguanta una respuesta con cinco recetas.
+              AppCard(
+                child: Row(
+                  children: [
+                    Icon(Icons.memory_rounded, color: theme.colorScheme.primary),
+                    const SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Modelo', style: theme.textTheme.titleMedium),
+                          Text(
+                            '${AiService.effectiveModel(activeProvider)}: el más '
+                            'económico de ${AiService.providerDisplayNames[activeProvider]}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               DecimalSliderSetting(
@@ -371,6 +365,31 @@ class _SettingsState extends State<Settings> {
                 subtitle: 'Reduce el espaciado para ver más contenido a la vez',
                 onChange: (value) => setState(() => singleton.setDensidadCompacta = value),
               ),
+              const SizedBox(height: Spacing.md),
+              SwitchSetting(
+                initialValue: singleton.inicioModerno.value,
+                text: 'Nueva pantalla de inicio',
+                subtitle: 'Menú de hoy destacado, accesos por colores y favoritas con foto. '
+                    'Desactívala para volver a la anterior.',
+                onChange: (value) => setState(() => singleton.setInicioModerno = value),
+              ),
+
+              const SizedBox(height: Spacing.xxl),
+              _sectionHeader(theme, 'Recetario'),
+              const SizedBox(height: Spacing.lg),
+              SingleListSetting(
+                initialValue: _recetarioFrecuencias.entries
+                    .firstWhere(
+                      (e) => e.value == singleton.recetarioDias.value,
+                      orElse: () => _recetarioFrecuencias.entries.elementAt(2),
+                    )
+                    .key,
+                text: 'Buscar recetas nuevas',
+                options: _recetarioFrecuencias.keys.toList(),
+                onChange: (value) => setState(
+                  () => singleton.setRecetarioDias = _recetarioFrecuencias[value] ?? 7,
+                ),
+              ),
 
               const SizedBox(height: Spacing.xxl),
               _sectionHeader(theme, 'Preferencias de recetas'),
@@ -383,18 +402,7 @@ class _SettingsState extends State<Settings> {
                 onChange: (int value) => setState(() => singleton.setNumRecetas = value),
               ),
               const SizedBox(height: 16),
-              MultiListSetting(
-                initialValues: [
-                  TipoReceta.fromStoredName(singleton.tipoReceta).displayName,
-                ],
-                text: 'Tipo de cocina',
-                options: TipoReceta.displayNames,
-                onChange: (List<String> values) {
-                  final tipo = TipoReceta.fromDisplayName(values.first);
-                  setState(() => singleton.setTipoReceta = tipo.name);
-                  Toaster.showToast('Tipo de cocina: ${tipo.displayName}');
-                },
-              ),
+              const DietPreferencesBar(),
               const SizedBox(height: 16),
               MultiListSetting(
                 initialValues: [

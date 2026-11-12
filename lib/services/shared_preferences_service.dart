@@ -21,6 +21,9 @@ enum SharedPreferencesKeys {
   velocidadVoz,
   creatividad,
   densidadCompacta,
+  despensa,
+  inicioModerno,
+  recetarioDias,
 }
 
 class SharedPreferencesService {
