@@ -165,6 +165,16 @@ class Recipe {
     };
   }
 
+  /// SQLite guarda calorías y raciones en columnas numéricas (`REAL`), así que
+  /// `380` vuelve como `380.0`. Sin esto se mostraba "380.0 kcal" y el total
+  /// del menú semanal, que quita todo lo que no es dígito, contaba 3800.
+  static String _numberText(dynamic value) {
+    if (value is double && value == value.truncateToDouble()) {
+      return value.toInt().toString();
+    }
+    return value.toString();
+  }
+
   static List<String> _parseEtiquetas(dynamic value) {
     if (value is List) return value.map((e) => e.toString()).toList();
     if (value is String && value.isNotEmpty) {
@@ -202,8 +212,8 @@ class Recipe {
       tiempoEstimado: map['tiempo_estimado'],
       ingredientes: List<String>.from(jsonDecode(map['ingredientes'])),
       preparacion: List<String>.from(jsonDecode(map['preparacion'])),
-      calorias: map['calorias'].toString(),
-      raciones: map['raciones'].toString(),
+      calorias: _numberText(map['calorias']),
+      raciones: _numberText(map['raciones']),
       // Columna añadida en la versión 3 de la base de datos: puede faltar en
       // filas migradas de una versión anterior.
       origen: RecipeOrigin.fromName(map['origen'] as String?),
